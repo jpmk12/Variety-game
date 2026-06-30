@@ -17,7 +17,7 @@ import {
   STAT_KEYS,
 } from './stats.js';
 import { load, save } from '../../storage.js';
-import { play } from '../../audio.js';
+import { play, playVoice } from '../../audio.js';
 import { makeDraggable } from './drag.js';
 import { SEQUENCES, STEP_ART } from './sequences.js';
 
@@ -106,6 +106,7 @@ export function mountAnimalCare(root) {
     wrap.setAttribute('aria-label', a.name + ' the ' + a.id);
     wrap.innerHTML = `
       <span class="ac-thought" aria-hidden="true"></span>
+      <span class="ac-queue" aria-hidden="true"></span>
       <span class="ac-mood" aria-hidden="true"></span>
       <span class="ac-name">${a.name}</span>
       <span class="ac-prop-layer"></span>
@@ -115,10 +116,12 @@ export function mountAnimalCare(root) {
       wrap,
       faceEl: wrap.querySelector('.ac-mood'),
       thoughtEl: wrap.querySelector('.ac-thought'),
+      queueEl: wrap.querySelector('.ac-queue'),
       propLayer: wrap.querySelector('.ac-prop-layer'),
       artEl: wrap.querySelector('.ac-art'),
       overlayEl: wrap.querySelector('.ac-overlay'),
       busy: false,
+      queue: [],
     };
     els[a.id] = refs;
 
@@ -196,11 +199,19 @@ export function mountAnimalCare(root) {
   function refreshAll() { ANIMALS.forEach((a) => refreshPet(a.id)); }
 
   // --- the core care action ---
+  const MAX_QUEUE = 4;
   function doAction(act, petId = state.selected) {
     const id = petId;
     if (id !== state.selected) setSelected(id);
     const refs = els[id];
-    if (refs.busy) return; // don't interrupt a multi-step sequence in progress
+    // Mid-sequence? Queue the tap so it runs next instead of being dropped.
+    if (refs.busy) {
+      if (refs.queue.length < MAX_QUEUE) {
+        refs.queue.push(act);
+        bumpQueueBadge(id);
+      }
+      return;
+    }
     const stats = state.animals[id].stats;
     hint.classList.add('is-hidden');
 
@@ -250,6 +261,7 @@ export function mountAnimalCare(root) {
       if (step.prop) spawnProp(propLayer, act);
       if (step.particle) sprayParticles(propLayer, step.particle, step.count || 5);
       if (step.sound) play(step.sound);
+      if (step.voice) playVoice(id);
       if (step.say) say(id, act.praise);
       if (step.celebrate && refs.pendingCelebrate) { celebrate(id); refs.pendingCelebrate = false; }
       await sleep(step.ms);
@@ -259,6 +271,13 @@ export function mountAnimalCare(root) {
     overlayEl.className = 'ac-overlay';
     refs.busy = false;
     if (alive) refreshPet(id);
+
+    // Run the next queued tap, if any.
+    if (alive && refs.queue.length) {
+      const next = refs.queue.shift();
+      bumpQueueBadge(id);
+      doAction(next, id);
+    }
   }
 
   // --- petting (tap the already-selected pet) ---
@@ -268,7 +287,7 @@ export function mountAnimalCare(root) {
     stats.happiness = clamp(stats.happiness + 8);
     restartAnim(els[id].artEl, 'is-cuddle', 700);
     sprayParticles(els[id].propLayer, '❤️', 4);
-    play('happy');
+    playVoice(id);
     say(id, PET_SAYINGS[Math.floor(Math.random() * PET_SAYINGS.length)]);
     refreshPet(id);
     persist();
@@ -283,7 +302,18 @@ export function mountAnimalCare(root) {
     setTimeout(() => banner.classList.remove('show'), 2200);
     spawnConfetti(28);
     play('happy');
-    setTimeout(() => play('play'), 180);
+    setTimeout(() => playVoice(id), 180);
+  }
+
+  // Show how many taps are waiting their turn on a pet ("+2").
+  function bumpQueueBadge(id) {
+    const { queueEl, queue } = els[id];
+    if (queue.length > 0) {
+      queueEl.textContent = '+' + queue.length;
+      queueEl.classList.add('show');
+    } else {
+      queueEl.classList.remove('show');
+    }
   }
 
   // --- small effect helpers ---

@@ -32,6 +32,10 @@ python3 -m http.server 8000
   - Each task plays a **multi-step animation** so it feels like a real event —
     e.g. a bath goes *lather up → scrub → rinse the suds off → sparkle clean*,
     and feeding goes *bowl in → munch → happy*.
+  - Tapping more tasks while one is playing **queues them up** (a little "+2"
+    badge shows how many are waiting); they run in order.
+- **Each animal has its own voice:** a woof for the dog, a meow for the cat, and
+  a sparkly chime for the unicorn (played when it finishes a task or gets a pet).
 - **See how each pet is doing:** every pet has a mood face, and pops up a
   **thought bubble** showing what it wants when a need runs low (tap the bubble
   to give it instantly). The **selected pet's needs meter** sits above the task
