@@ -1,0 +1,167 @@
+/* Idle + action animations for the Animal Care pets.
+   Idle: gentle breathing, blinking, tail wag so the room feels alive.
+   Actions: a class added to .ac-art drives a whole-body motion; parts inside
+   the SVG (tail/ears/mouth) carry their own idle loops. */
+
+/* ---- Idle: whole body breathing bob ---- */
+.ac-art {
+  transform-origin: 50% 90%;
+  animation: idle-breathe 3.4s ease-in-out infinite;
+}
+/* stagger so the three pets don't bob in lockstep */
+.ac-animal:nth-child(2) .ac-art { animation-delay: -1.1s; }
+.ac-animal:nth-child(3) .ac-art { animation-delay: -2.2s; }
+
+@keyframes idle-breathe {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  50% { transform: translateY(-3px) scale(1.01, 0.99); }
+}
+
+/* ---- Idle: tail wag (all animals share .ac-tail) ---- */
+.ac-tail {
+  transform-origin: 75% 80%;
+  animation: tail-wag 1.1s ease-in-out infinite;
+}
+@keyframes tail-wag {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(10deg); }
+}
+
+/* ---- Idle: blinking ---- */
+.ac-eye-l, .ac-eye-r {
+  transform-origin: center;
+  animation: blink 4.2s infinite;
+}
+.ac-animal:nth-child(2) .ac-eye-l,
+.ac-animal:nth-child(2) .ac-eye-r { animation-delay: -1.7s; }
+.ac-animal:nth-child(3) .ac-eye-l,
+.ac-animal:nth-child(3) .ac-eye-r { animation-delay: -3s; }
+@keyframes blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  96% { transform: scaleY(0.1); }
+}
+
+/* dog tongue only shows during a happy pant */
+.ac-tongue { opacity: 0; transform-origin: 50% 0; }
+
+/* ---- Idle: ear flick (subtle) ---- */
+.ac-ear-l { transform-origin: bottom center; animation: ear-flick 5s ease-in-out infinite; }
+.ac-ear-r { transform-origin: bottom center; animation: ear-flick 5s ease-in-out infinite reverse; }
+@keyframes ear-flick {
+  0%, 88%, 100% { transform: rotate(0); }
+  93% { transform: rotate(6deg); }
+}
+
+/* unicorn horn shimmer */
+.ac-horn { animation: horn-shimmer 2.6s ease-in-out infinite; transform-origin: 50% 100%; }
+@keyframes horn-shimmer {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.35) drop-shadow(0 0 6px #ffe39a); }
+}
+
+/* ====================================================================
+   ACTION ANIMATIONS — added to .ac-art, removed on animationend
+   ==================================================================== */
+
+/* FEED: head dips down to munch, repeated */
+.ac-art.is-eating { animation: eat-bob 0.32s ease-in-out 4; }
+@keyframes eat-bob {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(8px) rotate(-3deg); }
+}
+
+/* WATER: lean forward to lap */
+.ac-art.is-drinking { animation: drink-lap 0.4s ease-in-out 3; }
+@keyframes drink-lap {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(6px) rotate(4deg); }
+}
+
+/* BATH: happy shimmy side to side */
+.ac-art.is-bathing { animation: bath-wiggle 0.28s ease-in-out 5; }
+@keyframes bath-wiggle {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-5deg); }
+  75% { transform: rotate(5deg); }
+}
+
+/* PLAY: big excited hops */
+.ac-art.is-playing { animation: play-hop 0.4s cubic-bezier(.3,1.6,.5,1) 3; }
+@keyframes play-hop {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  30% { transform: translateY(-26px) scale(0.96, 1.04); }
+  60% { transform: translateY(0) scale(1.06, 0.94); }
+}
+
+/* HAPPY: a quick celebratory wiggle after any action */
+.ac-art.is-happy { animation: happy-pop 0.6s ease; }
+.ac-art.is-happy .ac-tongue { opacity: 1; animation: tongue-pant 0.2s ease-in-out 3; }
+@keyframes happy-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.12) rotate(-2deg); }
+  70% { transform: scale(0.97) rotate(2deg); }
+  100% { transform: scale(1); }
+}
+@keyframes tongue-pant {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.4); }
+}
+
+/* ====================================================================
+   PROPS & PARTICLES
+   ==================================================================== */
+
+/* food/water bowl rises up into view from the floor */
+@keyframes prop-rise {
+  0% { transform: translate(-50%, 30px) scale(0.4); opacity: 0; }
+  20% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+  80% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, 6px) scale(0.9); opacity: 0; }
+}
+/* bath bubbles drift down over the pet */
+@keyframes prop-bath {
+  0% { transform: translate(-50%, -20px) scale(0.5); opacity: 0; }
+  25% { transform: translate(-50%, 0) scale(1.1); opacity: 1; }
+  100% { transform: translate(-50%, 10px) scale(1); opacity: 0; }
+}
+/* play ball bounces in */
+@keyframes prop-bounce {
+  0% { transform: translate(-50%, -60px) scale(0.6); opacity: 0; }
+  30% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+  45% { transform: translate(-50%, -24px) scale(1); }
+  60% { transform: translate(-50%, 0) scale(1.05, 0.95); }
+  80% { transform: translate(-50%, -10px); opacity: 1; }
+  100% { transform: translate(-50%, 0); opacity: 0; }
+}
+
+/* emoji particles float up and fade, drifting by a random --dx */
+@keyframes particle-float {
+  0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
+  15% { opacity: 1; transform: translate(0, -10px) scale(1); }
+  100% { transform: translate(var(--dx, 0), -120px) scale(1.1); opacity: 0; }
+}
+
+/* selection ring pulse */
+@keyframes ring-pulse {
+  0%, 100% { opacity: 0.5; transform: translateX(-50%) scale(0.9); }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.1); }
+}
+
+/* sad pets give a little wobble to ask for care */
+@keyframes mood-wobble {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-8deg); }
+  75% { transform: rotate(8deg); }
+}
+
+/* window clouds drifting */
+@keyframes drift {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(360%); }
+}
+
+/* reduced motion: stop the looping idle/ambient animations */
+@media (prefers-reduced-motion: reduce) {
+  .ac-art, .ac-tail, .ac-eye-l, .ac-eye-r, .ac-ear-l, .ac-ear-r,
+  .ac-horn, .ac-cloud { animation: none !important; }
+}

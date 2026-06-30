@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#7cc6ff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>Fun Game Hub</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+</head>
+<body>
+  <!-- Top bar: shows a Back button inside games, and a global mute toggle -->
+  <header id="topbar" class="topbar">
+    <button id="backBtn" class="topbar-btn" hidden aria-label="Back to menu">
+      <span aria-hidden="true">←</span> Menu
+    </button>
+    <h1 id="topTitle" class="top-title">Fun Game Hub</h1>
+    <button id="muteBtn" class="topbar-btn mute-btn" aria-label="Mute sound" aria-pressed="false">
+      <span class="mute-on" aria-hidden="true">🔊</span>
+      <span class="mute-off" aria-hidden="true">🔇</span>
+    </button>
+  </header>
+
+  <!-- Everything (hub menu or the active game) renders into #app -->
+  <main id="app" class="app"></main>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

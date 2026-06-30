@@ -1,0 +1,58 @@
+# Fun Game Hub 🎮
+
+A touch-friendly game hub for kids. The home screen is a menu of games; the
+first game is **Animal Care**, where you look after three cartoony pets — a dog,
+a cat, and a unicorn — by feeding, watering, bathing, and playing with them.
+
+Built as a **zero-build static site**: plain HTML, CSS, and JavaScript (ES
+modules) with hand-drawn inline SVG characters. No installs, no bundler, no
+dependencies. It hosts anywhere static files can live (e.g. GitHub Pages).
+
+## Play it
+
+ES modules need to be served over HTTP (not opened as a `file://`), so start any
+static server from the project root:
+
+```bash
+python3 -m http.server 8000
+# then open http://localhost:8000 on a tablet or browser
+```
+
+## How Animal Care works
+
+- Tap a pet to select it (it steps forward with a glow), then tap a task:
+  - 🍖 **Feed** — fills the tummy
+  - 💧 **Water** — quenches thirst
+  - 🛁 **Bath** — gets squeaky clean
+  - 🎾 **Play** — the biggest happiness boost
+- A mood face floats above each pet and updates with how well-cared-for it is.
+- Stats save to the browser (`localStorage`) and drift down slowly over real
+  time, so pets are happy to see you again — but never neglected to misery.
+- Use the 🔊 button in the top bar to mute/unmute sounds (sounds are generated
+  with the Web Audio API — there are no audio files).
+
+## Project layout
+
+```
+index.html              app entry; loads js/main.js as a module
+css/
+  styles.css            theme, hub menu, room, action bar
+  animations.css        idle + action keyframes
+js/
+  main.js               app shell + router (hub <-> game) + top-bar buttons
+  hub.js                renders the menu from the registry
+  registry.js           list of games (add new games here)
+  storage.js            localStorage helpers
+  audio.js              Web Audio sound effects + mute
+  games/animal-care/
+    index.js            game controller
+    animals.js          dog / cat / unicorn SVG characters
+    actions.js          feed / water / bath / play definitions
+    stats.js            stat model, time decay, mood mapping
+```
+
+## Adding another game later
+
+Add an entry to `js/registry.js` with an `id`, `title`, `emoji`, and a
+`mount(el)` function that renders into the given element and returns an optional
+`unmount()` cleanup. The hub menu picks it up automatically.

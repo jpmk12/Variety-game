@@ -1,0 +1,308 @@
+/* ---- Theme & reset ---- */
+:root {
+  --sky: #7cc6ff;
+  --sky-2: #a8e0ff;
+  --ink: #3a3357;
+  --card: #ffffff;
+  --shadow: rgba(60, 50, 90, 0.18);
+  --topbar-h: 64px;
+  font-size: 18px;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Baloo 2', 'Comic Sans MS', 'Trebuchet MS', system-ui, sans-serif;
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--sky) 0%, var(--sky-2) 100%);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+
+/* ---- Top bar ---- */
+.topbar {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: var(--topbar-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 12px;
+  padding-top: env(safe-area-inset-top, 0);
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 10px var(--shadow);
+  z-index: 20;
+}
+.top-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.6);
+}
+.topbar-btn {
+  min-width: 56px;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 22px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  background: #fff;
+  box-shadow: 0 3px 0 var(--shadow);
+  transition: transform 0.08s ease;
+}
+.topbar-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--shadow); }
+.mute-btn .mute-off { display: none; }
+.mute-btn.is-muted .mute-on { display: none; }
+.mute-btn.is-muted .mute-off { display: inline; }
+
+/* ---- App container ---- */
+.app {
+  position: absolute;
+  inset: var(--topbar-h) 0 0 0;
+  overflow: hidden;
+}
+
+/* ---- Hub menu ---- */
+.hub-grid {
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  padding: 24px;
+  align-content: center;
+  justify-items: center;
+  overflow-y: auto;
+}
+.game-card {
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 20px;
+  border-radius: 28px;
+  background: var(--card);
+  box-shadow: 0 8px 0 var(--shadow), 0 12px 24px var(--shadow);
+  border: 5px solid var(--accent);
+  transition: transform 0.12s ease;
+}
+.game-card:active { transform: scale(0.96); }
+.game-card .game-emoji { font-size: 4.5rem; line-height: 1; filter: drop-shadow(0 4px 4px var(--shadow)); }
+.game-card .game-title { font-size: 1.6rem; font-weight: 800; }
+.game-card .game-blurb { font-size: 0.95rem; opacity: 0.75; text-align: center; }
+.game-card.is-soon { opacity: 0.7; filter: grayscale(0.3); }
+.soon-badge {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: var(--accent);
+  color: #fff;
+  padding: 3px 12px;
+  border-radius: 999px;
+}
+
+/* ---- Animal Care: room ---- */
+.ac-game { height: 100%; display: flex; flex-direction: column; }
+.ac-room {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+.ac-wall {
+  position: absolute;
+  inset: 0 0 32% 0;
+  background: linear-gradient(180deg, #ffe9c7 0%, #ffe0b0 100%);
+}
+.ac-window {
+  position: absolute;
+  top: 12%;
+  left: 10%;
+  width: 26%;
+  height: 46%;
+  background: linear-gradient(180deg, #bfe9ff, #8fd3ff);
+  border: 8px solid #fff;
+  border-radius: 14px;
+  box-shadow: 0 6px 0 var(--shadow);
+  overflow: hidden;
+}
+.ac-cloud {
+  position: absolute;
+  top: 22%;
+  left: -30%;
+  width: 50%;
+  height: 22%;
+  background: #fff;
+  border-radius: 999px;
+  box-shadow: 30px 6px 0 -2px #fff, -16px 8px 0 -4px #fff;
+  animation: drift 14s linear infinite;
+}
+.ac-cloud2 { top: 55%; animation-duration: 20s; animation-delay: -6s; opacity: 0.85; }
+.ac-frame {
+  position: absolute;
+  top: 14%;
+  right: 12%;
+  font-size: 3rem;
+  background: #fff;
+  padding: 6px 10px;
+  border-radius: 14px;
+  box-shadow: 0 6px 0 var(--shadow);
+}
+.ac-floor {
+  position: absolute;
+  inset: 68% 0 0 0;
+  background: linear-gradient(180deg, #c79a6b 0%, #b8895a 100%);
+}
+.ac-rug {
+  position: absolute;
+  left: 50%;
+  top: 30%;
+  width: 78%;
+  height: 56%;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, #ff9ec4 0%, #ff7db0 55%, #f2669e 56%, #f2669e 100%);
+  border-radius: 50%;
+  opacity: 0.85;
+}
+
+/* ---- Animals on stage ---- */
+.ac-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(4px, 3vw, 36px);
+  padding: 0 12px 4%;
+}
+.ac-animal {
+  position: relative;
+  width: clamp(120px, 28vw, 230px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.2s ease;
+  outline: none;
+}
+.ac-animal.is-selected { transform: translateY(-10px) scale(1.06); z-index: 3; }
+.ac-art { position: relative; width: 100%; display: block; }
+.ac-svg { width: 100%; height: auto; display: block; overflow: visible; }
+
+/* selection glow ring under the selected pet */
+.ac-animal.is-selected::after {
+  content: '';
+  position: absolute;
+  bottom: 2%;
+  left: 50%;
+  width: 70%;
+  height: 16px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse, rgba(255,224,102,0.9), rgba(255,224,102,0));
+  animation: ring-pulse 1.4s ease-in-out infinite;
+}
+
+.ac-name {
+  order: 3;
+  margin-top: -6px;
+  font-weight: 800;
+  font-size: 1rem;
+  background: #fff;
+  padding: 2px 12px;
+  border-radius: 999px;
+  box-shadow: 0 3px 0 var(--shadow);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.ac-animal.is-selected .ac-name { opacity: 1; }
+
+.ac-mood {
+  order: 0;
+  font-size: 1.8rem;
+  line-height: 1;
+  margin-bottom: 2px;
+  filter: drop-shadow(0 2px 2px var(--shadow));
+  transition: transform 0.2s ease;
+}
+.ac-animal[data-mood="sad"] .ac-mood { animation: mood-wobble 1.2s ease-in-out infinite; }
+
+/* ---- Action bar ---- */
+.ac-hint {
+  text-align: center;
+  margin: 0;
+  padding: 4px;
+  font-weight: 700;
+  color: var(--ink);
+  background: rgba(255,255,255,0.55);
+  transition: opacity 0.3s ease, height 0.3s ease;
+}
+.ac-hint.is-hidden { opacity: 0; height: 0; padding: 0; overflow: hidden; }
+.ac-actionbar {
+  display: flex;
+  gap: clamp(8px, 2vw, 18px);
+  justify-content: center;
+  padding: 12px clamp(8px, 3vw, 28px);
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0));
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 -3px 12px var(--shadow);
+}
+.ac-action {
+  flex: 1;
+  max-width: 150px;
+  min-height: 78px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-radius: 22px;
+  background: var(--accent);
+  box-shadow: 0 5px 0 var(--shadow);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.ac-action:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--shadow); }
+.ac-action-emoji { font-size: 2.2rem; line-height: 1; }
+.ac-action-label { font-size: 1rem; font-weight: 800; color: #5a4a2a; }
+
+/* ---- Props & particles (spawned by JS) ---- */
+.ac-prop-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+.ac-prop {
+  position: absolute;
+  left: 50%;
+  bottom: 8%;
+  transform: translateX(-50%);
+  font-size: 2.4rem;
+  filter: drop-shadow(0 3px 3px var(--shadow));
+}
+.ac-prop-feed, .ac-prop-water { animation: prop-rise 1.4s ease both; }
+.ac-prop-bath { bottom: auto; top: 6%; font-size: 2rem; animation: prop-bath 1.4s ease both; }
+.ac-prop-play { animation: prop-bounce 1.4s ease both; }
+.ac-particle {
+  position: absolute;
+  bottom: 30%;
+  font-size: 1.5rem;
+  animation: particle-float 1.5s ease-out forwards;
+  pointer-events: none;
+}
+
+/* respect users who prefer less motion: keep gentle fades, drop big movement */
+@media (prefers-reduced-motion: reduce) {
+  .ac-cloud, .ac-particle, .ac-prop,
+  .ac-animal.is-selected::after { animation-duration: 0.6s !important; }
+}

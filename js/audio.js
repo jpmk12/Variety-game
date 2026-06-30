@@ -1,0 +1,119 @@
+// Sound manager. Sounds are synthesized with the Web Audio API so there are no
+// audio files to ship. Each effect is a short sequence of cheerful tones.
+// Mute state persists across sessions.
+
+import { load, save } from './storage.js';
+
+let ctx = null;
+let muted = load('muted', false);
+
+// Listeners so the UI (mute button) can reflect state changes.
+const listeners = new Set();
+
+function ensureCtx() {
+  if (ctx) return ctx;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return null;
+  ctx = new AC();
+  return ctx;
+}
+
+// Browsers block audio until a user gesture. Call this from the first tap.
+export function unlock() {
+  const c = ensureCtx();
+  if (c && c.state === 'suspended') c.resume();
+}
+
+export function isMuted() {
+  return muted;
+}
+
+export function onMuteChange(fn) {
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+}
+
+export function toggleMute() {
+  muted = !muted;
+  save('muted', muted);
+  listeners.forEach((fn) => fn(muted));
+  return muted;
+}
+
+// Play one tone. type/freq/duration shape the character of the blip.
+function tone({ freq, start, duration, type = 'sine', gain = 0.18, slideTo = null }) {
+  const c = ensureCtx();
+  if (!c) return;
+  const t0 = c.currentTime + start;
+  const osc = c.createOscillator();
+  const env = c.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, t0);
+  if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t0 + duration);
+
+  // Quick attack, smooth release so it never clicks.
+  env.gain.setValueAtTime(0.0001, t0);
+  env.gain.exponentialRampToValueAtTime(gain, t0 + 0.02);
+  env.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+
+  osc.connect(env).connect(c.destination);
+  osc.start(t0);
+  osc.stop(t0 + duration + 0.02);
+}
+
+// Filtered noise burst — used for splashy / watery effects.
+function noise({ start, duration, gain = 0.12, freq = 1000 }) {
+  const c = ensureCtx();
+  if (!c) return;
+  const t0 = c.currentTime + start;
+  const frames = Math.floor(c.sampleRate * duration);
+  const buffer = c.createBuffer(1, frames, c.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < frames; i++) {
+    // Fade the noise out so it sounds like a settling splash.
+    data[i] = (Math.random() * 2 - 1) * (1 - i / frames);
+  }
+  const src = c.createBufferSource();
+  src.buffer = buffer;
+  const filter = c.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = freq;
+  const env = c.createGain();
+  env.gain.value = gain;
+  src.connect(filter).connect(env).connect(c.destination);
+  src.start(t0);
+}
+
+// Named effects, each a recipe of tones/noise.
+const EFFECTS = {
+  select: () => tone({ freq: 660, start: 0, duration: 0.12, type: 'triangle' }),
+  feed: () => {
+    tone({ freq: 300, start: 0, duration: 0.08, type: 'square', gain: 0.12 });
+    tone({ freq: 360, start: 0.1, duration: 0.08, type: 'square', gain: 0.12 });
+    tone({ freq: 320, start: 0.2, duration: 0.08, type: 'square', gain: 0.12 });
+  },
+  water: () => {
+    noise({ start: 0, duration: 0.3, gain: 0.1, freq: 1400 });
+    tone({ freq: 500, start: 0.05, duration: 0.25, type: 'sine', gain: 0.08, slideTo: 900 });
+  },
+  bath: () => {
+    noise({ start: 0, duration: 0.45, gain: 0.08, freq: 2200 });
+    tone({ freq: 700, start: 0.2, duration: 0.2, type: 'sine', gain: 0.07, slideTo: 1500 });
+  },
+  play: () => {
+    tone({ freq: 523, start: 0, duration: 0.1, type: 'triangle' });
+    tone({ freq: 659, start: 0.1, duration: 0.1, type: 'triangle' });
+    tone({ freq: 784, start: 0.2, duration: 0.14, type: 'triangle' });
+  },
+  happy: () => {
+    tone({ freq: 784, start: 0, duration: 0.12, type: 'sine', gain: 0.16 });
+    tone({ freq: 1046, start: 0.12, duration: 0.18, type: 'sine', gain: 0.16 });
+  },
+};
+
+export function play(name) {
+  if (muted) return;
+  unlock();
+  const fx = EFFECTS[name];
+  if (fx) fx();
+}
