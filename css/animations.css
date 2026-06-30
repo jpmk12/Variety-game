@@ -161,6 +161,75 @@
 @keyframes idle-bobble { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px) scale(1.03); } }
 
 /* ====================================================================
+   MULTI-STEP ACTION MOTIONS + EFFECT OVERLAY
+   ==================================================================== */
+
+/* lean toward a bowl */
+.ac-art.lean-down { animation: lean-down 0.6s ease forwards; }
+@keyframes lean-down { 0% { transform: translateY(0); } 100% { transform: translateY(7px) rotate(2deg); } }
+
+/* shake water/suds off — fast little side-to-side */
+.ac-art.is-shaking { animation: shake-off 0.14s ease-in-out 7; }
+@keyframes shake-off {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  25% { transform: translateX(-5px) rotate(-4deg); }
+  75% { transform: translateX(5px) rotate(4deg); }
+}
+
+/* all clean — a bright little bounce */
+.ac-art.is-shining { animation: shine-bounce 0.8s ease; }
+@keyframes shine-bounce {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.07) translateY(-7px); }
+  100% { transform: scale(1); }
+}
+
+/* The effects overlay sits over the pet and fades between states. */
+.ac-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+/* SUDS: clustered foam blobs over the body */
+.ac-overlay.suds {
+  opacity: 1;
+  background:
+    radial-gradient(circle at 30% 60%, #fff 0 11px, transparent 12px),
+    radial-gradient(circle at 46% 50%, #fff 0 14px, transparent 15px),
+    radial-gradient(circle at 60% 63%, #fff 0 12px, transparent 13px),
+    radial-gradient(circle at 71% 53%, #fff 0 10px, transparent 11px),
+    radial-gradient(circle at 38% 73%, #fff 0 10px, transparent 11px),
+    radial-gradient(circle at 56% 76%, #fff 0 13px, transparent 14px),
+    radial-gradient(circle at 25% 47%, #eaf2ff 0 9px, transparent 10px),
+    radial-gradient(circle at 66% 72%, #eaf2ff 0 9px, transparent 10px);
+  filter: drop-shadow(0 2px 1px rgba(120, 150, 200, 0.25));
+  animation: suds-jiggle 0.5s ease-in-out infinite;
+}
+.ac-overlay.scrub { animation-duration: 0.22s; }
+@keyframes suds-jiggle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+
+/* RINSE: a translucent water curtain sweeps down (suds class is gone → washed off) */
+.ac-overlay.rinse {
+  opacity: 1;
+  background: linear-gradient(180deg, rgba(120, 210, 255, 0) 0%, rgba(120, 210, 255, 0.55) 42%, rgba(120, 210, 255, 0) 60%);
+  background-size: 100% 240%;
+  animation: rinse-down 0.95s ease-in forwards;
+}
+@keyframes rinse-down { 0% { background-position: 0 -130%; } 100% { background-position: 0 130%; } }
+
+/* SHINE: a glossy highlight sweeps across the clean pet */
+.ac-overlay.shine {
+  opacity: 1;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0) 38%, rgba(255, 255, 255, 0.9) 50%, rgba(255, 255, 255, 0) 62%);
+  background-size: 280% 280%;
+  animation: shine-sweep 0.85s ease forwards;
+}
+@keyframes shine-sweep { 0% { background-position: 150% 0; } 100% { background-position: -50% 0; } }
+
+/* ====================================================================
    PROPS & PARTICLES
    ==================================================================== */
 
@@ -246,5 +315,5 @@
 /* reduced motion: stop the looping idle/ambient animations */
 @media (prefers-reduced-motion: reduce) {
   .ac-art, .ac-art.is-droopy, .ac-tail, .ac-eye-l, .ac-eye-r, .ac-ear-l, .ac-ear-r,
-  .ac-horn, .ac-cloud, .ac-thought.show { animation: none !important; }
+  .ac-horn, .ac-cloud, .ac-thought.show, .ac-overlay { animation: none !important; }
 }

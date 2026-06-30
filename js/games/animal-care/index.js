@@ -19,6 +19,7 @@ import {
 import { load, save } from '../../storage.js';
 import { play } from '../../audio.js';
 import { makeDraggable } from './drag.js';
+import { SEQUENCES, STEP_ART } from './sequences.js';
 
 const SAVE_KEY = 'animal-care';
 const TICK_MS = 15000; // how often live decay updates the faces/meters
@@ -27,8 +28,6 @@ const IDLE_MS = 6000; // how often a random pet does a little idle flourish
 const clamp = (n) => Math.max(0, Math.min(100, n));
 const byId = (id) => ACTIONS.find((a) => a.id === id);
 
-// Animation classes that mean a pet is mid-action (so we don't interrupt it).
-const BUSY = ['is-eating', 'is-drinking', 'is-bathing', 'is-playing', 'is-cuddle', 'is-dancing', 'is-happy', 'is-full'];
 const SPECIAL_IDLES = ['idle-stretch', 'idle-sniff', 'idle-sparkle'];
 const PET_SAYINGS = ['I love you!', 'Hehe!', '♥'];
 
@@ -110,7 +109,7 @@ export function mountAnimalCare(root) {
       <span class="ac-mood" aria-hidden="true"></span>
       <span class="ac-name">${a.name}</span>
       <span class="ac-prop-layer"></span>
-      <span class="ac-art">${a.svg}</span>
+      <span class="ac-art">${a.svg}<span class="ac-overlay"></span></span>
     `;
     const refs = {
       wrap,
@@ -118,6 +117,8 @@ export function mountAnimalCare(root) {
       thoughtEl: wrap.querySelector('.ac-thought'),
       propLayer: wrap.querySelector('.ac-prop-layer'),
       artEl: wrap.querySelector('.ac-art'),
+      overlayEl: wrap.querySelector('.ac-overlay'),
+      busy: false,
     };
     els[a.id] = refs;
 
@@ -167,7 +168,8 @@ export function mountAnimalCare(root) {
     const { faceEl, thoughtEl, artEl, wrap } = els[id];
     faceEl.textContent = mood.face;
     wrap.dataset.mood = mood.key;
-    artEl.classList.toggle('is-droopy', mood.key === 'sad');
+    // Don't fight an in-progress action animation with the idle droop.
+    artEl.classList.toggle('is-droopy', mood.key === 'sad' && !els[id].busy);
 
     const need = lowestNeed(stats);
     if (need) {
@@ -194,19 +196,18 @@ export function mountAnimalCare(root) {
   function refreshAll() { ANIMALS.forEach((a) => refreshPet(a.id)); }
 
   // --- the core care action ---
-  function isBusy(art) { return BUSY.some((c) => art.classList.contains(c)); }
-
   function doAction(act, petId = state.selected) {
     const id = petId;
     if (id !== state.selected) setSelected(id);
+    const refs = els[id];
+    if (refs.busy) return; // don't interrupt a multi-step sequence in progress
     const stats = state.animals[id].stats;
-    const { artEl, propLayer } = els[id];
     hint.classList.add('is-hidden');
 
     // Already satisfied for this action's primary need → gentle "full" reaction.
     if ((stats[act.primary] ?? 100) >= 98) {
       stats.happiness = clamp(stats.happiness + 3);
-      restartAnim(artEl, 'is-full', 600);
+      restartAnim(refs.artEl, 'is-full', 600);
       say(id, act.fullMessage);
       play('select');
       refreshPet(id);
@@ -214,41 +215,55 @@ export function mountAnimalCare(root) {
       return;
     }
 
-    // Apply the restore, then play the action animation + effects.
+    // Apply the restore up front so the meter fills, then play out the sequence.
     for (const k of STAT_KEYS) {
       if (act.restore[k]) stats[k] = clamp(stats[k] + act.restore[k]);
     }
-    playActionAnim(id, act);
-    play(act.sound);
-    spawnProp(propLayer, act);
-    sprayParticles(propLayer, act.particle, act.id === 'play' ? 8 : 6);
-    say(id, act.praise);
     refreshPet(id);
-
-    // Celebrate the moment a pet becomes fully cared for.
     const content = allContent(stats);
-    if (content && !state.animals[id].wasContent) celebrate(id);
+    refs.pendingCelebrate = content && !state.animals[id].wasContent;
     state.animals[id].wasContent = content;
     persist();
+
+    runSequence(id, act);
   }
 
-  function playActionAnim(id, act) {
-    const { artEl } = els[id];
-    artEl.classList.remove(...ACTIONS.map((a) => a.anim), 'is-happy', 'is-full');
+  // Swap the pet's body-motion class, restarting the animation cleanly.
+  function setArt(artEl, cls) {
+    artEl.classList.remove(...STEP_ART);
     void artEl.offsetWidth; // reflow → restart
-    artEl.classList.add(act.anim);
-    const onEnd = () => {
-      artEl.classList.remove(act.anim);
-      artEl.classList.add('is-happy');
-      play('happy');
-      setTimeout(() => artEl.classList.remove('is-happy'), 700);
-    };
-    artEl.addEventListener('animationend', onEnd, { once: true });
-    setTimeout(() => artEl.classList.remove(act.anim), 1600); // reduced-motion fallback
+    if (cls) artEl.classList.add(cls);
+  }
+
+  // Play the ordered steps of an action one after another.
+  async function runSequence(id, act) {
+    const refs = els[id];
+    const { artEl, overlayEl, propLayer } = refs;
+    const steps = SEQUENCES[act.id] || [
+      { ms: 700, art: act.anim, particle: act.particle, count: 6, sound: act.sound, say: true, celebrate: true },
+    ];
+    refs.busy = true;
+    for (const step of steps) {
+      if (!alive) break;
+      setArt(artEl, step.art);
+      overlayEl.className = 'ac-overlay' + (step.overlay ? ' ' + step.overlay : '');
+      if (step.prop) spawnProp(propLayer, act);
+      if (step.particle) sprayParticles(propLayer, step.particle, step.count || 5);
+      if (step.sound) play(step.sound);
+      if (step.say) say(id, act.praise);
+      if (step.celebrate && refs.pendingCelebrate) { celebrate(id); refs.pendingCelebrate = false; }
+      await sleep(step.ms);
+    }
+    // settle back to idle
+    artEl.classList.remove(...STEP_ART);
+    overlayEl.className = 'ac-overlay';
+    refs.busy = false;
+    if (alive) refreshPet(id);
   }
 
   // --- petting (tap the already-selected pet) ---
   function petAnimal(id) {
+    if (els[id].busy) return; // not mid-action
     const stats = state.animals[id].stats;
     stats.happiness = clamp(stats.happiness + 8);
     restartAnim(els[id].artEl, 'is-cuddle', 700);
@@ -334,6 +349,16 @@ export function mountAnimalCare(root) {
     });
   }
 
+  // --- sequence timing: cancellable sleeps so leaving the game stops cleanly ---
+  let alive = true;
+  const timers = new Set();
+  function sleep(ms) {
+    return new Promise((resolve) => {
+      const t = setTimeout(() => { timers.delete(t); resolve(); }, ms);
+      timers.add(t);
+    });
+  }
+
   // --- timers: live decay + occasional idle flourishes ---
   const ticker = setInterval(() => {
     const t = Date.now();
@@ -349,7 +374,7 @@ export function mountAnimalCare(root) {
   }, TICK_MS);
 
   const idleTimer = setInterval(() => {
-    const idleOnes = ANIMALS.filter((a) => !isBusy(els[a.id].artEl)
+    const idleOnes = ANIMALS.filter((a) => !els[a.id].busy
       && !SPECIAL_IDLES.some((c) => els[a.id].artEl.classList.contains(c)));
     if (!idleOnes.length) return;
     const a = idleOnes[Math.floor(Math.random() * idleOnes.length)];
@@ -367,8 +392,11 @@ export function mountAnimalCare(root) {
 
   // --- cleanup when leaving the game ---
   return function unmount() {
+    alive = false;
     clearInterval(ticker);
     clearInterval(idleTimer);
+    timers.forEach(clearTimeout);
+    timers.clear();
     dragCleanups.forEach((fn) => fn());
     persist();
     game.remove();

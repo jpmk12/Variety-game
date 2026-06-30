@@ -29,6 +29,9 @@ python3 -m http.server 8000
   - **Drag a treat** (🍖 / 💧 / 🛁 / 🎾) straight from the bar onto any pet.
   - The four tasks: 🍖 **Feed** (tummy), 💧 **Water** (thirst), 🛁 **Bath**
     (clean), 🎾 **Play** (the biggest happiness boost).
+  - Each task plays a **multi-step animation** so it feels like a real event —
+    e.g. a bath goes *lather up → scrub → rinse the suds off → sparkle clean*,
+    and feeding goes *bowl in → munch → happy*.
 - **See how each pet is doing:** every pet has a mood face, and pops up a
   **thought bubble** showing what it wants when a need runs low (tap the bubble
   to give it instantly). The **selected pet's needs meter** sits above the task
@@ -60,6 +63,7 @@ js/
     index.js            game controller (care loop, feedback, celebrations)
     animals.js          dog / cat / unicorn SVG characters
     actions.js          feed / water / bath / play definitions + praise copy
+    sequences.js        multi-step animation script for each action
     stats.js            stat model, needs metadata, time decay, mood mapping
     drag.js             pointer drag-and-drop helper (treat → pet)
 assets/
