@@ -1,0 +1,15 @@
+{
+  "name": "Fun Game Hub",
+  "short_name": "Game Hub",
+  "description": "A touch-friendly game hub for kids, starting with Animal Care.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#7cc6ff",
+  "theme_color": "#7cc6ff",
+  "icons": [
+    { "src": "assets/favicon.svg", "type": "image/svg+xml", "sizes": "any" },
+    { "src": "assets/icon-192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "assets/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any maskable" }
+  ]
+}
