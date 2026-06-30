@@ -1,5 +1,9 @@
 # Fun Game Hub 🎮
 
+<p align="center">
+  <img src="assets/animal-care-thumbnail.png" alt="Animal Care — feed, water, bathe and play with a cartoony dog, cat, and unicorn" width="100%" />
+</p>
+
 A touch-friendly game hub for kids. The home screen is a menu of games; the
 first game is **Animal Care**, where you look after three cartoony pets — a dog,
 a cat, and a unicorn — by feeding, watering, bathing, and playing with them.
@@ -49,6 +53,10 @@ js/
     animals.js          dog / cat / unicorn SVG characters
     actions.js          feed / water / bath / play definitions
     stats.js            stat model, time decay, mood mapping
+assets/
+  animal-care-thumbnail.png   README hero image
+scripts/
+  hero.html             generates the thumbnail (reuses the real animal art)
 ```
 
 ## Adding another game later
@@ -56,3 +64,9 @@ js/
 Add an entry to `js/registry.js` with an `id`, `title`, `emoji`, and a
 `mount(el)` function that renders into the given element and returns an optional
 `unmount()` cleanup. The hub menu picks it up automatically.
+
+## Regenerating the thumbnail
+
+The hero image is a screenshot of `scripts/hero.html` (which reuses the real
+pet art). With the dev server running, render it with any headless browser, e.g.
+Playwright, capturing the `#hero` element into `assets/animal-care-thumbnail.png`.
