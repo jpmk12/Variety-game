@@ -24,12 +24,20 @@ python3 -m http.server 8000
 
 ## How Animal Care works
 
-- Tap a pet to select it (it steps forward with a glow), then tap a task:
-  - 🍖 **Feed** — fills the tummy
-  - 💧 **Water** — quenches thirst
-  - 🛁 **Bath** — gets squeaky clean
-  - 🎾 **Play** — the biggest happiness boost
-- A mood face floats above each pet and updates with how well-cared-for it is.
+- **Two ways to care for a pet:**
+  - Tap a pet to select it, then tap a task button, **or**
+  - **Drag a treat** (🍖 / 💧 / 🛁 / 🎾) straight from the bar onto any pet.
+  - The four tasks: 🍖 **Feed** (tummy), 💧 **Water** (thirst), 🛁 **Bath**
+    (clean), 🎾 **Play** (the biggest happiness boost).
+- **See how each pet is doing:** every pet has a mood face, and pops up a
+  **thought bubble** showing what it wants when a need runs low (tap the bubble
+  to give it instantly). The **selected pet's needs meter** sits above the task
+  bar with a live bar for food, water, clean, and happy.
+- **Pet them:** tap the already-selected pet to give it a cuddle (hearts!).
+- **Celebrations:** fill all four needs and the pet does a happy dance with
+  confetti and a cheer. Doing a task a pet doesn't need gets a gentle "I'm full!".
+- **Lively room:** pets breathe, blink, wag, and do occasional little idle
+  flourishes; each species has its own animation touches.
 - Stats save to the browser (`localStorage`) and drift down slowly over real
   time, so pets are happy to see you again — but never neglected to misery.
 - Use the 🔊 button in the top bar to mute/unmute sounds (sounds are generated
@@ -49,11 +57,13 @@ js/
   storage.js            localStorage helpers
   audio.js              Web Audio sound effects + mute
   games/animal-care/
-    index.js            game controller
+    index.js            game controller (care loop, feedback, celebrations)
     animals.js          dog / cat / unicorn SVG characters
-    actions.js          feed / water / bath / play definitions
-    stats.js            stat model, time decay, mood mapping
+    actions.js          feed / water / bath / play definitions + praise copy
+    stats.js            stat model, needs metadata, time decay, mood mapping
+    drag.js             pointer drag-and-drop helper (treat → pet)
 assets/
+  favicon.svg, icon-*.png     app icons (tab + home screen)
   animal-care-thumbnail.png   README hero image
 scripts/
   hero.html             generates the thumbnail (reuses the real animal art)

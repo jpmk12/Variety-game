@@ -3,6 +3,20 @@
 
 export const STAT_KEYS = ['hunger', 'thirst', 'cleanliness', 'happiness'];
 
+// Per-need display metadata, shared by the needs meter, thought bubbles, and
+// the action that restores it. Order = how the meter panel reads top to bottom.
+export const NEEDS = [
+  { key: 'hunger', label: 'Food', icon: '🍖', color: '#ff9f68', action: 'feed' },
+  { key: 'thirst', label: 'Water', icon: '💧', color: '#5ec8ff', action: 'water' },
+  { key: 'cleanliness', label: 'Clean', icon: '🫧', color: '#9be7c4', action: 'bath' },
+  { key: 'happiness', label: 'Happy', icon: '❤️', color: '#ff6b9d', action: 'play' },
+];
+
+// Below LOW a pet asks for help (thought bubble); at/above CONTENT for every
+// need the pet is fully cared for (celebration).
+export const LOW_THRESHOLD = 35;
+export const CONTENT_THRESHOLD = 90;
+
 // Full = "tummy full / well watered / squeaky clean / delighted".
 export function freshStats() {
   return { hunger: 100, thirst: 100, cleanliness: 100, happiness: 100 };
@@ -43,4 +57,22 @@ export function moodFor(stats) {
   if (score >= 55) return { key: 'good', face: '🙂' };
   if (score >= 30) return { key: 'meh', face: '😕' };
   return { key: 'sad', face: '😢' };
+}
+
+// The most-depleted need, but only if it has dropped below LOW_THRESHOLD.
+// Returns the NEEDS entry (so callers get its icon/action) or null.
+export function lowestNeed(stats) {
+  let worst = null;
+  for (const need of NEEDS) {
+    const val = stats[need.key] ?? 100;
+    if (val < LOW_THRESHOLD && (worst === null || val < (stats[worst.key] ?? 100))) {
+      worst = need;
+    }
+  }
+  return worst;
+}
+
+// True when every need is topped up — the pet is completely happy.
+export function allContent(stats) {
+  return STAT_KEYS.every((k) => (stats[k] ?? 0) >= CONTENT_THRESHOLD);
 }

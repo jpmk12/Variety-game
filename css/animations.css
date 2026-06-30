@@ -108,6 +108,59 @@
 }
 
 /* ====================================================================
+   PER-ANIMAL FLOURISHES — inner SVG parts move during actions
+   ==================================================================== */
+
+/* tails go wild while playing (all animals share .ac-tail) */
+.ac-art.is-playing .ac-tail, .ac-art.is-dancing .ac-tail { animation: tail-wag 0.16s ease-in-out infinite; }
+/* mouths chew while eating */
+.ac-art.is-eating .ac-mouth { animation: chew 0.32s ease-in-out 4; transform-origin: 50% 0; }
+@keyframes chew { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.7) translateY(2px); } }
+/* dog tongue laps while drinking */
+.ac-animal[data-id="dog"] .ac-art.is-drinking .ac-tongue { opacity: 1; animation: lap 0.4s ease-in-out 3; transform-origin: 50% 0; }
+@keyframes lap { 0%, 100% { transform: scaleY(1) translateY(0); } 50% { transform: scaleY(1.9) translateY(4px); } }
+/* cat ears twitch during a bath */
+.ac-animal[data-id="cat"] .ac-art.is-bathing .ac-ear-l,
+.ac-animal[data-id="cat"] .ac-art.is-bathing .ac-ear-r { animation: ear-flick 0.3s ease-in-out 4; }
+/* unicorn horn flares bright while playing or dancing */
+.ac-animal[data-id="unicorn"] .ac-art.is-playing .ac-horn,
+.ac-animal[data-id="unicorn"] .ac-art.is-dancing .ac-horn { animation: horn-burst 0.4s ease-in-out 3; }
+@keyframes horn-burst { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.8) drop-shadow(0 0 12px #fff3b0); } }
+
+/* ====================================================================
+   EMOTIONS & SPECIAL IDLES
+   ==================================================================== */
+
+/* droopy: low-need pets sink and tilt gently (looping) */
+.ac-art.is-droopy { animation: droop 2.4s ease-in-out infinite; }
+@keyframes droop { 0%, 100% { transform: translateY(2px) rotate(-1.5deg); } 50% { transform: translateY(5px) rotate(1.5deg); } }
+
+/* cuddle: a warm squish when petted */
+.ac-art.is-cuddle { animation: cuddle 0.7s ease; }
+@keyframes cuddle { 0% { transform: scale(1); } 30% { transform: scale(1.08, 0.92); } 60% { transform: scale(0.97, 1.05) rotate(-3deg); } 100% { transform: scale(1); } }
+
+/* full: a small "no thanks, I'm good" shake */
+.ac-art.is-full { animation: full-shake 0.5s ease; }
+@keyframes full-shake { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-4deg); } 60% { transform: rotate(4deg); } }
+
+/* dance: celebration bounce */
+.ac-art.is-dancing { animation: dance 0.5s ease-in-out 2; }
+@keyframes dance {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  20% { transform: translateY(-22px) rotate(-6deg); }
+  50% { transform: translateY(0) rotate(0); }
+  70% { transform: translateY(-22px) rotate(6deg); }
+}
+
+/* random one-off idles to keep the room alive */
+.ac-art.idle-stretch { animation: idle-stretch 1.4s ease; }
+@keyframes idle-stretch { 0%, 100% { transform: scale(1); } 40% { transform: scale(1.06, 0.94) translateY(3px); } 70% { transform: scale(0.97, 1.05); } }
+.ac-art.idle-sniff { animation: idle-sniff 1.2s ease; }
+@keyframes idle-sniff { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(-4deg) translateY(2px); } 60% { transform: rotate(4deg) translateY(2px); } }
+.ac-art.idle-sparkle { animation: idle-bobble 1.2s ease; }
+@keyframes idle-bobble { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px) scale(1.03); } }
+
+/* ====================================================================
    PROPS & PARTICLES
    ==================================================================== */
 
@@ -160,8 +213,38 @@
   100% { transform: translateX(360%); }
 }
 
+/* ====================================================================
+   UI FEEDBACK (bubbles, messages, meters, banner, confetti)
+   ==================================================================== */
+
+/* thought bubble gentle bob */
+@keyframes bubble-bob { 0%, 100% { transform: scale(1) translateY(0); } 50% { transform: scale(1.06) translateY(-4px); } }
+
+/* praise message floats up and fades */
+@keyframes say-float {
+  0% { opacity: 0; transform: translate(-50%, 6px) scale(0.6); }
+  20% { opacity: 1; transform: translate(-50%, -6px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -42px) scale(1); }
+}
+
+/* low-need meter icon nudge */
+@keyframes nudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+
+/* celebration banner pop */
+@keyframes banner-pop {
+  0% { transform: translate(-50%, 0) scale(0.6); }
+  60% { transform: translate(-50%, 0) scale(1.12); }
+  100% { transform: translate(-50%, 0) scale(1); }
+}
+
+/* confetti rains down, tumbling */
+@keyframes confetti-fall {
+  0% { transform: translateY(0) rotate(0); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(var(--spin, 360deg)); opacity: 0.9; }
+}
+
 /* reduced motion: stop the looping idle/ambient animations */
 @media (prefers-reduced-motion: reduce) {
-  .ac-art, .ac-tail, .ac-eye-l, .ac-eye-r, .ac-ear-l, .ac-ear-r,
-  .ac-horn, .ac-cloud { animation: none !important; }
+  .ac-art, .ac-art.is-droopy, .ac-tail, .ac-eye-l, .ac-eye-r, .ac-ear-l, .ac-ear-r,
+  .ac-horn, .ac-cloud, .ac-thought.show { animation: none !important; }
 }

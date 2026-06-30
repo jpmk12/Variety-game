@@ -1,6 +1,8 @@
 // The four care actions. Each defines its button look, the CSS class that drives
-// the animal's animation, the sound effect, the particle to spray, and how it
-// restores stats. Adding an action later is just one entry here.
+// the animal's animation, the sound effect, the particle to spray, how it
+// restores stats, the `primary` need it satisfies (used to detect "already
+// full"), and the praise/full-up messages shown as feedback. Adding an action
+// later is just one entry here.
 
 export const ACTIONS = [
   {
@@ -11,6 +13,9 @@ export const ACTIONS = [
     sound: 'feed',
     anim: 'is-eating',
     particle: '❤️',
+    primary: 'hunger',
+    praise: 'Yum yum!',
+    fullMessage: "I'm full!",
     // Eating fills the tummy and brings a little joy.
     restore: { hunger: 60, happiness: 15 },
   },
@@ -22,6 +27,9 @@ export const ACTIONS = [
     sound: 'water',
     anim: 'is-drinking',
     particle: '💧',
+    primary: 'thirst',
+    praise: 'Slurp!',
+    fullMessage: 'Not thirsty!',
     restore: { thirst: 70, happiness: 10 },
   },
   {
@@ -32,6 +40,9 @@ export const ACTIONS = [
     sound: 'bath',
     anim: 'is-bathing',
     particle: '🫧',
+    primary: 'cleanliness',
+    praise: 'Squeaky clean!',
+    fullMessage: 'All clean!',
     restore: { cleanliness: 80, happiness: 12 },
   },
   {
@@ -42,6 +53,9 @@ export const ACTIONS = [
     sound: 'play',
     anim: 'is-playing',
     particle: '⭐',
+    primary: 'happiness',
+    praise: 'Wheee!',
+    fullMessage: 'So happy!',
     // Playing is the biggest happiness boost (and burns a little energy).
     restore: { happiness: 45, hunger: -5 },
   },
