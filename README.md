@@ -88,6 +88,9 @@ python3 -m http.server 8000
   letter drops into the word. Reaching the right letters in order **spells the
   word** (CAT, DOG, SUN…), then a celebration and a new word.
 - Wrong perch? A soft "oops" and it re-says the letter — no penalty.
+- **Baddies:** now and then an original cartoon critter scuttles onto the wall —
+  tap it to **web it up for +5** points (score shows 🕸️ top-left). They're our
+  own designs (a goblin/octo/rhino bug), not based on any trademarked character.
 - The hero is an **original** masked climber (our own colors + a star emblem),
   not based on any trademarked character.
 

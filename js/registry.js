@@ -13,6 +13,7 @@ export const games = [
     emoji: '🐾',
     blurb: 'Feed, wash and play with your pets!',
     accent: '#ffd166',
+    thumb: 'assets/tiles/animal-care.png',
     mount: mountAnimalCare,
   },
   {
@@ -21,6 +22,7 @@ export const games = [
     emoji: '⚔️',
     blurb: 'Slash the letter you hear!',
     accent: '#8ecae6',
+    thumb: 'assets/tiles/samurai.png',
     mount: mountSamurai,
   },
   {
@@ -29,6 +31,7 @@ export const games = [
     emoji: '🕸️',
     blurb: 'Climb and swing to spell words!',
     accent: '#2ec4b6',
+    thumb: 'assets/tiles/climb-spell.png',
     mount: mountClimbSpell,
   },
   // Placeholder slot proves the menu scales to more games.

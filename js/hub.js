@@ -16,8 +16,13 @@ export function renderHub(container, onLaunch) {
     card.disabled = !!game.comingSoon;
     card.setAttribute('aria-label', game.title);
 
+    // A generated hero image if the game has one, otherwise the emoji.
+    const art = game.thumb
+      ? `<span class="game-thumb" style="background-image:url(${game.thumb})" aria-hidden="true"></span>`
+      : `<span class="game-emoji" aria-hidden="true">${game.emoji}</span>`;
+
     card.innerHTML = `
-      <span class="game-emoji" aria-hidden="true">${game.emoji}</span>
+      ${art}
       <span class="game-title">${game.title}</span>
       <span class="game-blurb">${game.blurb || ''}</span>
       ${game.comingSoon ? '<span class="soon-badge">Coming soon</span>' : ''}

@@ -7,6 +7,7 @@ import { play, isMuted, unlock } from '../../audio.js';
 import { speak, cancelSpeech } from '../samurai/speech.js';
 import { pickWord, distractors } from './words.js';
 import { HERO_SVG } from './hero.js';
+import { ENEMIES, ENEMY_BONUS } from './enemies.js';
 
 const reduceMotion = typeof matchMedia === 'function'
   && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -25,7 +26,9 @@ export function mountClimbSpell(root) {
         <span class="cs-prompt-text">Get ready!</span>
         <button class="cs-say" aria-label="Say it again">🔊</button>
       </div>
+      <div class="cs-score" aria-label="Score">🕸️ <span class="cs-score-n">0</span></div>
       <div class="cs-perches"></div>
+      <div class="cs-enemies" aria-hidden="true"></div>
       <div class="cs-hero">${HERO_SVG}</div>
       <div class="cs-fx" aria-hidden="true"></div>
       <div class="cs-cheer" role="status" aria-live="polite"></div>
@@ -44,6 +47,8 @@ export function mountClimbSpell(root) {
 
   const wall = game.querySelector('.cs-wall');
   const perchLayer = game.querySelector('.cs-perches');
+  const enemyLayer = game.querySelector('.cs-enemies');
+  const scoreN = game.querySelector('.cs-score-n');
   const heroEl = game.querySelector('.cs-hero');
   const webLine = game.querySelector('.cs-web');
   const fxLayer = game.querySelector('.cs-fx');
@@ -68,6 +73,8 @@ export function mountClimbSpell(root) {
   let alive = true;
   let rafId = 0;
   let heroDir = 1;
+  let score = 0;
+  let activeEnemy = null;   // only one baddie on the wall at a time
   const timers = new Set();
   const later = (fn, ms) => { const t = setTimeout(() => { timers.delete(t); fn(); }, ms); timers.add(t); return t; };
 
@@ -78,6 +85,9 @@ export function mountClimbSpell(root) {
     get current() { return current; },
     get instruction() { return instruction; },
     get targetId() { return targetId; },
+    get score() { return score; },
+    get enemyId() { return activeEnemy ? activeEnemy.dataset.eid : null; },
+    spawnEnemy: () => spawnEnemy(),
     perchState: () => perches.map((p) => ({ id: p.id, letter: p.letter, reachable: p.reachable, isTarget: p.isTarget })),
   };
 
@@ -94,13 +104,13 @@ export function mountClimbSpell(root) {
   const curPerch = () => perches.find((p) => p.id === current);
 
   function heroSize() { return { w: heroEl.offsetWidth || 70, h: heroEl.offsetHeight || 90 }; }
-  function placeHero(x, y) {
+  function place(x, y, rot = 0) {
     const { w, h } = heroSize();
-    heroEl.style.transform = `translate(${x - w / 2}px, ${y - h * 0.5}px) scaleX(${heroDir})`;
+    heroEl.style.transform = `translate(${x - w / 2}px, ${y - h * 0.5}px) rotate(${rot}deg) scaleX(${heroDir})`;
   }
   function placeHeroAtPerch(id) {
     const p = perches.find((q) => q.id === id);
-    if (p) { const { x, y } = perchPx(p); placeHero(x, y); }
+    if (p) { const { x, y } = perchPx(p); place(x, y, 0); }
   }
   const handPoint = (x, y) => ({ x, y: y - heroSize().h * 0.28 });
 
@@ -209,40 +219,73 @@ export function mountClimbSpell(root) {
   }
   function clearWeb() { webLine.classList.remove('show'); }
 
+  // SWING: thwip a web to a fixed high anchor, pendulum across (the hero hangs
+  // and leans along the web), then release onto the target.
+  function animateSwing(from, to, resolve) {
+    heroDir = 1;
+    const dur = reduceMotion ? 240 : 1000;
+    const anchor = { x: from.x * 0.35 + to.x * 0.65, y: Math.min(from.y, to.y) - H * 0.34 };
+    const ctrl = { x: anchor.x, y: anchor.y + H * 0.16 };
+    play('thwip');
+    heroEl.classList.add('is-swinging');
+    const start = performance.now();
+    const frame = (now) => {
+      if (!alive) return resolve();
+      const t = Math.min(1, (now - start) / dur);
+      if (t < 0.16) {                    // thwip: line shoots out to the anchor
+        const g = t / 0.16;
+        const hand = handPoint(from.x, from.y);
+        updateWeb(hand, { x: hand.x + (anchor.x - hand.x) * g, y: hand.y + (anchor.y - hand.y) * g });
+        place(from.x, from.y, 0);
+      } else if (t < 0.9) {              // swing along the arc, hanging from the web
+        const e = easeInOut((t - 0.16) / 0.74);
+        const mt = 1 - e;
+        const x = mt * mt * from.x + 2 * mt * e * ctrl.x + e * e * to.x;
+        const y = mt * mt * from.y + 2 * mt * e * ctrl.y + e * e * to.y;
+        const rot = clamp(Math.atan2(x - anchor.x, y - anchor.y) * 180 / Math.PI, -34, 34);
+        updateWeb(handPoint(x, y), anchor);
+        place(x, y, rot);
+      } else {                           // release + settle onto the perch
+        const e = (t - 0.9) / 0.1;
+        clearWeb();
+        place(to.x, to.y - (1 - e) * 8, 0);
+      }
+      if (t < 1) { rafId = requestAnimationFrame(frame); }
+      else { clearWeb(); heroEl.classList.remove('is-swinging'); place(to.x, to.y, 0); resolve(); }
+    };
+    rafId = requestAnimationFrame(frame);
+  }
+
+  // CRAWL: scuttle along a gently wavy path with a climbing gait + lean.
+  function animateCrawl(from, to, resolve) {
+    heroDir = to.x < from.x ? -1 : 1;
+    const dur = reduceMotion ? 220 : 750;
+    const dx = to.x - from.x, dy = to.y - from.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const nx = -dy / len, ny = dx / len;             // path normal
+    const amp = Math.min(20, len * 0.09);
+    play('crawl');
+    heroEl.classList.add('is-crawling');
+    const start = performance.now();
+    const frame = (now) => {
+      if (!alive) return resolve();
+      const t = Math.min(1, (now - start) / dur);
+      const e = easeInOut(t);
+      const wobble = Math.sin(e * Math.PI * 2) * amp * (1 - e * 0.3);
+      const x = from.x + dx * e + nx * wobble;
+      const y = from.y + dy * e + ny * wobble + Math.sin(e * Math.PI) * -6;
+      const rot = heroDir * 4 + Math.sin(e * Math.PI * 5) * 3;
+      place(x, y, rot);
+      if (t < 1) { rafId = requestAnimationFrame(frame); }
+      else { heroEl.classList.remove('is-crawling'); place(to.x, to.y, 0); resolve(); }
+    };
+    rafId = requestAnimationFrame(frame);
+  }
+
   function animateMove(from, to, type) {
     return new Promise((resolve) => {
-      heroDir = to.x < from.x ? -1 : 1;
-      const dur = reduceMotion ? 200 : (type === 'swing' ? 900 : 700);
-      const anchor = type === 'swing'
-        ? { x: (from.x + to.x) / 2, y: Math.min(from.y, to.y) - H * 0.18 }
-        : null;
-      if (type === 'swing') play('thwip'); else play('crawl');
-      heroEl.classList.add(type === 'swing' ? 'is-swinging' : 'is-crawling');
-      const start = performance.now();
-      const frame = (now) => {
-        if (!alive) return resolve();
-        const t = Math.min(1, (now - start) / dur);
-        const e = easeInOut(t);
-        let x, y;
-        if (type === 'swing') {
-          const mt = 1 - e;
-          x = mt * mt * from.x + 2 * mt * e * anchor.x + e * e * to.x;
-          y = mt * mt * from.y + 2 * mt * e * anchor.y + e * e * to.y;
-          updateWeb(handPoint(x, y), anchor);
-        } else {
-          x = from.x + (to.x - from.x) * e;
-          y = from.y + (to.y - from.y) * e + Math.sin(e * Math.PI) * -8;
-        }
-        placeHero(x, y);
-        if (t < 1) { rafId = requestAnimationFrame(frame); }
-        else {
-          clearWeb();
-          heroEl.classList.remove('is-swinging', 'is-crawling');
-          placeHero(to.x, to.y);
-          resolve();
-        }
-      };
-      rafId = requestAnimationFrame(frame);
+      if (type === 'swing') animateSwing(from, to, resolve);
+      else animateCrawl(from, to, resolve);
     });
   }
 
@@ -297,6 +340,7 @@ export function mountClimbSpell(root) {
     cheerEl.textContent = `You spelled ${word}! 🎉`;
     cheerEl.classList.add('show');
     confetti(30);
+    addScore(10);
     play('point');
     if (!isMuted()) later(() => speak(`${word}! Great job!`), 200);
     later(() => {
@@ -329,6 +373,55 @@ export function mountClimbSpell(root) {
     step();
   }
 
+  // --- score + web-up-able baddies ---
+  function addScore(n) { score += n; scoreN.textContent = score; }
+
+  function scheduleEnemy() {
+    if (!alive) return;
+    const delay = reduceMotion ? 10000 : (7000 + Math.random() * 7000);
+    later(() => { spawnEnemy(); scheduleEnemy(); }, delay);
+  }
+
+  function spawnEnemy() {
+    if (!started || activeEnemy) return;
+    const def = ENEMIES[Math.floor(Math.random() * ENEMIES.length)];
+    const el = document.createElement('button');
+    el.className = 'cs-enemy';
+    el.dataset.eid = def.id;
+    el.setAttribute('aria-label', 'Web up the ' + def.name);
+    el.style.left = (14 + Math.random() * 72) + '%';
+    el.style.top = (22 + Math.random() * 52) + '%';
+    el.innerHTML = `<span class="cs-enemy-art">${def.svg}</span><span class="cs-enemy-web"></span>`;
+    el.addEventListener('click', () => webUp(el));
+    enemyLayer.appendChild(el);
+    activeEnemy = el;
+    // scuttle off if it isn't webbed in time (no penalty)
+    later(() => {
+      if (activeEnemy === el) {
+        el.classList.add('flee');
+        later(() => { el.remove(); if (activeEnemy === el) activeEnemy = null; }, 400);
+      }
+    }, 5200);
+  }
+
+  function webUp(el) {
+    if (el.classList.contains('webbed')) return;
+    el.classList.add('webbed');
+    addScore(ENEMY_BONUS);
+    play('thwip');
+    floatText(el.style.left, el.style.top, '+' + ENEMY_BONUS);
+    later(() => { el.remove(); if (activeEnemy === el) activeEnemy = null; }, 700);
+  }
+
+  function floatText(left, top, text) {
+    const s = document.createElement('span');
+    s.className = 'cs-float';
+    s.textContent = text;
+    s.style.left = left; s.style.top = top;
+    wall.appendChild(s);
+    later(() => s.remove(), 1000);
+  }
+
   // --- start / listeners ---
   function start() {
     if (started) return;
@@ -336,6 +429,7 @@ export function mountClimbSpell(root) {
     startOverlay.classList.add('hidden');
     started = true;
     newWord();
+    scheduleEnemy();
   }
 
   startBtn.addEventListener('click', start);
