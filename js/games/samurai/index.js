@@ -7,7 +7,10 @@ import { play, isMuted, unlock } from '../../audio.js';
 import { speak, cancelSpeech } from './speech.js';
 import { pickTarget, buildWave, colorFor } from './content.js';
 
-const GRAV = 1500;      // letter gravity (px/s^2)
+// Low gravity so the letters drift up and hang for a few seconds before slowly
+// falling — an easy, gentle pace for little kids. (Juice particles keep their
+// own snappier gravity so slices still feel punchy.)
+const GRAV = 300;       // letter gravity (px/s^2)
 const JUICE_GRAV = 900; // particle gravity
 const reduceMotion = typeof matchMedia === 'function'
   && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -99,13 +102,14 @@ export function mountSamurai(root) {
     targetBtn.classList.add('pulse');
     announceTarget();
 
-    // Build a wave: 1 target (sometimes 2) + a few distractors, staggered.
-    const targetCount = Math.random() < 0.35 ? 2 : 1;
-    const distractors = 3 + Math.floor(Math.random() * 2);
+    // Build a wave: 1 target (sometimes 2) + a couple distractors, well spaced
+    // out so the screen never feels rushed.
+    const targetCount = Math.random() < 0.4 ? 2 : 1;
+    const distractors = 2 + Math.floor(Math.random() * 2);
     const items = buildWave(target, { targetCount, distractors });
     spawnQueue = items.map((item, i) => ({
       item,
-      at: 0.8 + i * 0.34,               // first toss after a short "announce" beat
+      at: 1.0 + i * 0.7,                // announce beat, then a relaxed cadence
       startX: 0.15 * W + Math.random() * 0.7 * W,
     }));
     waveClock = 0;
@@ -123,11 +127,11 @@ export function mountSamurai(root) {
       color: colorFor(item.char),
       x: startX,
       y: H + r,
-      vx: (Math.random() * 2 - 1) * 150,
+      vx: (Math.random() * 2 - 1) * 70, // gentle sideways drift
       vy: -v,
       r,
       angle: 0,
-      spin: (Math.random() * 2 - 1) * 2,
+      spin: (Math.random() * 2 - 1) * 0.8, // slow spin
     });
   }
 
