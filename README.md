@@ -69,6 +69,9 @@ python3 -m http.server 8000
   it — it bursts with juice and sparkles, plays a ding, and your score goes up.
 - Slashing the **wrong** letter just puffs away with a soft "oops" — no penalty,
   nothing ends. Tap the 🔊 chip to hear the letter again.
+- **Settings** (on the start screen, or the ⚙️ button in-game): choose what to
+  slash — **Letters / Numbers / Both** — and the **Speed** (🐢 Slow / 🚶 Medium /
+  🐇 Fast, which changes how long the glyphs float). Choices are saved.
 - Rendered on a `<canvas>` with a DOM HUD; respects the same top-bar mute.
 
 ## Project layout

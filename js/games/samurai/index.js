@@ -4,16 +4,22 @@
 // away (no penalty). Rendered on a <canvas>; the HUD is DOM overlaid on top.
 
 import { play, isMuted, unlock } from '../../audio.js';
+import { load, save } from '../../storage.js';
 import { speak, cancelSpeech } from './speech.js';
-import { pickTarget, buildWave, colorFor } from './content.js';
+import { pickTarget, buildWave, colorFor, poolFor, isNumber } from './content.js';
 
-// Low gravity so the letters drift up and hang for a few seconds before slowly
-// falling — an easy, gentle pace for little kids. (Juice particles keep their
-// own snappier gravity so slices still feel punchy.)
-const GRAV = 300;       // letter gravity (px/s^2)
-const JUICE_GRAV = 900; // particle gravity
+const JUICE_GRAV = 900; // particle gravity (constant — slices stay punchy)
 const reduceMotion = typeof matchMedia === 'function'
   && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Speed presets. Lower gravity = letters hang longer before falling. Each also
+// tunes the spawn cadence and how many distractors join the target.
+const SPEEDS = {
+  slow:   { grav: 250, stagger: 0.8,  dMin: 2, dExtra: 1 }, // ~4.4s float
+  medium: { grav: 480, stagger: 0.55, dMin: 3, dExtra: 1 }, // ~3.2s float
+  fast:   { grav: 800, stagger: 0.4,  dMin: 3, dExtra: 2 }, // ~2.5s float
+};
+const SETTINGS_KEY = 'samurai';
 
 export function mountSamurai(root) {
   // --- DOM ---
@@ -28,6 +34,7 @@ export function mountSamurai(root) {
         <span class="sam-target-say" aria-hidden="true">🔊</span>
       </button>
       <div class="sam-scores">
+        <button class="sam-settings-btn" aria-label="Settings" title="Settings">⚙️</button>
         <span class="sam-score">0</span>
         <span class="sam-streak"></span>
       </div>
@@ -36,7 +43,23 @@ export function mountSamurai(root) {
       <div class="sam-start-card">
         <div class="sam-start-emoji" aria-hidden="true">⚔️</div>
         <h2>Letter Samurai</h2>
-        <p>Listen for the letter, then slash it!</p>
+        <p>Listen, then slash what you hear!</p>
+        <div class="sam-setting" data-setting="mode">
+          <span class="sam-setting-label">Slash</span>
+          <div class="sam-seg" role="group" aria-label="What to slash">
+            <button data-val="letters">A B C</button>
+            <button data-val="numbers">1 2 3</button>
+            <button data-val="both">A 1</button>
+          </div>
+        </div>
+        <div class="sam-setting" data-setting="speed">
+          <span class="sam-setting-label">Speed</span>
+          <div class="sam-seg" role="group" aria-label="Speed">
+            <button data-val="slow">🐢 Slow</button>
+            <button data-val="medium">🚶 Medium</button>
+            <button data-val="fast">🐇 Fast</button>
+          </div>
+        </div>
         <button class="sam-start-btn">Tap to Start</button>
       </div>
     </div>
@@ -51,6 +74,12 @@ export function mountSamurai(root) {
   const streakEl = game.querySelector('.sam-streak');
   const startOverlay = game.querySelector('.sam-start');
   const startBtn = game.querySelector('.sam-start-btn');
+  const settingsBtn = game.querySelector('.sam-settings-btn');
+
+  // --- settings (persisted): what to slash + how fast ---
+  const settings = { mode: 'letters', speed: 'slow', ...load(SETTINGS_KEY, {}) };
+  let cfg = SPEEDS[settings.speed] || SPEEDS.slow;
+  let pool = poolFor(settings.mode);
 
   // --- state ---
   let W = 0, H = 0, dpr = 1;
@@ -89,11 +118,13 @@ export function mountSamurai(root) {
 
   // --- rounds ---
   function announceTarget() {
-    if (!isMuted()) speak(`Slash the letter ${target}`);
+    if (isMuted()) return;
+    const kind = isNumber(target) ? 'number' : 'letter';
+    speak(`Slash the ${kind} ${target}`);
   }
 
   function startRound() {
-    target = pickTarget(prevTarget);
+    target = pickTarget(prevTarget, pool);
     prevTarget = target;
     targetLetterEl.textContent = target;
     targetLetterEl.style.color = colorFor(target);
@@ -102,14 +133,14 @@ export function mountSamurai(root) {
     targetBtn.classList.add('pulse');
     announceTarget();
 
-    // Build a wave: 1 target (sometimes 2) + a couple distractors, well spaced
-    // out so the screen never feels rushed.
+    // Build a wave: 1 target (sometimes 2) + distractors, spaced per the chosen
+    // speed so the screen never feels rushed for the slower settings.
     const targetCount = Math.random() < 0.4 ? 2 : 1;
-    const distractors = 2 + Math.floor(Math.random() * 2);
-    const items = buildWave(target, { targetCount, distractors });
+    const distractors = cfg.dMin + Math.floor(Math.random() * (cfg.dExtra + 1));
+    const items = buildWave(target, pool, { targetCount, distractors });
     spawnQueue = items.map((item, i) => ({
       item,
-      at: 1.0 + i * 0.7,                // announce beat, then a relaxed cadence
+      at: 1.0 + i * cfg.stagger,        // announce beat, then the speed's cadence
       startX: 0.15 * W + Math.random() * 0.7 * W,
     }));
     waveClock = 0;
@@ -120,7 +151,7 @@ export function mountSamurai(root) {
     const r = Math.max(34, Math.min(60, H * 0.075));
     // launch so the apex lands in the upper part of the screen
     const apexY = H * (0.12 + Math.random() * 0.22);
-    const v = Math.sqrt(2 * GRAV * Math.max(60, H - apexY));
+    const v = Math.sqrt(2 * cfg.grav * Math.max(60, H - apexY));
     objects.push({
       char: item.char,
       isTarget: item.isTarget,
@@ -262,7 +293,7 @@ export function mountSamurai(root) {
     // letters
     for (let i = objects.length - 1; i >= 0; i--) {
       const o = objects[i];
-      o.vy += GRAV * dt;
+      o.vy += cfg.grav * dt;
       o.x += o.vx * dt;
       o.y += o.vy * dt;
       o.angle += o.spin * dt;
@@ -398,14 +429,50 @@ export function mountSamurai(root) {
     if (running) return;
     unlock();
     startOverlay.classList.add('hidden');
+    // fresh board with the current settings
+    objects.length = 0;
+    particles.length = 0;
+    blade.length = 0;
     running = true;
     lastT = performance.now();
     startRound();
     raf = requestAnimationFrame(frame);
   }
 
+  // Pause and reopen the settings overlay (from the in-game gear button).
+  function openSettings() {
+    running = false;
+    cancelAnimationFrame(raf);
+    cancelSpeech();
+    startOverlay.classList.remove('hidden');
+  }
+
+  // --- settings selectors ---
+  function syncSettingsUI() {
+    game.querySelectorAll('.sam-setting').forEach((row) => {
+      const key = row.dataset.setting;
+      row.querySelectorAll('.sam-seg button').forEach((b) => {
+        b.classList.toggle('is-active', b.dataset.val === settings[key]);
+      });
+    });
+  }
+  game.querySelectorAll('.sam-setting').forEach((row) => {
+    const key = row.dataset.setting;
+    row.querySelectorAll('.sam-seg button').forEach((b) => {
+      b.addEventListener('click', () => {
+        settings[key] = b.dataset.val;
+        cfg = SPEEDS[settings.speed] || SPEEDS.slow;
+        pool = poolFor(settings.mode);
+        save(SETTINGS_KEY, settings);
+        syncSettingsUI();
+      });
+    });
+  });
+  syncSettingsUI();
+
   // --- listeners ---
   startBtn.addEventListener('click', start);
+  settingsBtn.addEventListener('click', openSettings);
   targetBtn.addEventListener('click', () => { if (running) announceTarget(); });
   canvas.addEventListener('pointerdown', onDown);
   canvas.addEventListener('pointermove', onMove);
