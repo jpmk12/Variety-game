@@ -10,6 +10,9 @@ A touch-friendly game hub for kids. The home screen is a menu of games:
 - **Letter Samurai** — a gentle "Fruit Ninja" with a learning twist: the game
   says a letter out loud and tosses letters up like fruit; swipe to slash the
   one you heard.
+- **Climb & Spell** — a masked climber hero crawls and web-swings between letter
+  perches; the game says "Crawl/Swing to C!" and reaching the right letters in
+  order spells simple words.
 
 Built as a **zero-build static site**: plain HTML, CSS, and JavaScript (ES
 modules) with hand-drawn inline SVG characters. No installs, no bundler, no
@@ -74,6 +77,20 @@ python3 -m http.server 8000
   🐇 Fast, which changes how long the glyphs float). Choices are saved.
 - Rendered on a `<canvas>` with a DOM HUD; respects the same top-bar mute.
 
+## How Climb & Spell works
+
+- Tap **Start**. The game shows a word as blanks and tells you (on screen + out
+  loud) **"Crawl to C!"** or **"Swing to C!"**.
+- The reachable perches glow; near ones are a **crawl**, farther ones a **swing**
+  (the hero shoots a web line and arcs over). Several are reachable at once, so
+  there are multiple paths.
+- Tap the perch with the called letter → the hero crawls/swings there and the
+  letter drops into the word. Reaching the right letters in order **spells the
+  word** (CAT, DOG, SUN…), then a celebration and a new word.
+- Wrong perch? A soft "oops" and it re-says the letter — no penalty.
+- The hero is an **original** masked climber (our own colors + a star emblem),
+  not based on any trademarked character.
+
 ## Project layout
 
 ```
@@ -98,6 +115,10 @@ js/
     index.js            canvas game: physics, slicing, waves, HUD
     content.js          letter pool + colors + wave builder
     speech.js           Web Speech API wrapper (says the target letter)
+  games/climb-spell/
+    index.js            wall scene, perch reachability, crawl/swing movement
+    hero.js             original masked-climber SVG
+    words.js            3-letter word list + distractor helper
 assets/
   favicon.svg, icon-*.png     app icons (tab + home screen)
   animal-care-thumbnail.png   README hero image
