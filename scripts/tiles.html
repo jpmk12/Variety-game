@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<!-- Generator for the hub tile images. Reuses the real in-game art and renders
+     one square hero image per game; screenshotted into assets/tiles/. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    * { margin: 0; box-sizing: border-box; }
+    body { background: #fff; display: flex; gap: 20px; padding: 20px; flex-wrap: wrap; }
+    .tile { position: relative; width: 640px; height: 640px; overflow: hidden; border-radius: 40px;
+            font-family: 'Baloo 2', system-ui, sans-serif; }
+
+    /* --- Animal Care --- */
+    #animal-care { background: linear-gradient(180deg, #ffe9c7 0%, #ffdca6 46%, #c79a6b 46%, #b8895a 100%); }
+    #animal-care .rug { position: absolute; left: 50%; bottom: 5%; width: 96%; height: 40%; transform: translateX(-50%);
+      background: radial-gradient(ellipse at center, #ff9ec4 0%, #ff7db0 55%, #f2669e 56%); border-radius: 50%; opacity: .9; }
+    #animal-care .pets { position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: center; gap: 4px; padding: 0 14px 7%; }
+    #animal-care .pet { width: 46%; filter: drop-shadow(0 12px 8px rgba(60,50,90,.22)); }
+    #animal-care .pet svg { width: 100%; height: auto; overflow: visible; }
+
+    /* --- Letter Samurai --- */
+    #samurai { background: radial-gradient(circle at 74% 26%, #ffffff 0 14%, transparent 15%), linear-gradient(180deg, #eaf6ff, #cfe9ff); }
+    #samurai .ball { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 900; box-shadow: inset 10px 10px 0 rgba(255,255,255,.25); filter: drop-shadow(0 8px 6px rgba(60,50,90,.2)); }
+    #samurai .slash { position: absolute; left: -10%; top: 60%; width: 120%; height: 26px; background: linear-gradient(90deg, transparent, #fff 40%, #fff 60%, transparent);
+      transform: rotate(-24deg); border-radius: 999px; opacity: .9; filter: blur(1px); }
+    .spark { position: absolute; font-size: 44px; }
+
+    /* --- Climb & Spell --- */
+    #climb-spell { background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.35) 0 2px, transparent 2px 70px),
+      linear-gradient(180deg, #d7ecf0 0%, #bfe0e6 100%); }
+    #climb-spell .perch { position: absolute; width: 116px; height: 116px; border-radius: 50%; background: #fff;
+      display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 52px; color: #3a3357; box-shadow: 0 6px 0 rgba(60,50,90,.18); }
+    #climb-spell .perch.dim { opacity: .4; filter: grayscale(.4); }
+    #climb-spell .perch.on { border: 8px solid #2ec4b6; }
+    #climb-spell .hero { position: absolute; width: 190px; }
+    #climb-spell .hero svg { width: 100%; height: auto; overflow: visible; filter: drop-shadow(0 8px 6px rgba(60,50,90,.25)); }
+    #climb-spell svg.web { position: absolute; inset: 0; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <div class="tile" id="animal-care">
+    <div class="rug"></div>
+    <div class="pets"></div>
+    <span class="spark" style="left:7%;top:12%">❤️</span>
+    <span class="spark" style="left:44%;top:6%">✨</span>
+    <span class="spark" style="right:8%;top:14%">❤️</span>
+  </div>
+
+  <div class="tile" id="samurai">
+    <div class="slash"></div>
+  </div>
+
+  <div class="tile" id="climb-spell">
+    <svg class="web" viewBox="0 0 640 640"><line x1="352" y1="405" x2="258" y2="150" stroke="#fff" stroke-width="7" stroke-linecap="round"/></svg>
+  </div>
+
+  <script type="module">
+    import { ANIMALS } from '/js/games/animal-care/animals.js';
+    import { HERO_SVG } from '/js/games/climb-spell/hero.js';
+    import { COLORS } from '/js/games/samurai/content.js';
+
+    // Animal Care: three real pets
+    const pets = document.querySelector('#animal-care .pets');
+    ANIMALS.forEach((a) => {
+      const d = document.createElement('div');
+      d.className = 'pet';
+      d.innerHTML = a.svg;
+      pets.appendChild(d);
+    });
+
+    // Letter Samurai: colorful letter balls + a slash
+    const sam = document.querySelector('#samurai');
+    const balls = [
+      { ch: 'A', x: 70, y: 150, s: 190, c: 0 },
+      { ch: 'B', x: 360, y: 90, s: 150, c: 3 },
+      { ch: 'C', x: 300, y: 330, s: 210, c: 6 },
+    ];
+    balls.forEach((b) => {
+      const el = document.createElement('div');
+      el.className = 'ball';
+      el.style.left = b.x + 'px'; el.style.top = b.y + 'px';
+      el.style.width = b.s + 'px'; el.style.height = b.s + 'px';
+      el.style.fontSize = (b.s * 0.6) + 'px';
+      el.style.background = COLORS[b.c % COLORS.length];
+      el.textContent = b.ch;
+      sam.appendChild(el);
+    });
+    ['⭐', '✨'].forEach((g, i) => {
+      const s = document.createElement('span');
+      s.className = 'spark'; s.textContent = g;
+      s.style.left = (60 + i * 470) + 'px'; s.style.top = (70 + i * 380) + 'px';
+      sam.appendChild(s);
+    });
+
+    // Climb & Spell: perches + hero
+    const cs = document.querySelector('#climb-spell');
+    const perches = [
+      { ch: 'C', x: 200, y: 90, on: true },
+      { ch: 'A', x: 430, y: 200, on: true },
+      { ch: 'T', x: 470, y: 420, on: false },
+      { ch: 'S', x: 120, y: 320, on: false },
+    ];
+    perches.forEach((p) => {
+      const el = document.createElement('div');
+      el.className = 'perch ' + (p.on ? 'on' : 'dim');
+      el.style.left = p.x + 'px'; el.style.top = p.y + 'px';
+      el.textContent = p.ch;
+      cs.appendChild(el);
+    });
+    const hero = document.createElement('div');
+    hero.className = 'hero';
+    hero.style.left = '250px'; hero.style.top = '360px';
+    hero.innerHTML = HERO_SVG;
+    cs.appendChild(hero);
+  </script>
+</body>
+</html>
