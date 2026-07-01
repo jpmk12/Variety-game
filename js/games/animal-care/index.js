@@ -1,496 +1,196 @@
-// Animal Care game controller. Builds the room, places the three animals, and
-// drives the whole care loop: tap-to-select, tap-to-pet, drag-an-item-onto-a-pet,
-// the four care actions, live needs feedback (mood faces, thought bubbles, and a
-// needs meter for the selected pet), praise/celebration feedback, plus idle and
-// per-action animations. State persists with gentle real-time decay.
+// Animal Care controller. A small router across three views:
+//   room   — the three pets; tap one to zoom in
+//   detail — one pet, its needs meters, and the six task buttons
+//   mini   — a task's mini-game (from ./minigames), which fills a goal meter
+//            and, on win, tops up that need and returns to the pet
+// Stats + gentle real-time decay persist to localStorage (as before).
 
 import { ANIMALS } from './animals.js';
 import { ACTIONS } from './actions.js';
-import {
-  freshStats,
-  applyDecay,
-  moodFor,
-  lowestNeed,
-  allContent,
-  NEEDS,
-  LOW_THRESHOLD,
-  STAT_KEYS,
-} from './stats.js';
+import { freshStats, applyDecay, moodFor, lowestNeed, NEEDS, STAT_KEYS } from './stats.js';
 import { load, save } from '../../storage.js';
-import { play, playVoice } from '../../audio.js';
-import { makeDraggable } from './drag.js';
-import { SEQUENCES, STEP_ART } from './sequences.js';
+import { play } from '../../audio.js';
+import { MINIGAMES } from './minigames/index.js';
 
 const SAVE_KEY = 'animal-care';
-const TICK_MS = 15000; // how often live decay updates the faces/meters
-const IDLE_MS = 6000; // how often a random pet does a little idle flourish
-
+const TICK_MS = 15000;
 const clamp = (n) => Math.max(0, Math.min(100, n));
-const byId = (id) => ACTIONS.find((a) => a.id === id);
-
-const SPECIAL_IDLES = ['idle-stretch', 'idle-sniff', 'idle-sparkle'];
-const PET_SAYINGS = ['I love you!', 'Hehe!', '♥'];
 
 export function mountAnimalCare(root) {
   // --- load + decay-on-return ---
   const saved = load(SAVE_KEY, null);
   const now = Date.now();
-  const state = { animals: {}, selected: ANIMALS[0].id };
-
+  const state = { animals: {} };
   ANIMALS.forEach((a) => {
     const prev = saved?.animals?.[a.id]?.stats;
     state.animals[a.id] = { stats: prev ? { ...freshStats(), ...prev } : freshStats() };
   });
   if (saved?.lastSaved) {
     const elapsed = now - saved.lastSaved;
-    ANIMALS.forEach((a) => {
-      state.animals[a.id].stats = applyDecay(state.animals[a.id].stats, elapsed);
-    });
+    ANIMALS.forEach((a) => { state.animals[a.id].stats = applyDecay(state.animals[a.id].stats, elapsed); });
   }
-  if (saved?.selected && state.animals[saved.selected]) state.selected = saved.selected;
-  // Track "fully content" per pet so a celebration fires only on the transition.
-  ANIMALS.forEach((a) => { state.animals[a.id].wasContent = allContent(state.animals[a.id].stats); });
   let lastTick = now;
+  let alive = true;
 
-  // --- build DOM ---
-  const game = document.createElement('div');
-  game.className = 'ac-game';
-  game.innerHTML = `
-    <div class="ac-room">
-      <div class="ac-wall">
-        <button class="ac-window" aria-label="Look out the window"><span class="ac-cloud"></span><span class="ac-cloud ac-cloud2"></span></button>
-        <button class="ac-frame" aria-label="Rainbow picture">🌈</button>
-      </div>
-      <div class="ac-floor"><div class="ac-rug"></div></div>
-      <div class="ac-night" aria-hidden="true"><span class="ac-moon">🌙</span><span class="ac-star s1">⭐</span><span class="ac-star s2">✨</span><span class="ac-star s3">⭐</span></div>
-      <div class="ac-stage" role="group" aria-label="Your pets"></div>
-      <div class="ac-fx" aria-hidden="true"></div>
-      <div class="ac-banner" role="status" aria-live="polite"></div>
-    </div>
-    <div class="ac-needs" aria-live="polite">
-      <span class="ac-needs-pet"></span>
-      <div class="ac-meters"></div>
-    </div>
-    <p class="ac-hint">Tap a pet, or drag a treat onto it!</p>
-    <div class="ac-actionbar" role="toolbar" aria-label="Care actions"></div>
-  `;
+  const wrap = document.createElement('div');
+  wrap.className = 'ac-game';
+  root.appendChild(wrap);
 
-  const room = game.querySelector('.ac-room');
-  const stage = game.querySelector('.ac-stage');
-  const bar = game.querySelector('.ac-actionbar');
-  const hint = game.querySelector('.ac-hint');
-  const fxLayer = game.querySelector('.ac-fx');
-  const banner = game.querySelector('.ac-banner');
-  const nightEl = game.querySelector('.ac-night');
-  const windowEl = game.querySelector('.ac-window');
-  const frameEl = game.querySelector('.ac-frame');
-  const needsPetEl = game.querySelector('.ac-needs-pet');
-  const metersEl = game.querySelector('.ac-meters');
+  let view = 'room';
+  let currentPet = ANIMALS[0].id;
+  let mgCleanup = null;
+  let roomEls = null;
 
-  // --- needs meter (reflects the selected pet) ---
-  const meterFills = {};
-  NEEDS.forEach((need) => {
-    const m = document.createElement('div');
-    m.className = 'ac-meter';
-    m.innerHTML = `
-      <span class="ac-meter-icon" aria-hidden="true">${need.icon}</span>
-      <span class="ac-meter-track"><span class="ac-meter-fill"></span></span>`;
-    const fill = m.querySelector('.ac-meter-fill');
-    fill.style.background = need.color;
-    fill.setAttribute('aria-label', need.label);
-    metersEl.appendChild(m);
-    meterFills[need.key] = fill;
-  });
+  function persist() { save(SAVE_KEY, { animals: state.animals, lastSaved: Date.now() }); }
+  const petDef = (id) => ANIMALS.find((a) => a.id === id);
 
-  // --- animals ---
-  const els = {}; // id -> { wrap, faceEl, thoughtEl, propLayer, artEl }
-  ANIMALS.forEach((a) => {
-    const wrap = document.createElement('button');
-    wrap.className = 'ac-animal';
-    wrap.dataset.id = a.id;
-    wrap.setAttribute('aria-label', a.name + ' the ' + a.id);
-    wrap.innerHTML = `
-      <span class="ac-thought" aria-hidden="true"></span>
-      <span class="ac-queue" aria-hidden="true"></span>
-      <span class="ac-mood" aria-hidden="true"></span>
-      <span class="ac-name">${a.name}</span>
-      <span class="ac-prop-layer"></span>
-      <span class="ac-art">${a.svg}<span class="ac-overlay"></span></span>
-    `;
-    const refs = {
-      wrap,
-      faceEl: wrap.querySelector('.ac-mood'),
-      thoughtEl: wrap.querySelector('.ac-thought'),
-      queueEl: wrap.querySelector('.ac-queue'),
-      propLayer: wrap.querySelector('.ac-prop-layer'),
-      artEl: wrap.querySelector('.ac-art'),
-      overlayEl: wrap.querySelector('.ac-overlay'),
-      busy: false,
-      queue: [],
-    };
-    els[a.id] = refs;
+  // test hook
+  wrap.__ac = {
+    get view() { return view; },
+    get pet() { return currentPet; },
+    stats: (id) => ({ ...state.animals[id].stats }),
+    openDetail: (id) => showDetail(id),
+    openMini: (actionId) => openMini(actionId),
+    goRoom: () => showRoom(),
+  };
 
-    wrap.addEventListener('click', (e) => {
-      // Tapping the thought bubble fulfills the request directly.
-      if (e.target.closest('.ac-thought')) {
-        const need = lowestNeed(state.animals[a.id].stats);
-        if (need) { doAction(byId(need.action), a.id); return; }
-      }
-      // Tap an unselected pet to select it; tap the selected pet to pet it.
-      if (state.selected === a.id) petAnimal(a.id);
-      else setSelected(a.id, { sound: true });
-    });
-    stage.appendChild(wrap);
-  });
-
-  // --- action buttons: tap = apply to selected, drag = drop on any pet ---
-  const dragCleanups = [];
-  ACTIONS.forEach((act) => {
-    const btn = document.createElement('button');
-    btn.className = 'ac-action';
-    btn.style.setProperty('--accent', act.accent);
-    btn.dataset.id = act.id;
-    btn.setAttribute('aria-label', act.label);
-    btn.innerHTML = `<span class="ac-action-emoji" aria-hidden="true">${act.emoji}</span><span class="ac-action-label">${act.label}</span>`;
-    bar.appendChild(btn);
-    dragCleanups.push(makeDraggable(btn, {
-      glyph: act.emoji,
-      onTap: () => doAction(act),
-      onDrop: (petId) => { if (petId) doAction(act, petId); },
-    }));
-  });
-
-  // --- selection ---
-  function setSelected(id, { sound } = {}) {
-    state.selected = id;
-    ANIMALS.forEach((a) => els[a.id].wrap.classList.toggle('is-selected', a.id === id));
-    if (sound) play('select');
-    refreshPanel();
-    persist();
+  function clearView() {
+    if (mgCleanup) { mgCleanup(); mgCleanup = null; }
+    wrap.innerHTML = '';
+    roomEls = null;
   }
 
-  // --- feedback rendering ---
-  function refreshPet(id) {
+  // ---------------- ROOM ----------------
+  function showRoom() {
+    view = 'room';
+    clearView();
+    wrap.innerHTML = `
+      <div class="ac-room">
+        <div class="ac-wall"><div class="ac-window"><span class="ac-cloud"></span><span class="ac-cloud ac-cloud2"></span></div><div class="ac-frame">🌈</div></div>
+        <div class="ac-floor"><div class="ac-rug"></div></div>
+        <div class="ac-stage" role="group" aria-label="Your pets"></div>
+      </div>
+      <p class="ac-hint">Tap a pet to take care of it!</p>
+    `;
+    const stage = wrap.querySelector('.ac-stage');
+    roomEls = {};
+    ANIMALS.forEach((a) => {
+      const btn = document.createElement('button');
+      btn.className = 'ac-animal';
+      btn.dataset.id = a.id;
+      btn.setAttribute('aria-label', a.name + ' the ' + a.id);
+      btn.innerHTML = `<span class="ac-thought" aria-hidden="true"></span><span class="ac-mood" aria-hidden="true"></span><span class="ac-name">${a.name}</span><span class="ac-art">${a.svg}</span>`;
+      btn.addEventListener('click', () => { play('select'); showDetail(a.id); });
+      stage.appendChild(btn);
+      roomEls[a.id] = { faceEl: btn.querySelector('.ac-mood'), thoughtEl: btn.querySelector('.ac-thought'), artEl: btn.querySelector('.ac-art') };
+    });
+    ANIMALS.forEach((a) => refreshRoomPet(a.id));
+  }
+
+  function refreshRoomPet(id) {
+    if (!roomEls || !roomEls[id]) return;
     const stats = state.animals[id].stats;
     const mood = moodFor(stats);
-    const { faceEl, thoughtEl, artEl, wrap } = els[id];
-    faceEl.textContent = mood.face;
-    wrap.dataset.mood = mood.key;
-    // Don't fight an in-progress action animation with the idle droop.
-    artEl.classList.toggle('is-droopy', mood.key === 'sad' && !els[id].busy);
-
+    roomEls[id].faceEl.textContent = mood.face;
+    roomEls[id].artEl.classList.toggle('is-droopy', mood.key === 'sad');
     const need = lowestNeed(stats);
-    if (need) {
-      thoughtEl.textContent = need.icon;
-      thoughtEl.classList.add('show');
-    } else {
-      thoughtEl.classList.remove('show');
-    }
-    if (id === state.selected) refreshPanel();
+    const th = roomEls[id].thoughtEl;
+    if (need) { th.textContent = need.icon; th.classList.add('show'); } else { th.classList.remove('show'); }
   }
 
-  function refreshPanel() {
-    const sel = ANIMALS.find((a) => a.id === state.selected);
-    const stats = state.animals[state.selected].stats;
-    needsPetEl.textContent = sel.name;
+  // ---------------- DETAIL (zoom) ----------------
+  function showDetail(id) {
+    view = 'detail';
+    currentPet = id;
+    clearView();
+    const a = petDef(id);
+    wrap.innerHTML = `
+      <div class="ac-detail">
+        <div class="ac-detail-top">
+          <button class="ac-back" aria-label="Back to room">← Room</button>
+          <span class="ac-detail-name">${a.name}</span>
+        </div>
+        <div class="ac-detail-stage"><span class="ac-detail-pet">${a.svg}</span></div>
+        <div class="ac-meters"></div>
+        <div class="ac-actionbar" role="toolbar" aria-label="Care tasks"></div>
+      </div>
+    `;
+    wrap.querySelector('.ac-back').addEventListener('click', () => { play('select'); showRoom(); });
+
+    const meters = wrap.querySelector('.ac-meters');
     NEEDS.forEach((need) => {
-      const v = clamp(stats[need.key] ?? 0);
-      const fill = meterFills[need.key];
-      fill.style.width = v + '%';
-      fill.parentElement.parentElement.classList.toggle('is-low', v < LOW_THRESHOLD);
+      const m = document.createElement('div');
+      m.className = 'ac-meter';
+      m.dataset.key = need.key;
+      m.innerHTML = `<span class="ac-meter-icon" aria-hidden="true">${need.icon}</span><span class="ac-meter-track"><span class="ac-meter-fill"></span></span>`;
+      const fill = m.querySelector('.ac-meter-fill');
+      fill.style.background = need.color;
+      meters.appendChild(m);
+    });
+
+    const bar = wrap.querySelector('.ac-actionbar');
+    ACTIONS.forEach((act) => {
+      const btn = document.createElement('button');
+      btn.className = 'ac-action';
+      btn.style.setProperty('--accent', act.accent);
+      btn.dataset.id = act.id;
+      btn.setAttribute('aria-label', act.label);
+      btn.innerHTML = `<span class="ac-action-emoji" aria-hidden="true">${act.emoji}</span><span class="ac-action-label">${act.label}</span>`;
+      btn.addEventListener('click', () => { play('select'); openMini(act.id); });
+      bar.appendChild(btn);
+    });
+
+    refreshMeters();
+  }
+
+  function refreshMeters() {
+    if (view !== 'detail') return;
+    const stats = state.animals[currentPet].stats;
+    wrap.querySelectorAll('.ac-meter').forEach((m) => {
+      const key = m.dataset.key;
+      m.querySelector('.ac-meter-fill').style.width = clamp(stats[key] ?? 0) + '%';
     });
   }
 
-  function refreshAll() { ANIMALS.forEach((a) => refreshPet(a.id)); }
-
-  // --- the core care action ---
-  const MAX_QUEUE = 4;
-  function doAction(act, petId = state.selected) {
-    const id = petId;
-    if (id !== state.selected) setSelected(id);
-    const refs = els[id];
-    // Mid-sequence? Queue the tap so it runs next instead of being dropped.
-    if (refs.busy) {
-      if (refs.queue.length < MAX_QUEUE) {
-        refs.queue.push(act);
-        bumpQueueBadge(id);
-      }
-      return;
-    }
-    const stats = state.animals[id].stats;
-    hint.classList.add('is-hidden');
-
-    // Already satisfied for this action's primary need → gentle "full" reaction.
-    if ((stats[act.primary] ?? 100) >= 98) {
-      stats.happiness = clamp(stats.happiness + 3);
-      restartAnim(refs.artEl, 'is-full', 600);
-      say(id, act.fullMessage);
-      play('select');
-      refreshPet(id);
-      persist();
-      return;
-    }
-
-    // Apply the restore up front so the meter fills, then play out the sequence.
-    for (const k of STAT_KEYS) {
-      if (act.restore[k]) stats[k] = clamp(stats[k] + act.restore[k]);
-    }
-    refreshPet(id);
-    const content = allContent(stats);
-    refs.pendingCelebrate = content && !state.animals[id].wasContent;
-    state.animals[id].wasContent = content;
-    persist();
-
-    runSequence(id, act);
-  }
-
-  // Swap the pet's body-motion class, restarting the animation cleanly.
-  function setArt(artEl, cls) {
-    artEl.classList.remove(...STEP_ART);
-    void artEl.offsetWidth; // reflow → restart
-    if (cls) artEl.classList.add(cls);
-  }
-
-  // Play the ordered steps of an action one after another.
-  async function runSequence(id, act) {
-    const refs = els[id];
-    const { artEl, overlayEl, propLayer } = refs;
-    const steps = SEQUENCES[act.id] || [
-      { ms: 700, art: act.anim, particle: act.particle, count: 6, sound: act.sound, say: true, celebrate: true },
-    ];
-    refs.busy = true;
-    let litNight = false;
-    for (const step of steps) {
-      if (!alive) break;
-      setArt(artEl, step.art);
-      overlayEl.className = 'ac-overlay' + (step.overlay ? ' ' + step.overlay : '');
-      if (step.night) { setNight(true); litNight = true; }
-      if (step.prop) spawnProp(propLayer, act);
-      if (step.particle) sprayParticles(propLayer, step.particle, step.count || 5);
-      if (step.sound) play(step.sound);
-      if (step.voice) playVoice(id);
-      if (step.say) say(id, act.praise);
-      if (step.celebrate && refs.pendingCelebrate) { celebrate(id); refs.pendingCelebrate = false; }
-      await sleep(step.ms);
-    }
-    // settle back to idle
-    artEl.classList.remove(...STEP_ART);
-    overlayEl.className = 'ac-overlay';
-    if (litNight) setNight(false);
-    refs.busy = false;
-    if (alive) refreshPet(id);
-
-    // Run the next queued tap, if any.
-    if (alive && refs.queue.length) {
-      const next = refs.queue.shift();
-      bumpQueueBadge(id);
-      doAction(next, id);
-    }
-  }
-
-  // --- petting (tap the already-selected pet) ---
-  function petAnimal(id) {
-    if (els[id].busy) return; // not mid-action
-    const stats = state.animals[id].stats;
-    stats.happiness = clamp(stats.happiness + 8);
-    restartAnim(els[id].artEl, 'is-cuddle', 700);
-    sprayParticles(els[id].propLayer, '❤️', 4);
-    playVoice(id);
-    say(id, PET_SAYINGS[Math.floor(Math.random() * PET_SAYINGS.length)]);
-    refreshPet(id);
-    persist();
-  }
-
-  // --- celebration ---
-  function celebrate(id) {
-    const name = ANIMALS.find((a) => a.id === id).name;
-    restartAnim(els[id].artEl, 'is-dancing', 1200);
-    banner.textContent = `${name} is so happy! 🎉`;
-    banner.classList.add('show');
-    setTimeout(() => banner.classList.remove('show'), 2200);
-    spawnConfetti(28);
-    play('happy');
-    setTimeout(() => playVoice(id), 180);
-  }
-
-  // Show how many taps are waiting their turn on a pet ("+2").
-  function bumpQueueBadge(id) {
-    const { queueEl, queue } = els[id];
-    if (queue.length > 0) {
-      queueEl.textContent = '+' + queue.length;
-      queueEl.classList.add('show');
-    } else {
-      queueEl.classList.remove('show');
-    }
-  }
-
-  // --- small effect helpers ---
-  function restartAnim(artEl, cls, ms) {
-    artEl.classList.remove(cls);
-    void artEl.offsetWidth;
-    artEl.classList.add(cls);
-    setTimeout(() => artEl.classList.remove(cls), ms);
-  }
-
-  // A short message that floats up from the pet.
-  function say(id, text) {
-    const el = document.createElement('span');
-    el.className = 'ac-say';
-    el.textContent = text;
-    els[id].wrap.appendChild(el);
-    setTimeout(() => el.remove(), 1300);
-  }
-
-  // A big prop (bowl / ball / bubbles) that pops in near the pet then fades.
-  function spawnProp(layer, act) {
-    const prop = document.createElement('span');
-    prop.className = 'ac-prop ac-prop-' + act.id;
-    prop.textContent = act.emoji;
-    layer.appendChild(prop);
-    setTimeout(() => prop.remove(), act.id === 'play' ? 2000 : 1500);
-  }
-
-  // Little emoji particles floating up (hearts, bubbles, stars...).
-  function sprayParticles(layer, glyph, count) {
-    for (let i = 0; i < count; i++) {
-      const p = document.createElement('span');
-      p.className = 'ac-particle';
-      p.textContent = glyph;
-      p.style.left = 30 + Math.random() * 40 + '%';
-      p.style.setProperty('--dx', (Math.random() * 60 - 30) + 'px');
-      p.style.animationDelay = i * 60 + 'ms';
-      layer.appendChild(p);
-      setTimeout(() => p.remove(), 1600 + i * 60);
-    }
-  }
-
-  // Colorful confetti rain across the whole room.
-  const CONFETTI_COLORS = ['#ff6b9d', '#ffd166', '#5ec8ff', '#9be7c4', '#bdb2ff', '#ff9f68'];
-  function spawnConfetti(count) {
-    for (let i = 0; i < count; i++) {
-      const c = document.createElement('span');
-      c.className = 'ac-confetti';
-      c.style.left = Math.random() * 100 + '%';
-      c.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
-      c.style.animationDelay = Math.random() * 0.4 + 's';
-      c.style.setProperty('--spin', (Math.random() * 720 - 360) + 'deg');
-      fxLayer.appendChild(c);
-      setTimeout(() => c.remove(), 2400);
-    }
-  }
-
-  // Dim the room for bedtime. Ref-counted so overlapping sleeps behave.
-  let nightCount = 0;
-  function setNight(on) {
-    nightCount = Math.max(0, nightCount + (on ? 1 : -1));
-    nightEl.classList.toggle('show', nightCount > 0);
-  }
-
-  // --- tap surprises on the window and the rainbow picture ---
-  function burstAt(targetEl, glyphs, count) {
-    const roomRect = room.getBoundingClientRect();
-    const r = targetEl.getBoundingClientRect();
-    const cx = r.left - roomRect.left + r.width / 2;
-    const cy = r.top - roomRect.top + r.height / 2;
-    for (let i = 0; i < count; i++) {
-      const s = document.createElement('span');
-      s.className = 'ac-burst';
-      s.textContent = glyphs[i % glyphs.length];
-      s.style.left = cx + 'px';
-      s.style.top = cy + 'px';
-      const ang = (Math.PI * 2 * i) / count;
-      s.style.setProperty('--bx', Math.cos(ang) * 74 + 'px');
-      s.style.setProperty('--by', Math.sin(ang) * 74 + 'px');
-      fxLayer.appendChild(s);
-      setTimeout(() => s.remove(), 900);
-    }
-  }
-
-  function windowSurprise() {
-    play('twinkle');
-    windowEl.classList.add('is-sunny');
-    const sun = document.createElement('span');
-    sun.className = 'ac-sun';
-    sun.textContent = '☀️';
-    const bird = document.createElement('span');
-    bird.className = 'ac-bird';
-    bird.textContent = '🐦';
-    windowEl.append(sun, bird);
-    setTimeout(() => { sun.remove(); bird.remove(); windowEl.classList.remove('is-sunny'); }, 1700);
-  }
-
-  function rainbowSurprise() {
-    play('twinkle');
-    frameEl.classList.remove('pop');
-    void frameEl.offsetWidth;
-    frameEl.classList.add('pop');
-    burstAt(frameEl, ['✨', '⭐', '🌈', '💖'], 8);
-    setTimeout(() => frameEl.classList.remove('pop'), 700);
-  }
-
-  windowEl.addEventListener('click', windowSurprise);
-  frameEl.addEventListener('click', rainbowSurprise);
-
-  function persist() {
-    save(SAVE_KEY, {
-      animals: state.animals,
-      selected: state.selected,
-      lastSaved: Date.now(),
+  // ---------------- MINI-GAME ----------------
+  function openMini(actionId) {
+    const act = ACTIONS.find((x) => x.id === actionId);
+    const mg = MINIGAMES[actionId];
+    if (!act || !mg) return;
+    view = 'mini';
+    clearView();
+    mgCleanup = mg(wrap, {
+      pet: petDef(currentPet),
+      onWin: () => {
+        const s = state.animals[currentPet].stats;
+        s[act.primary] = 100;
+        for (const k of STAT_KEYS) { if (act.restore?.[k] > 0) s[k] = clamp(s[k] + act.restore[k]); }
+        persist();
+        showDetail(currentPet);
+      },
+      onBack: () => showDetail(currentPet),
     });
   }
 
-  // --- sequence timing: cancellable sleeps so leaving the game stops cleanly ---
-  let alive = true;
-  const timers = new Set();
-  function sleep(ms) {
-    return new Promise((resolve) => {
-      const t = setTimeout(() => { timers.delete(t); resolve(); }, ms);
-      timers.add(t);
-    });
-  }
-
-  // --- timers: live decay + occasional idle flourishes ---
+  // ---------------- decay ticker ----------------
   const ticker = setInterval(() => {
+    if (!alive) return;
     const t = Date.now();
     const elapsed = t - lastTick;
     lastTick = t;
-    ANIMALS.forEach((a) => {
-      state.animals[a.id].stats = applyDecay(state.animals[a.id].stats, elapsed);
-      // decay can drop a pet out of "content"
-      state.animals[a.id].wasContent = allContent(state.animals[a.id].stats);
-    });
-    refreshAll();
+    ANIMALS.forEach((a) => { state.animals[a.id].stats = applyDecay(state.animals[a.id].stats, elapsed); });
+    if (view === 'room') ANIMALS.forEach((a) => refreshRoomPet(a.id));
+    else if (view === 'detail') refreshMeters();
     persist();
   }, TICK_MS);
 
-  const idleTimer = setInterval(() => {
-    const idleOnes = ANIMALS.filter((a) => !els[a.id].busy
-      && !SPECIAL_IDLES.some((c) => els[a.id].artEl.classList.contains(c)));
-    if (!idleOnes.length) return;
-    const a = idleOnes[Math.floor(Math.random() * idleOnes.length)];
-    const cls = SPECIAL_IDLES[Math.floor(Math.random() * SPECIAL_IDLES.length)];
-    const art = els[a.id].artEl;
-    art.classList.add(cls);
-    art.addEventListener('animationend', () => art.classList.remove(cls), { once: true });
-    setTimeout(() => art.classList.remove(cls), 1600);
-  }, IDLE_MS);
+  showRoom();
 
-  // --- initial paint ---
-  refreshAll();
-  setSelected(state.selected);
-  root.appendChild(game);
-
-  // --- cleanup when leaving the game ---
   return function unmount() {
     alive = false;
-    nightCount = 0;
-    nightEl.classList.remove('show');
     clearInterval(ticker);
-    clearInterval(idleTimer);
-    timers.forEach(clearTimeout);
-    timers.clear();
-    dragCleanups.forEach((fn) => fn());
+    if (mgCleanup) mgCleanup();
     persist();
-    game.remove();
+    wrap.remove();
   };
 }
