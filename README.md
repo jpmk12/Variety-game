@@ -18,9 +18,9 @@ dependencies. It hosts anywhere static files can live (e.g. GitHub Pages).
 ## Play it
 
 **Online:** https://jpmk12.github.io/Variety-game/ — open it on a tablet and,
-for a full-screen app feel, use the browser's **Add to Home Screen**. (It's
-published automatically to GitHub Pages on every push via
-`.github/workflows/pages.yml`.)
+for a full-screen app feel, use the browser's **Add to Home Screen**. (Published
+via GitHub Pages set to **Deploy from a branch → `main`**; the site is the repo
+root, and `.nojekyll` makes it serve files as-is.)
 
 **Locally:** ES modules need to be served over HTTP (not opened as a `file://`),
 so start any static server from the project root:
