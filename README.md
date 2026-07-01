@@ -17,8 +17,13 @@ dependencies. It hosts anywhere static files can live (e.g. GitHub Pages).
 
 ## Play it
 
-ES modules need to be served over HTTP (not opened as a `file://`), so start any
-static server from the project root:
+**Online:** https://jpmk12.github.io/Variety-game/ — open it on a tablet and,
+for a full-screen app feel, use the browser's **Add to Home Screen**. (It's
+published automatically to GitHub Pages on every push via
+`.github/workflows/pages.yml`.)
+
+**Locally:** ES modules need to be served over HTTP (not opened as a `file://`),
+so start any static server from the project root:
 
 ```bash
 python3 -m http.server 8000
