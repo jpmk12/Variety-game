@@ -761,6 +761,10 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .cs-hero.is-swinging .cs-arm-l { transform: rotate(-16deg); }
 .cs-hero.is-swinging .cs-arm-r { transform: rotate(16deg); }
 .cs-hero.is-swinging .cs-leg { animation: cs-dangle 1s ease-in-out; }
+/* shooting a web at a baddie: fling an arm out */
+.cs-hero.is-shooting .cs-hero-svg { animation: none; }
+.cs-hero.is-shooting .cs-arm-r { transform: rotate(-52deg); }
+.cs-hero.is-shooting .cs-arm-l { transform: rotate(-10deg); }
 .cs-hero.is-cheering .cs-hero-svg { animation: cs-cheer 0.5s ease-in-out 3; }
 
 /* fx + celebration */
