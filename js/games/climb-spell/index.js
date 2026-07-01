@@ -21,7 +21,10 @@ export function mountClimbSpell(root) {
   game.className = 'cs-game';
   game.innerHTML = `
     <div class="cs-wall">
-      <svg class="cs-web-layer" aria-hidden="true"><line class="cs-web" x1="0" y1="0" x2="0" y2="0"/></svg>
+      <svg class="cs-web-layer" aria-hidden="true">
+        <line class="cs-web" x1="0" y1="0" x2="0" y2="0"/>
+        <line class="cs-web cs-web-shot" x1="0" y1="0" x2="0" y2="0"/>
+      </svg>
       <div class="cs-prompt">
         <span class="cs-prompt-text">Get ready!</span>
         <button class="cs-say" aria-label="Say it again">🔊</button>
@@ -50,7 +53,8 @@ export function mountClimbSpell(root) {
   const enemyLayer = game.querySelector('.cs-enemies');
   const scoreN = game.querySelector('.cs-score-n');
   const heroEl = game.querySelector('.cs-hero');
-  const webLine = game.querySelector('.cs-web');
+  const webLine = game.querySelector('.cs-web:not(.cs-web-shot)');
+  const shotLine = game.querySelector('.cs-web-shot');
   const fxLayer = game.querySelector('.cs-fx');
   const cheerEl = game.querySelector('.cs-cheer');
   const promptText = game.querySelector('.cs-prompt-text');
@@ -161,18 +165,17 @@ export function mountClimbSpell(root) {
       .map((p) => ({ p, d: dist(cpx, perchPx(p)) }))
       .sort((a, b) => a.d - b.d);
     perches.forEach((p) => { p.reachable = false; p.type = null; });
-    const crawlMax = H * 0.32, swingMax = H * 0.62;
-    let count = 0;
+    // Pick up to 5 reachable perches (at least 3, even if the hero is cornered).
+    const swingMax = H * 0.66;
+    const chosen = [];
     for (const { p, d } of ranked) {
-      if (count >= 5) break;
-      if (d <= swingMax) { p.reachable = true; p.type = d <= crawlMax ? 'crawl' : 'swing'; count++; }
+      if (chosen.length >= 5) break;
+      if (d <= swingMax || chosen.length < 3) chosen.push(p);
     }
-    // guarantee a few choices even if the hero is cornered
-    if (count < 3) {
-      for (const { p, d } of ranked) {
-        if (!p.reachable) { p.reachable = true; p.type = d <= crawlMax ? 'crawl' : 'swing'; count++; if (count >= 3) break; }
-      }
-    }
+    // Rank-based movement type: the two nearest are a CRAWL, farther ones a
+    // SWING. This guarantees both crawl and swing options exist regardless of
+    // screen shape, so the game always offers a mix.
+    chosen.forEach((p, i) => { p.reachable = true; p.type = i < 2 ? 'crawl' : 'swing'; });
   }
 
   // --- set up the next letter to find ---
@@ -180,9 +183,17 @@ export function mountClimbSpell(root) {
     const targetLetter = word[progress];
     computeReachable();
     const reach = perches.filter((p) => p.reachable);
-    const above = reach.filter((p) => p.yPct < curPerch().yPct);
-    const pool = above.length ? above : reach;
-    const targetP = pool[Math.floor(Math.random() * pool.length)];
+    const swings = reach.filter((p) => p.type === 'swing');
+    const crawls = reach.filter((p) => p.type === 'crawl');
+    // Aim for a good mix — favor a swing ~55% of the time when one is available
+    // (swinging is the fun part), otherwise a crawl.
+    let pool;
+    if (swings.length && (crawls.length === 0 || Math.random() < 0.55)) pool = swings;
+    else pool = crawls.length ? crawls : reach;
+    // within the pool, prefer higher perches so the hero climbs as it spells
+    const above = pool.filter((p) => p.yPct < curPerch().yPct);
+    const finalPool = above.length ? above : pool;
+    const targetP = finalPool[Math.floor(Math.random() * finalPool.length)];
     targetId = targetP.id;
     instruction = targetP.type;
 
@@ -405,12 +416,34 @@ export function mountClimbSpell(root) {
   }
 
   function webUp(el) {
-    if (el.classList.contains('webbed')) return;
-    el.classList.add('webbed');
-    addScore(ENEMY_BONUS);
+    if (el.dataset.done) return;
+    el.dataset.done = '1';
+    const ex = (parseFloat(el.style.left) / 100) * W;
+    const ey = (parseFloat(el.style.top) / 100) * H;
+    shootWebAt(ex, ey);                       // hero fires a web strand at it
     play('thwip');
+    later(() => { el.classList.add('webbed'); }, 130); // web lands → splat
+    addScore(ENEMY_BONUS);
     floatText(el.style.left, el.style.top, '+' + ENEMY_BONUS);
-    later(() => { el.remove(); if (activeEnemy === el) activeEnemy = null; }, 700);
+    later(() => { el.remove(); if (activeEnemy === el) activeEnemy = null; }, 800);
+  }
+
+  // The hero shoots a web strand from its hand toward a point (a baddie).
+  function shootWebAt(x, y) {
+    const cp = perchPx(curPerch());
+    const hand = handPoint(cp.x, cp.y);
+    shotLine.setAttribute('x1', hand.x); shotLine.setAttribute('y1', hand.y);
+    shotLine.setAttribute('x2', x); shotLine.setAttribute('y2', y);
+    shotLine.classList.add('show');
+    if (!moving) {                            // pose the hero toward the target
+      heroDir = x < cp.x ? -1 : 1;
+      place(cp.x, cp.y, 0);
+      heroEl.classList.add('is-shooting');
+    }
+    later(() => {
+      shotLine.classList.remove('show');
+      heroEl.classList.remove('is-shooting');
+    }, 340);
   }
 
   function floatText(left, top, text) {
