@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Fun Game Hub paw icon">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7cc6ff"/>
+      <stop offset="1" stop-color="#ff7db0"/>
+    </linearGradient>
+  </defs>
+  <!-- full-bleed opaque background so it also works as an iOS home-screen icon -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <!-- paw print -->
+  <g fill="#ffffff">
+    <ellipse cx="256" cy="332" rx="86" ry="72"/>
+    <circle cx="158" cy="240" r="40"/>
+    <circle cx="218" cy="190" r="42"/>
+    <circle cx="294" cy="190" r="42"/>
+    <circle cx="354" cy="240" r="40"/>
+  </g>
+</svg>

@@ -108,6 +108,186 @@
 }
 
 /* ====================================================================
+   PER-ANIMAL FLOURISHES — inner SVG parts move during actions
+   ==================================================================== */
+
+/* tails go wild while playing (all animals share .ac-tail) */
+.ac-art.is-playing .ac-tail, .ac-art.is-dancing .ac-tail { animation: tail-wag 0.16s ease-in-out infinite; }
+/* mouths chew while eating */
+.ac-art.is-eating .ac-mouth { animation: chew 0.32s ease-in-out 4; transform-origin: 50% 0; }
+@keyframes chew { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.7) translateY(2px); } }
+/* dog tongue laps while drinking */
+.ac-animal[data-id="dog"] .ac-art.is-drinking .ac-tongue { opacity: 1; animation: lap 0.4s ease-in-out 3; transform-origin: 50% 0; }
+@keyframes lap { 0%, 100% { transform: scaleY(1) translateY(0); } 50% { transform: scaleY(1.9) translateY(4px); } }
+/* cat ears twitch during a bath */
+.ac-animal[data-id="cat"] .ac-art.is-bathing .ac-ear-l,
+.ac-animal[data-id="cat"] .ac-art.is-bathing .ac-ear-r { animation: ear-flick 0.3s ease-in-out 4; }
+/* unicorn horn flares bright while playing or dancing */
+.ac-animal[data-id="unicorn"] .ac-art.is-playing .ac-horn,
+.ac-animal[data-id="unicorn"] .ac-art.is-dancing .ac-horn { animation: horn-burst 0.4s ease-in-out 3; }
+@keyframes horn-burst { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.8) drop-shadow(0 0 12px #fff3b0); } }
+
+/* ====================================================================
+   EMOTIONS & SPECIAL IDLES
+   ==================================================================== */
+
+/* droopy: low-need pets sink and tilt gently (looping) */
+.ac-art.is-droopy { animation: droop 2.4s ease-in-out infinite; }
+@keyframes droop { 0%, 100% { transform: translateY(2px) rotate(-1.5deg); } 50% { transform: translateY(5px) rotate(1.5deg); } }
+
+/* cuddle: a warm squish when petted */
+.ac-art.is-cuddle { animation: cuddle 0.7s ease; }
+@keyframes cuddle { 0% { transform: scale(1); } 30% { transform: scale(1.08, 0.92); } 60% { transform: scale(0.97, 1.05) rotate(-3deg); } 100% { transform: scale(1); } }
+
+/* full: a small "no thanks, I'm good" shake */
+.ac-art.is-full { animation: full-shake 0.5s ease; }
+@keyframes full-shake { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-4deg); } 60% { transform: rotate(4deg); } }
+
+/* dance: celebration bounce */
+.ac-art.is-dancing { animation: dance 0.5s ease-in-out 2; }
+@keyframes dance {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  20% { transform: translateY(-22px) rotate(-6deg); }
+  50% { transform: translateY(0) rotate(0); }
+  70% { transform: translateY(-22px) rotate(6deg); }
+}
+
+/* random one-off idles to keep the room alive */
+.ac-art.idle-stretch { animation: idle-stretch 1.4s ease; }
+@keyframes idle-stretch { 0%, 100% { transform: scale(1); } 40% { transform: scale(1.06, 0.94) translateY(3px); } 70% { transform: scale(0.97, 1.05); } }
+.ac-art.idle-sniff { animation: idle-sniff 1.2s ease; }
+@keyframes idle-sniff { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(-4deg) translateY(2px); } 60% { transform: rotate(4deg) translateY(2px); } }
+.ac-art.idle-sparkle { animation: idle-bobble 1.2s ease; }
+@keyframes idle-bobble { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px) scale(1.03); } }
+
+/* ====================================================================
+   MULTI-STEP ACTION MOTIONS + EFFECT OVERLAY
+   ==================================================================== */
+
+/* lean toward a bowl */
+.ac-art.lean-down { animation: lean-down 0.6s ease forwards; }
+@keyframes lean-down { 0% { transform: translateY(0); } 100% { transform: translateY(7px) rotate(2deg); } }
+
+/* shake water/suds off — fast little side-to-side */
+.ac-art.is-shaking { animation: shake-off 0.14s ease-in-out 7; }
+@keyframes shake-off {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  25% { transform: translateX(-5px) rotate(-4deg); }
+  75% { transform: translateX(5px) rotate(4deg); }
+}
+
+/* all clean — a bright little bounce */
+.ac-art.is-shining { animation: shine-bounce 0.8s ease; }
+@keyframes shine-bounce {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.07) translateY(-7px); }
+  100% { transform: scale(1); }
+}
+
+/* The effects overlay sits over the pet and fades between states. */
+.ac-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+/* SUDS: clustered foam blobs over the body */
+.ac-overlay.suds {
+  opacity: 1;
+  background:
+    radial-gradient(circle at 30% 60%, #fff 0 11px, transparent 12px),
+    radial-gradient(circle at 46% 50%, #fff 0 14px, transparent 15px),
+    radial-gradient(circle at 60% 63%, #fff 0 12px, transparent 13px),
+    radial-gradient(circle at 71% 53%, #fff 0 10px, transparent 11px),
+    radial-gradient(circle at 38% 73%, #fff 0 10px, transparent 11px),
+    radial-gradient(circle at 56% 76%, #fff 0 13px, transparent 14px),
+    radial-gradient(circle at 25% 47%, #eaf2ff 0 9px, transparent 10px),
+    radial-gradient(circle at 66% 72%, #eaf2ff 0 9px, transparent 10px);
+  filter: drop-shadow(0 2px 1px rgba(120, 150, 200, 0.25));
+  animation: suds-jiggle 0.5s ease-in-out infinite;
+}
+.ac-overlay.scrub { animation-duration: 0.22s; }
+@keyframes suds-jiggle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+
+/* RINSE: a translucent water curtain sweeps down (suds class is gone → washed off) */
+.ac-overlay.rinse {
+  opacity: 1;
+  background: linear-gradient(180deg, rgba(120, 210, 255, 0) 0%, rgba(120, 210, 255, 0.55) 42%, rgba(120, 210, 255, 0) 60%);
+  background-size: 100% 240%;
+  animation: rinse-down 0.95s ease-in forwards;
+}
+@keyframes rinse-down { 0% { background-position: 0 -130%; } 100% { background-position: 0 130%; } }
+
+/* SHINE: a glossy highlight sweeps across the clean pet */
+.ac-overlay.shine {
+  opacity: 1;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0) 38%, rgba(255, 255, 255, 0.9) 50%, rgba(255, 255, 255, 0) 62%);
+  background-size: 280% 280%;
+  animation: shine-sweep 0.85s ease forwards;
+}
+@keyframes shine-sweep { 0% { background-position: 150% 0; } 100% { background-position: -50% 0; } }
+
+/* ====================================================================
+   PLAY / BRUSH / BEDTIME motions + surprises
+   ==================================================================== */
+
+/* big play ball drops in and bounces a few times in front of the pet */
+@keyframes play-ball {
+  0% { transform: translate(-50%, -140px) scale(0.6); opacity: 0; }
+  15% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+  30% { transform: translate(-50%, -56px) scale(1); }
+  45% { transform: translate(-50%, 0) scale(1.1, 0.9); }
+  60% { transform: translate(-50%, -34px); }
+  75% { transform: translate(-50%, 0) scale(1.06, 0.94); }
+  88% { transform: translate(-50%, -16px); opacity: 1; }
+  100% { transform: translate(-50%, 0) scale(0.9); opacity: 0; }
+}
+
+/* play: crouch/wiggle ready to pounce */
+.ac-art.is-crouch { animation: crouch 0.35s ease-in-out 2; }
+@keyframes crouch { 0%, 100% { transform: translateY(0) scaleY(1); } 50% { transform: translateY(6px) scaleY(0.94); } }
+
+/* brush: gentle grooming sway */
+.ac-art.is-brushing { animation: brush-sway 0.34s ease-in-out 5; }
+@keyframes brush-sway { 0%, 100% { transform: rotate(0) translateY(0); } 25% { transform: rotate(-3deg) translateY(-1px); } 75% { transform: rotate(3deg) translateY(-1px); } }
+
+/* bedtime: yawn (a slow stretch up), sleep (settle low), wake (big stretch) */
+.ac-art.is-yawn { animation: yawn 1s ease; }
+@keyframes yawn { 0% { transform: scale(1); } 40% { transform: scale(1.05, 1.08) translateY(-6px); } 100% { transform: scale(1); } }
+.ac-art.is-sleeping { animation: sleep-breathe 1.6s ease-in-out infinite; }
+@keyframes sleep-breathe { 0%, 100% { transform: translateY(4px) scale(1, 0.98) rotate(-2deg); } 50% { transform: translateY(6px) scale(1.01, 0.96) rotate(-2deg); } }
+/* eyes shut while sleeping */
+.ac-art.is-sleeping .ac-eye-l, .ac-art.is-sleeping .ac-eye-r { animation: none; transform: scaleY(0.12); transform-origin: center; }
+.ac-art.is-wake { animation: wake-stretch 0.9s ease; }
+@keyframes wake-stretch { 0% { transform: translateY(4px); } 35% { transform: translateY(-10px) scale(1.06, 1.04); } 100% { transform: translateY(0); } }
+
+/* night sky stars twinkle */
+@keyframes twinkle-star { 0%, 100% { opacity: 0.4; transform: scale(0.85); } 50% { opacity: 1; transform: scale(1.15); } }
+
+/* window surprise: a sun rises, a bird flies past */
+@keyframes sun-rise {
+  0% { transform: translate(-50%, 40px) scale(0.6); opacity: 0; }
+  30% { transform: translate(-50%, -30px) scale(1); opacity: 1; }
+  75% { transform: translate(-50%, -30px) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, 10px) scale(0.9); opacity: 0; }
+}
+@keyframes bird-fly {
+  0% { transform: translate(0, 0); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translate(340%, -30%); opacity: 0; }
+}
+
+/* rainbow surprise: the frame pops and sparkles burst outward */
+@keyframes frame-pop { 0% { transform: scale(1) rotate(0); } 35% { transform: scale(1.25) rotate(-6deg); } 70% { transform: scale(0.95) rotate(6deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes burst {
+  0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+  25% { opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--bx, 0)), calc(-50% + var(--by, 0))) scale(1.1); opacity: 0; }
+}
+
+/* ====================================================================
    PROPS & PARTICLES
    ==================================================================== */
 
@@ -160,8 +340,38 @@
   100% { transform: translateX(360%); }
 }
 
+/* ====================================================================
+   UI FEEDBACK (bubbles, messages, meters, banner, confetti)
+   ==================================================================== */
+
+/* thought bubble gentle bob */
+@keyframes bubble-bob { 0%, 100% { transform: scale(1) translateY(0); } 50% { transform: scale(1.06) translateY(-4px); } }
+
+/* praise message floats up and fades */
+@keyframes say-float {
+  0% { opacity: 0; transform: translate(-50%, 6px) scale(0.6); }
+  20% { opacity: 1; transform: translate(-50%, -6px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -42px) scale(1); }
+}
+
+/* low-need meter icon nudge */
+@keyframes nudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+
+/* celebration banner pop */
+@keyframes banner-pop {
+  0% { transform: translate(-50%, 0) scale(0.6); }
+  60% { transform: translate(-50%, 0) scale(1.12); }
+  100% { transform: translate(-50%, 0) scale(1); }
+}
+
+/* confetti rains down, tumbling */
+@keyframes confetti-fall {
+  0% { transform: translateY(0) rotate(0); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(var(--spin, 360deg)); opacity: 0.9; }
+}
+
 /* reduced motion: stop the looping idle/ambient animations */
 @media (prefers-reduced-motion: reduce) {
-  .ac-art, .ac-tail, .ac-eye-l, .ac-eye-r, .ac-ear-l, .ac-ear-r,
-  .ac-horn, .ac-cloud { animation: none !important; }
+  .ac-art, .ac-art.is-droopy, .ac-tail, .ac-eye-l, .ac-eye-r, .ac-ear-l, .ac-ear-r,
+  .ac-horn, .ac-cloud, .ac-thought.show, .ac-overlay { animation: none !important; }
 }

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<!-- Generator page for the README hero/thumbnail image. Reuses the real animal
+     art from the game and adds colorful vector "action" effects, then a
+     screenshot of #hero is saved as assets/animal-care-thumbnail.png. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #fff; }
+    #hero {
+      position: relative;
+      width: 1280px;
+      height: 720px;
+      overflow: hidden;
+      font-family: 'Trebuchet MS', system-ui, sans-serif;
+    }
+    /* room backdrop */
+    .wall { position: absolute; inset: 0 0 30% 0; background: linear-gradient(180deg,#ffe9c7,#ffdca6); }
+    .floor { position: absolute; inset: 70% 0 0 0; background: linear-gradient(180deg,#c79a6b,#b8895a); }
+    .rug { position: absolute; left: 50%; bottom: 2%; width: 84%; height: 30%; transform: translateX(-50%);
+           background: radial-gradient(ellipse at center,#ff9ec4 0%,#ff7db0 55%,#f2669e 56%); border-radius: 50%; opacity: .9; }
+    .window { position: absolute; top: 8%; left: 6%; width: 18%; height: 40%;
+              background: linear-gradient(180deg,#bfe9ff,#8fd3ff); border: 10px solid #fff; border-radius: 16px;
+              box-shadow: 0 8px 0 rgba(60,50,90,.18); overflow: hidden; }
+    .cloud { position: absolute; top: 28%; left: 14%; width: 60%; height: 22%; background: #fff; border-radius: 999px;
+             box-shadow: 34px 8px 0 -3px #fff,-18px 10px 0 -5px #fff; }
+
+    /* sunburst behind title for energy */
+    .sun { position: absolute; top: -38%; left: 50%; width: 120%; height: 120%; transform: translateX(-50%);
+           background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,.45) 0deg 7deg, transparent 7deg 14deg);
+           opacity: .35; }
+
+    /* title banner */
+    .title-wrap { position: absolute; top: 26px; left: 50%; transform: translateX(-50%); text-align: center; z-index: 10; }
+    .title { display: inline-flex; align-items: center; gap: 18px; background: #fff; padding: 14px 42px; border-radius: 999px;
+             box-shadow: 0 10px 0 rgba(60,50,90,.18), 0 18px 30px rgba(60,50,90,.25); border: 6px solid #ffd166; }
+    .title h1 { font-size: 62px; font-weight: 900; letter-spacing: 1px;
+                background: linear-gradient(180deg,#ff7db0,#ff5fa0); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .subtitle { margin-top: 16px; display: inline-block; background: rgba(255,255,255,.92); padding: 8px 26px; border-radius: 999px;
+                font-size: 26px; font-weight: 800; color: #5a4a2a; box-shadow: 0 5px 0 rgba(60,50,90,.18); }
+    .subtitle b { color: #ff5fa0; }
+
+    /* animal stage */
+    .stage { position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: center; gap: 40px; padding: 0 60px 7%; }
+    .pet { position: relative; width: 280px; }
+    .pet svg { width: 100%; height: auto; overflow: visible; filter: drop-shadow(0 14px 10px rgba(60,50,90,.22)); }
+    .pet.hop { transform: translateY(-46px) rotate(-4deg); }
+    .pet.lean { transform: rotate(4deg); }
+  </style>
+</head>
+<body>
+  <div id="hero">
+    <div class="wall"><div class="sun"></div></div>
+    <div class="window"><div class="cloud"></div></div>
+    <div class="floor"></div>
+    <div class="rug"></div>
+
+    <div class="title-wrap">
+      <div class="title">
+        <svg width="56" height="56" viewBox="0 0 64 64" aria-hidden="true">
+          <g fill="#ff7db0">
+            <ellipse cx="32" cy="42" rx="15" ry="12"/>
+            <circle cx="15" cy="26" r="7"/><circle cx="27" cy="17" r="7"/>
+            <circle cx="37" cy="17" r="7"/><circle cx="49" cy="26" r="7"/>
+          </g>
+        </svg>
+        <h1>Animal Care</h1>
+      </div>
+      <div><span class="subtitle">Feed · Water · Bath · <b>Play!</b></span></div>
+    </div>
+
+    <div class="stage" id="stage"></div>
+  </div>
+
+  <script type="module">
+    import { ANIMALS } from '/js/games/animal-care/animals.js';
+
+    const stage = document.getElementById('stage');
+    // dog hopping (action), cat leaning, unicorn upright with sparkles
+    const poses = { dog: 'hop', cat: 'lean', unicorn: '' };
+    ANIMALS.forEach((a) => {
+      const d = document.createElement('div');
+      d.className = 'pet ' + (poses[a.id] || '');
+      d.innerHTML = a.svg;
+      stage.appendChild(d);
+    });
+
+    // ---- colorful vector particles (no emoji, so always full color) ----
+    const NS = 'http://www.w3.org/2000/svg';
+    const hero = document.getElementById('hero');
+
+    function part(x, y, scale, rot, html) {
+      const s = document.createElementNS(NS, 'svg');
+      s.setAttribute('width', 80); s.setAttribute('height', 80);
+      s.setAttribute('viewBox', '0 0 24 24');
+      s.style.position = 'absolute';
+      s.style.left = x + 'px'; s.style.top = y + 'px';
+      s.style.transform = `scale(${scale}) rotate(${rot}deg)`;
+      s.style.filter = 'drop-shadow(0 3px 2px rgba(60,50,90,.18))';
+      s.innerHTML = html;
+      hero.appendChild(s);
+    }
+    const heart = '<path d="M12 21s-7-4.6-9.2-8.4C1 9.6 2.6 6 6 6c2 0 3.2 1.3 4 2.4C10.8 7.3 12 6 14 6c3.4 0 5 3.6 3.2 6.6C19 16.4 12 21 12 21z" fill="#ff5d8f"/>';
+    const star = '<path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.8 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z" fill="#ffd23f" stroke="#ffb703" stroke-width="1"/>';
+    const bubble = '<circle cx="12" cy="12" r="9" fill="#bfe9ff" opacity=".85"/><circle cx="9" cy="9" r="2.6" fill="#fff" opacity=".9"/>';
+    const drop = '<path d="M12 2C12 2 5 11 5 15a7 7 0 0014 0c0-4-7-13-7-13z" fill="#5ec8ff"/><ellipse cx="9.5" cy="14" rx="1.6" ry="2.4" fill="#fff" opacity=".7"/>';
+    const sparkle = '<path d="M12 3l1.6 6.4L20 11l-6.4 1.6L12 19l-1.6-6.4L4 11l6.4-1.6z" fill="#fff7c2" stroke="#ffe39a" stroke-width="1"/>';
+
+    // scatter: around the hopping dog (hearts), cat (bubbles), unicorn (stars/sparkles)
+    const items = [
+      [150,250,1.1,-12,heart],[250,170,0.8,10,heart],[120,360,0.7,8,heart],[320,300,0.6,-6,heart],
+      [560,250,1.0,0,bubble],[640,180,0.7,0,bubble],[520,360,0.8,0,bubble],[690,320,0.6,0,drop],[470,300,0.6,0,drop],
+      [560,210,0.7,14,star],
+      [980,200,1.2,-10,star],[1080,150,0.9,12,sparkle],[920,300,0.8,6,sparkle],[1120,280,0.9,-8,star],[1020,360,0.7,0,sparkle],
+      [1160,420,0.8,10,star],[60,470,0.8,-10,sparkle],
+    ];
+    items.forEach(([x,y,s,r,h]) => part(x,y,s,r,h));
+  </script>
+</body>
+</html>

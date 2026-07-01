@@ -3,6 +3,7 @@
 // and returns an unmount() cleanup function. The hub renders cards automatically.
 
 import { mountAnimalCare } from './games/animal-care/index.js';
+import { mountSamurai } from './games/samurai/index.js';
 
 export const games = [
   {
@@ -12,6 +13,14 @@ export const games = [
     blurb: 'Feed, wash and play with your pets!',
     accent: '#ffd166',
     mount: mountAnimalCare,
+  },
+  {
+    id: 'samurai',
+    title: 'Letter Samurai',
+    emoji: '⚔️',
+    blurb: 'Slash the letter you hear!',
+    accent: '#8ecae6',
+    mount: mountSamurai,
   },
   // Placeholder slot proves the menu scales to more games.
   {

@@ -185,7 +185,10 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   justify-content: center;
   gap: clamp(4px, 3vw, 36px);
   padding: 0 12px 4%;
+  /* let taps in the empty upper area reach the window / rainbow behind */
+  pointer-events: none;
 }
+.ac-animal { pointer-events: auto; }
 .ac-animal {
   position: relative;
   width: clamp(120px, 28vw, 230px);
@@ -249,18 +252,19 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .ac-hint.is-hidden { opacity: 0; height: 0; padding: 0; overflow: hidden; }
 .ac-actionbar {
   display: flex;
-  gap: clamp(8px, 2vw, 18px);
+  flex-wrap: wrap;
+  gap: clamp(6px, 1.4vw, 14px);
   justify-content: center;
-  padding: 12px clamp(8px, 3vw, 28px);
+  padding: 10px clamp(8px, 3vw, 28px);
   padding-bottom: calc(12px + env(safe-area-inset-bottom, 0));
   background: rgba(255, 255, 255, 0.55);
   backdrop-filter: blur(6px);
   box-shadow: 0 -3px 12px var(--shadow);
 }
 .ac-action {
-  flex: 1;
-  max-width: 150px;
-  min-height: 78px;
+  flex: 1 1 90px;
+  max-width: 140px;
+  min-height: 74px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -292,7 +296,9 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .ac-prop-feed, .ac-prop-water { animation: prop-rise 1.4s ease both; }
 .ac-prop-bath { bottom: auto; top: 6%; font-size: 2rem; animation: prop-bath 1.4s ease both; }
-.ac-prop-play { animation: prop-bounce 1.4s ease both; }
+/* the play ball is big and bounces in front of the pet, up near its head */
+.ac-prop-play { bottom: auto; top: 16%; font-size: 3.6rem; animation: play-ball 2s ease both; z-index: 6; }
+.ac-prop-brush { bottom: auto; top: 20%; font-size: 2.4rem; animation: prop-rise 1.6s ease both; }
 .ac-particle {
   position: absolute;
   bottom: 30%;
@@ -301,8 +307,365 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   pointer-events: none;
 }
 
+/* ---- Thought bubble (a pet asking for something) ---- */
+.ac-thought {
+  order: -1;
+  position: absolute;
+  top: -6px;
+  right: 14%;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 4px 0 var(--shadow);
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+  z-index: 6;
+}
+/* little bubble tail */
+.ac-thought::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 12px;
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: -8px 6px 0 -4px #fff;
+}
+.ac-thought.show {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+  animation: bubble-bob 1.6s ease-in-out infinite;
+}
+
+/* ---- Queue badge (taps waiting their turn) ---- */
+.ac-queue {
+  position: absolute;
+  top: -2px;
+  left: 14%;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+  background: #ff7db0;
+  border: 3px solid #fff;
+  border-radius: 999px;
+  box-shadow: 0 3px 0 var(--shadow);
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+  z-index: 7;
+}
+.ac-queue.show { opacity: 1; transform: scale(1); }
+
+/* ---- Floating praise message ---- */
+.ac-say {
+  position: absolute;
+  top: 4%;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: #ff5fa0;
+  background: #fff;
+  padding: 4px 14px;
+  border-radius: 999px;
+  box-shadow: 0 4px 0 var(--shadow);
+  pointer-events: none;
+  z-index: 8;
+  animation: say-float 1.3s ease-out forwards;
+}
+
+/* ---- Needs meter panel (selected pet) ---- */
+.ac-needs {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 2vw, 18px);
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.6);
+}
+.ac-needs-pet {
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--ink);
+  min-width: 70px;
+  text-align: right;
+}
+.ac-meters { display: flex; gap: clamp(8px, 2vw, 16px); flex-wrap: wrap; }
+.ac-meter { display: flex; align-items: center; gap: 6px; }
+.ac-meter-icon { font-size: 1.3rem; line-height: 1; }
+.ac-meter-track {
+  width: clamp(56px, 12vw, 96px);
+  height: 16px;
+  border-radius: 999px;
+  background: rgba(60, 50, 90, 0.16);
+  overflow: hidden;
+  box-shadow: inset 0 2px 3px rgba(60, 50, 90, 0.18);
+}
+.ac-meter-fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: 999px;
+  transition: width 0.5s ease;
+}
+/* a low need pulses to draw the eye */
+.ac-meter.is-low .ac-meter-icon { animation: nudge 0.9s ease-in-out infinite; }
+.ac-meter.is-low .ac-meter-fill { filter: saturate(1.4) brightness(0.95); }
+
+/* ---- Celebration banner ---- */
+.ac-banner {
+  position: absolute;
+  top: 16%;
+  left: 50%;
+  transform: translate(-50%, -10px);
+  padding: 10px 28px;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(180deg, #ff8fc0, #ff5fa0);
+  border-radius: 999px;
+  box-shadow: 0 8px 0 var(--shadow), 0 12px 22px var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 12;
+}
+.ac-banner.show { opacity: 1; transform: translate(-50%, 0); animation: banner-pop 0.5s ease; }
+
+/* ---- Confetti (room-wide celebration) ---- */
+.ac-fx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 11; }
+.ac-confetti {
+  position: absolute;
+  top: -24px;
+  width: 14px;
+  height: 18px;
+  border-radius: 3px;
+  animation: confetti-fall 2.2s ease-in forwards;
+}
+
+/* ---- Drag ghost + drop target highlight ---- */
+.ac-drag-ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%) scale(1.2);
+  font-size: 2.6rem;
+  pointer-events: none;
+  z-index: 1000;
+  filter: drop-shadow(0 6px 6px var(--shadow));
+}
+.ac-action.is-dragging { opacity: 0.5; }
+.ac-animal.is-drop-target { transform: translateY(-10px) scale(1.08); }
+.ac-animal.is-drop-target::before {
+  content: '';
+  position: absolute;
+  inset: -6% 8% 2% 8%;
+  border: 4px dashed #ffd166;
+  border-radius: 40% 40% 45% 45%;
+  background: rgba(255, 209, 102, 0.18);
+  z-index: 0;
+}
+
+/* ---- Bedtime: dim the room ---- */
+.ac-night {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #2a2a5e 0%, #3d3a6b 70%, #4a3f70 100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+  z-index: 9;
+}
+.ac-night.show { opacity: 0.55; }
+.ac-moon { position: absolute; top: 10%; right: 14%; font-size: 3rem; filter: drop-shadow(0 0 12px #fff6c0); }
+.ac-star { position: absolute; font-size: 1.4rem; animation: twinkle-star 1.8s ease-in-out infinite; }
+.ac-star.s1 { top: 16%; left: 20%; }
+.ac-star.s2 { top: 28%; left: 60%; animation-delay: -0.6s; }
+.ac-star.s3 { top: 12%; left: 44%; animation-delay: -1.2s; }
+
+/* ---- Window / rainbow tap surprises ---- */
+.ac-window, .ac-frame { cursor: pointer; padding: 0; }
+.ac-window { transition: box-shadow 0.3s ease; }
+.ac-window.is-sunny { box-shadow: 0 0 24px 6px #ffe39a, 0 6px 0 var(--shadow); }
+.ac-window:active, .ac-frame:active { transform: scale(0.96); }
+.ac-sun {
+  position: absolute;
+  left: 50%;
+  bottom: -30%;
+  transform: translateX(-50%);
+  font-size: 2.6rem;
+  animation: sun-rise 1.7s ease forwards;
+}
+.ac-bird {
+  position: absolute;
+  top: 34%;
+  left: -20%;
+  font-size: 1.4rem;
+  animation: bird-fly 1.7s linear forwards;
+}
+.ac-frame.pop { animation: frame-pop 0.7s ease; }
+.ac-burst {
+  position: absolute;
+  font-size: 1.7rem;
+  transform: translate(-50%, -50%);
+  animation: burst 0.85s ease-out forwards;
+  pointer-events: none;
+  z-index: 12;
+}
+
 /* respect users who prefer less motion: keep gentle fades, drop big movement */
 @media (prefers-reduced-motion: reduce) {
-  .ac-cloud, .ac-particle, .ac-prop,
+  .ac-cloud, .ac-particle, .ac-prop, .ac-confetti, .ac-thought.show,
+  .ac-meter.is-low .ac-meter-icon, .ac-star, .ac-burst, .ac-sun, .ac-bird,
   .ac-animal.is-selected::after { animation-duration: 0.6s !important; }
 }
+
+/* ==================================================================
+   SAMURAI game (letter-slashing)
+   ================================================================== */
+.sam-game { position: absolute; inset: 0; overflow: hidden; }
+.sam-canvas { position: absolute; inset: 0; display: block; touch-action: none; }
+
+.sam-hud {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 12px 16px;
+  pointer-events: none;
+}
+.sam-target {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  background: #fff;
+  border-radius: 999px;
+  box-shadow: 0 5px 0 var(--shadow);
+}
+.sam-target.pulse { animation: sam-pulse 0.5s ease; }
+.sam-target-label { font-size: 1.1rem; font-weight: 800; color: var(--ink); }
+.sam-target-letter { font-size: 2.4rem; font-weight: 900; line-height: 1; }
+.sam-target-say { font-size: 1.2rem; }
+
+.sam-scores { pointer-events: none; text-align: right; }
+.sam-score {
+  display: inline-block;
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.7);
+  padding: 4px 16px;
+  border-radius: 999px;
+  box-shadow: 0 4px 0 var(--shadow);
+}
+.sam-streak { display: block; margin-top: 6px; font-size: 1.1rem; font-weight: 800; color: #ff7043; }
+
+/* start overlay */
+.sam-start {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(60, 50, 90, 0.35);
+  backdrop-filter: blur(3px);
+  z-index: 5;
+}
+.sam-start.hidden { display: none; }
+.sam-start-card {
+  text-align: center;
+  background: #fff;
+  padding: 28px 34px;
+  border-radius: 28px;
+  box-shadow: 0 10px 0 var(--shadow), 0 16px 30px var(--shadow);
+  max-width: 90%;
+}
+.sam-start-emoji { font-size: 4rem; line-height: 1; }
+.sam-start-card h2 { margin: 8px 0 4px; font-size: 1.8rem; font-weight: 900; color: var(--ink); }
+.sam-start-card p { margin: 0 0 18px; font-size: 1.05rem; color: var(--ink); opacity: 0.8; }
+.sam-start-btn {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(180deg, #5eb6e0, #3f9ad0);
+  padding: 14px 40px;
+  border-radius: 999px;
+  box-shadow: 0 6px 0 var(--shadow);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.sam-start-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--shadow); }
+
+@keyframes sam-pulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sam-target.pulse { animation: none; }
+}
+
+/* Samurai: settings segmented controls + gear */
+.sam-settings-btn {
+  pointer-events: auto;
+  font-size: 1.2rem;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 3px 0 var(--shadow);
+  margin-right: 8px;
+  vertical-align: middle;
+}
+.sam-scores { display: flex; align-items: center; justify-content: flex-end; }
+.sam-setting {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 10px 0;
+}
+.sam-setting-label { font-weight: 800; color: var(--ink); min-width: 58px; text-align: right; }
+.sam-seg {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: #eef1f7;
+  border-radius: 999px;
+}
+.sam-seg button {
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 1rem;
+  color: #5a5a72;
+  background: transparent;
+  transition: transform 0.08s ease;
+}
+.sam-seg button.is-active {
+  background: #3f9ad0;
+  color: #fff;
+  box-shadow: 0 3px 0 var(--shadow);
+}
+.sam-seg button:active { transform: scale(0.95); }

@@ -105,9 +105,62 @@ const EFFECTS = {
     tone({ freq: 659, start: 0.1, duration: 0.1, type: 'triangle' });
     tone({ freq: 784, start: 0.2, duration: 0.14, type: 'triangle' });
   },
+  brush: () => {
+    // soft grooming swishes
+    noise({ start: 0, duration: 0.18, gain: 0.07, freq: 2600 });
+    noise({ start: 0.22, duration: 0.18, gain: 0.07, freq: 2600 });
+    noise({ start: 0.44, duration: 0.2, gain: 0.07, freq: 2600 });
+  },
+  night: () => {
+    // a gentle, descending lullaby
+    tone({ freq: 660, start: 0, duration: 0.3, type: 'sine', gain: 0.12 });
+    tone({ freq: 550, start: 0.28, duration: 0.34, type: 'sine', gain: 0.12 });
+    tone({ freq: 440, start: 0.6, duration: 0.45, type: 'sine', gain: 0.12 });
+  },
   happy: () => {
     tone({ freq: 784, start: 0, duration: 0.12, type: 'sine', gain: 0.16 });
     tone({ freq: 1046, start: 0.12, duration: 0.18, type: 'sine', gain: 0.16 });
+  },
+  // a magical sparkle for tap surprises (window/rainbow)
+  twinkle: () => {
+    tone({ freq: 988, start: 0, duration: 0.09, type: 'triangle', gain: 0.13 });
+    tone({ freq: 1319, start: 0.08, duration: 0.09, type: 'triangle', gain: 0.13 });
+    tone({ freq: 1760, start: 0.16, duration: 0.14, type: 'sine', gain: 0.12 });
+  },
+
+  // --- Samurai game ---
+  // slice: a quick blade whoosh
+  slice: () => {
+    noise({ start: 0, duration: 0.14, gain: 0.12, freq: 3200 });
+    tone({ freq: 1200, start: 0, duration: 0.1, type: 'sine', gain: 0.06, slideTo: 400 });
+  },
+  // point: a bright correct-answer ding
+  point: () => {
+    tone({ freq: 880, start: 0, duration: 0.1, type: 'triangle', gain: 0.16 });
+    tone({ freq: 1319, start: 0.09, duration: 0.16, type: 'triangle', gain: 0.16 });
+  },
+  // oops: a soft, non-scary "not that one"
+  oops: () => {
+    tone({ freq: 320, start: 0, duration: 0.16, type: 'sine', gain: 0.12, slideTo: 220 });
+  },
+
+  // --- distinct animal voices ---
+  // dog: two short low "woof" barks
+  'voice-dog': () => {
+    tone({ freq: 190, start: 0, duration: 0.12, type: 'square', gain: 0.16, slideTo: 120 });
+    tone({ freq: 170, start: 0.18, duration: 0.14, type: 'square', gain: 0.16, slideTo: 110 });
+  },
+  // cat: a "meow" that rises then falls
+  'voice-cat': () => {
+    tone({ freq: 620, start: 0, duration: 0.16, type: 'sawtooth', gain: 0.12, slideTo: 950 });
+    tone({ freq: 900, start: 0.16, duration: 0.22, type: 'sawtooth', gain: 0.12, slideTo: 520 });
+  },
+  // unicorn: a sparkly little arpeggio
+  'voice-unicorn': () => {
+    tone({ freq: 660, start: 0, duration: 0.1, type: 'triangle', gain: 0.14 });
+    tone({ freq: 880, start: 0.09, duration: 0.1, type: 'triangle', gain: 0.14 });
+    tone({ freq: 1175, start: 0.18, duration: 0.12, type: 'triangle', gain: 0.14 });
+    tone({ freq: 1568, start: 0.28, duration: 0.18, type: 'sine', gain: 0.12 });
   },
 };
 
@@ -116,4 +169,9 @@ export function play(name) {
   unlock();
   const fx = EFFECTS[name];
   if (fx) fx();
+}
+
+// Play an animal's signature voice (falls back silently if unknown).
+export function playVoice(animalId) {
+  play('voice-' + animalId);
 }
