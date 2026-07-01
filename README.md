@@ -35,30 +35,38 @@ python3 -m http.server 8000
 
 ## How Animal Care works
 
-- **Two ways to care for a pet:**
-  - Tap a pet to select it, then tap a task button, **or**
-  - **Drag a treat** (🍖 / 💧 / 🛁 / 🎾) straight from the bar onto any pet.
-  - Six tasks: 🍖 **Feed** (tummy), 💧 **Water** (thirst), 🛁 **Bath** (clean),
-    🪮 **Brush** (neat & fluffy), 🎾 **Play** (happiness), 🌙 **Night** (rest —
-    the room dims and the pet sleeps under the stars).
-  - Each task plays a **multi-step animation** so it feels like a real event —
-    e.g. a bath goes *lather up → scrub → rinse the suds off → sparkle clean*,
-    and feeding goes *bowl in → munch → happy*.
-  - Tapping more tasks while one is playing **queues them up** (a little "+2"
-    badge shows how many are waiting); they run in order.
+Animal Care is a little **three-view** world: the **room** of pets → a **zoomed
+pet** → an interactive **mini-game** for each chore. Every task is now its own
+hands-on game with a goal meter you fill to win.
+
+- **Tap a pet to zoom in.** The pet fills the screen with its six **needs meters**
+  (food, water, clean, tidy, happy, rest) and six **task buttons**. A "← Room"
+  button takes you back to all the pets.
+- **Each task is its own mini-game** with a **goal meter** — fill it to win, then
+  a celebration plays, that need tops up to full, and you're back on the pet to
+  pick the next chore. No timers and no way to lose — the meter fills purely by
+  doing the activity, which suits young kids.
+  - 🛁 **Bath** — *scrub* the dirt spots off by dragging over the pet (each one
+    turns to suds), then *rinse* the bubbles away. The Clean meter fills as you
+    scrub and rinse → squeaky-clean shine.
+  - 🍖 **Feed** — **drag treats** (🍖🦴🍗🥩🍪) to the pet's mouth; it chews with a
+    happy bounce and the Food meter fills.
+  - 💧 **Water** — **hold to pour** water into the bowl; when it's full the pet
+    laps it down and the Water meter fills.
+  - 🪮 **Brush** — **stroke over the fur** to smooth the messy tufts and add
+    shine; the Tidy meter fills as the knots clear.
+  - 🎾 **Play** — **tap the bouncing ball** to rally it back and forth; each hit
+    makes the pet hop and fills the Happy meter.
+  - 🌙 **Night** — the room dims; **gently pat** the sleepy pet (tap) as 💤 float
+    up, and the Rest meter fills until it drifts off to sleep.
 - **Each animal has its own voice:** a woof for the dog, a meow for the cat, and
-  a sparkly chime for the unicorn (played when it finishes a task or gets a pet).
-- **Hidden surprises:** tap the **window** (a sun rises and a bird flies past) or
-  the **rainbow picture** (it bursts with sparkles) for a little delight.
-- **See how each pet is doing:** every pet has a mood face, and pops up a
-  **thought bubble** showing what it wants when a need runs low (tap the bubble
-  to give it instantly). The **selected pet's needs meter** sits above the task
-  bar with a live bar for food, water, clean, and happy.
-- **Pet them:** tap the already-selected pet to give it a cuddle (hearts!).
-- **Celebrations:** fill all four needs and the pet does a happy dance with
-  confetti and a cheer. Doing a task a pet doesn't need gets a gentle "I'm full!".
-- **Lively room:** pets breathe, blink, wag, and do occasional little idle
-  flourishes; each species has its own animation touches.
+  a sparkly chime for the unicorn (played when it wins a mini-game).
+- **See how each pet is doing:** in the room every pet has a mood face and pops
+  up a **thought bubble** showing what it wants when a need runs low; zoom in to
+  see all six meters at a glance.
+- **Celebrations:** winning a mini-game bursts confetti and cheers, and the pet
+  strikes a happy pose (chewing, hopping, sleeping…).
+- **Reduced-motion aware:** honors the system "reduce motion" setting.
 - Stats save to the browser (`localStorage`) and drift down slowly over real
   time, so pets are happy to see you again — but never neglected to misery.
 - Use the 🔊 button in the top bar to mute/unmute sounds (sounds are generated
@@ -108,12 +116,19 @@ js/
   storage.js            localStorage helpers
   audio.js              Web Audio sound effects + mute
   games/animal-care/
-    index.js            game controller (care loop, feedback, celebrations)
+    index.js            router across room / zoomed pet / mini-game views
     animals.js          dog / cat / unicorn SVG characters
     actions.js          feed / water / bath / play definitions + praise copy
-    sequences.js        multi-step animation script for each action
     stats.js            stat model, needs metadata, time decay, mood mapping
-    drag.js             pointer drag-and-drop helper (treat → pet)
+    minigames/
+      index.js          maps an action id to its mini-game module
+      shell.js          shared mini-game shell: goal meter + pet stage + win
+      bath.js           scrub the dirt off, then rinse the suds
+      feed.js           drag treats to the pet's mouth
+      water.js          hold to pour the bowl full
+      brush.js          stroke over the fur to smooth the tufts
+      play.js           tap the ball to rally a happy pet
+      night.js          dim the room and pat the pet to sleep
   games/samurai/
     index.js            canvas game: physics, slicing, waves, HUD
     content.js          letter pool + colors + wave builder
