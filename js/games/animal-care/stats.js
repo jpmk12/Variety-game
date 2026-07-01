@@ -1,15 +1,17 @@
 // Stat model for each animal. Four needs, 0..100, higher = better.
 // Stats decay slowly over real time so returning feels alive but never punishing.
 
-export const STAT_KEYS = ['hunger', 'thirst', 'cleanliness', 'happiness'];
+export const STAT_KEYS = ['hunger', 'thirst', 'cleanliness', 'tidy', 'happiness', 'energy'];
 
 // Per-need display metadata, shared by the needs meter, thought bubbles, and
-// the action that restores it. Order = how the meter panel reads top to bottom.
+// the action that restores it. Order = how the meter panel reads left to right.
 export const NEEDS = [
   { key: 'hunger', label: 'Food', icon: '🍖', color: '#ff9f68', action: 'feed' },
   { key: 'thirst', label: 'Water', icon: '💧', color: '#5ec8ff', action: 'water' },
   { key: 'cleanliness', label: 'Clean', icon: '🫧', color: '#9be7c4', action: 'bath' },
+  { key: 'tidy', label: 'Brushed', icon: '🪮', color: '#c9b6ff', action: 'brush' },
   { key: 'happiness', label: 'Happy', icon: '❤️', color: '#ff6b9d', action: 'play' },
+  { key: 'energy', label: 'Rested', icon: '🌙', color: '#8a8de0', action: 'nighttime' },
 ];
 
 // Below LOW a pet asks for help (thought bubble); at/above CONTENT for every
@@ -17,9 +19,9 @@ export const NEEDS = [
 export const LOW_THRESHOLD = 35;
 export const CONTENT_THRESHOLD = 90;
 
-// Full = "tummy full / well watered / squeaky clean / delighted".
+// Full = every need topped up.
 export function freshStats() {
-  return { hunger: 100, thirst: 100, cleanliness: 100, happiness: 100 };
+  return { hunger: 100, thirst: 100, cleanliness: 100, tidy: 100, happiness: 100, energy: 100 };
 }
 
 // Gentle decay per hour for each need. Happiness drifts a touch faster because
@@ -28,7 +30,9 @@ const DECAY_PER_HOUR = {
   hunger: 8,
   thirst: 10,
   cleanliness: 5,
+  tidy: 5,
   happiness: 7,
+  energy: 6,
 };
 
 const clamp = (n) => Math.max(0, Math.min(100, n));

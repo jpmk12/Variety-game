@@ -27,8 +27,9 @@ python3 -m http.server 8000
 - **Two ways to care for a pet:**
   - Tap a pet to select it, then tap a task button, **or**
   - **Drag a treat** (🍖 / 💧 / 🛁 / 🎾) straight from the bar onto any pet.
-  - The four tasks: 🍖 **Feed** (tummy), 💧 **Water** (thirst), 🛁 **Bath**
-    (clean), 🎾 **Play** (the biggest happiness boost).
+  - Six tasks: 🍖 **Feed** (tummy), 💧 **Water** (thirst), 🛁 **Bath** (clean),
+    🪮 **Brush** (neat & fluffy), 🎾 **Play** (happiness), 🌙 **Night** (rest —
+    the room dims and the pet sleeps under the stars).
   - Each task plays a **multi-step animation** so it feels like a real event —
     e.g. a bath goes *lather up → scrub → rinse the suds off → sparkle clean*,
     and feeding goes *bowl in → munch → happy*.
@@ -36,6 +37,8 @@ python3 -m http.server 8000
     badge shows how many are waiting); they run in order.
 - **Each animal has its own voice:** a woof for the dog, a meow for the cat, and
   a sparkly chime for the unicorn (played when it finishes a task or gets a pet).
+- **Hidden surprises:** tap the **window** (a sun rises and a bird flies past) or
+  the **rainbow picture** (it bursts with sparkles) for a little delight.
 - **See how each pet is doing:** every pet has a mood face, and pops up a
   **thought bubble** showing what it wants when a need runs low (tap the bubble
   to give it instantly). The **selected pet's needs meter** sits above the task

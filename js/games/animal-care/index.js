@@ -58,10 +58,11 @@ export function mountAnimalCare(root) {
   game.innerHTML = `
     <div class="ac-room">
       <div class="ac-wall">
-        <div class="ac-window"><span class="ac-cloud"></span><span class="ac-cloud ac-cloud2"></span></div>
-        <div class="ac-frame">🌈</div>
+        <button class="ac-window" aria-label="Look out the window"><span class="ac-cloud"></span><span class="ac-cloud ac-cloud2"></span></button>
+        <button class="ac-frame" aria-label="Rainbow picture">🌈</button>
       </div>
       <div class="ac-floor"><div class="ac-rug"></div></div>
+      <div class="ac-night" aria-hidden="true"><span class="ac-moon">🌙</span><span class="ac-star s1">⭐</span><span class="ac-star s2">✨</span><span class="ac-star s3">⭐</span></div>
       <div class="ac-stage" role="group" aria-label="Your pets"></div>
       <div class="ac-fx" aria-hidden="true"></div>
       <div class="ac-banner" role="status" aria-live="polite"></div>
@@ -74,11 +75,15 @@ export function mountAnimalCare(root) {
     <div class="ac-actionbar" role="toolbar" aria-label="Care actions"></div>
   `;
 
+  const room = game.querySelector('.ac-room');
   const stage = game.querySelector('.ac-stage');
   const bar = game.querySelector('.ac-actionbar');
   const hint = game.querySelector('.ac-hint');
   const fxLayer = game.querySelector('.ac-fx');
   const banner = game.querySelector('.ac-banner');
+  const nightEl = game.querySelector('.ac-night');
+  const windowEl = game.querySelector('.ac-window');
+  const frameEl = game.querySelector('.ac-frame');
   const needsPetEl = game.querySelector('.ac-needs-pet');
   const metersEl = game.querySelector('.ac-meters');
 
@@ -254,10 +259,12 @@ export function mountAnimalCare(root) {
       { ms: 700, art: act.anim, particle: act.particle, count: 6, sound: act.sound, say: true, celebrate: true },
     ];
     refs.busy = true;
+    let litNight = false;
     for (const step of steps) {
       if (!alive) break;
       setArt(artEl, step.art);
       overlayEl.className = 'ac-overlay' + (step.overlay ? ' ' + step.overlay : '');
+      if (step.night) { setNight(true); litNight = true; }
       if (step.prop) spawnProp(propLayer, act);
       if (step.particle) sprayParticles(propLayer, step.particle, step.count || 5);
       if (step.sound) play(step.sound);
@@ -269,6 +276,7 @@ export function mountAnimalCare(root) {
     // settle back to idle
     artEl.classList.remove(...STEP_ART);
     overlayEl.className = 'ac-overlay';
+    if (litNight) setNight(false);
     refs.busy = false;
     if (alive) refreshPet(id);
 
@@ -339,7 +347,7 @@ export function mountAnimalCare(root) {
     prop.className = 'ac-prop ac-prop-' + act.id;
     prop.textContent = act.emoji;
     layer.appendChild(prop);
-    setTimeout(() => prop.remove(), 1500);
+    setTimeout(() => prop.remove(), act.id === 'play' ? 2000 : 1500);
   }
 
   // Little emoji particles floating up (hearts, bubbles, stars...).
@@ -370,6 +378,58 @@ export function mountAnimalCare(root) {
       setTimeout(() => c.remove(), 2400);
     }
   }
+
+  // Dim the room for bedtime. Ref-counted so overlapping sleeps behave.
+  let nightCount = 0;
+  function setNight(on) {
+    nightCount = Math.max(0, nightCount + (on ? 1 : -1));
+    nightEl.classList.toggle('show', nightCount > 0);
+  }
+
+  // --- tap surprises on the window and the rainbow picture ---
+  function burstAt(targetEl, glyphs, count) {
+    const roomRect = room.getBoundingClientRect();
+    const r = targetEl.getBoundingClientRect();
+    const cx = r.left - roomRect.left + r.width / 2;
+    const cy = r.top - roomRect.top + r.height / 2;
+    for (let i = 0; i < count; i++) {
+      const s = document.createElement('span');
+      s.className = 'ac-burst';
+      s.textContent = glyphs[i % glyphs.length];
+      s.style.left = cx + 'px';
+      s.style.top = cy + 'px';
+      const ang = (Math.PI * 2 * i) / count;
+      s.style.setProperty('--bx', Math.cos(ang) * 74 + 'px');
+      s.style.setProperty('--by', Math.sin(ang) * 74 + 'px');
+      fxLayer.appendChild(s);
+      setTimeout(() => s.remove(), 900);
+    }
+  }
+
+  function windowSurprise() {
+    play('twinkle');
+    windowEl.classList.add('is-sunny');
+    const sun = document.createElement('span');
+    sun.className = 'ac-sun';
+    sun.textContent = '☀️';
+    const bird = document.createElement('span');
+    bird.className = 'ac-bird';
+    bird.textContent = '🐦';
+    windowEl.append(sun, bird);
+    setTimeout(() => { sun.remove(); bird.remove(); windowEl.classList.remove('is-sunny'); }, 1700);
+  }
+
+  function rainbowSurprise() {
+    play('twinkle');
+    frameEl.classList.remove('pop');
+    void frameEl.offsetWidth;
+    frameEl.classList.add('pop');
+    burstAt(frameEl, ['✨', '⭐', '🌈', '💖'], 8);
+    setTimeout(() => frameEl.classList.remove('pop'), 700);
+  }
+
+  windowEl.addEventListener('click', windowSurprise);
+  frameEl.addEventListener('click', rainbowSurprise);
 
   function persist() {
     save(SAVE_KEY, {
@@ -423,6 +483,8 @@ export function mountAnimalCare(root) {
   // --- cleanup when leaving the game ---
   return function unmount() {
     alive = false;
+    nightCount = 0;
+    nightEl.classList.remove('show');
     clearInterval(ticker);
     clearInterval(idleTimer);
     timers.forEach(clearTimeout);

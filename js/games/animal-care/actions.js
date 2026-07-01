@@ -46,6 +46,20 @@ export const ACTIONS = [
     restore: { cleanliness: 80, happiness: 12 },
   },
   {
+    id: 'brush',
+    label: 'Brush',
+    emoji: '🪮',
+    accent: '#c9b6ff',
+    sound: 'brush',
+    anim: 'is-brushing',
+    particle: '✨',
+    primary: 'tidy',
+    praise: 'So fluffy!',
+    fullMessage: 'All neat!',
+    // Grooming makes the coat neat and shiny (and feels nice).
+    restore: { tidy: 80, happiness: 10 },
+  },
+  {
     id: 'play',
     label: 'Play',
     emoji: '🎾',
@@ -57,6 +71,20 @@ export const ACTIONS = [
     praise: 'Wheee!',
     fullMessage: 'So happy!',
     // Playing is the biggest happiness boost (and burns a little energy).
-    restore: { happiness: 45, hunger: -5 },
+    restore: { happiness: 45, hunger: -5, energy: -5 },
+  },
+  {
+    id: 'nighttime',
+    label: 'Night',
+    emoji: '🌙',
+    accent: '#8a8de0',
+    sound: 'night',
+    anim: 'is-sleeping',
+    particle: '💤',
+    primary: 'energy',
+    praise: 'All rested!',
+    fullMessage: 'Not sleepy!',
+    // A good sleep refills energy and leaves the pet content.
+    restore: { energy: 95, happiness: 8 },
   },
 ];

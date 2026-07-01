@@ -29,16 +29,27 @@ export const SEQUENCES = {
     { ms: 1000, art: 'is-shaking', overlay: 'rinse', sound: 'water', particle: '💧', count: 6 },
     { ms: 900, art: 'is-shining', overlay: 'shine', particle: '✨', count: 7, voice: true, say: true, celebrate: true },
   ],
+  brush: [
+    { ms: 700, art: 'is-brushing', prop: true, sound: 'brush', particle: '✨', count: 3 },
+    { ms: 900, art: 'is-brushing', particle: '✨', count: 4 },
+    { ms: 800, art: 'is-shining', overlay: 'shine', particle: '✨', count: 6, voice: true, say: true, celebrate: true },
+  ],
   play: [
-    { ms: 650, prop: true, sound: 'play' },
+    { ms: 700, art: 'is-crouch', prop: true, sound: 'play', particle: '⭐', count: 2 },
     { ms: 1200, art: 'is-playing', particle: '⭐', count: 4 },
     { ms: 800, art: 'is-happy', particle: '⭐', count: 6, voice: true, say: true, celebrate: true },
+  ],
+  nighttime: [
+    { ms: 1000, art: 'is-yawn', night: true, sound: 'night', particle: '💤', count: 2 },
+    { ms: 1500, art: 'is-sleeping', particle: '💤', count: 4 },
+    { ms: 900, art: 'is-wake', particle: '✨', count: 5, voice: true, say: true, celebrate: true },
   ],
 };
 
 // Every art-motion class a step can set (so the runner can clear the previous
 // one before starting the next).
 export const STEP_ART = [
-  'lean-down', 'is-eating', 'is-drinking', 'is-bathing', 'is-playing',
-  'is-shaking', 'is-shining', 'is-happy', 'is-full', 'is-cuddle', 'is-dancing',
+  'lean-down', 'is-eating', 'is-drinking', 'is-bathing', 'is-playing', 'is-crouch',
+  'is-shaking', 'is-shining', 'is-brushing', 'is-yawn', 'is-sleeping', 'is-wake',
+  'is-happy', 'is-full', 'is-cuddle', 'is-dancing',
 ];

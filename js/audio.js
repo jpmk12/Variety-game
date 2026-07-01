@@ -105,9 +105,27 @@ const EFFECTS = {
     tone({ freq: 659, start: 0.1, duration: 0.1, type: 'triangle' });
     tone({ freq: 784, start: 0.2, duration: 0.14, type: 'triangle' });
   },
+  brush: () => {
+    // soft grooming swishes
+    noise({ start: 0, duration: 0.18, gain: 0.07, freq: 2600 });
+    noise({ start: 0.22, duration: 0.18, gain: 0.07, freq: 2600 });
+    noise({ start: 0.44, duration: 0.2, gain: 0.07, freq: 2600 });
+  },
+  night: () => {
+    // a gentle, descending lullaby
+    tone({ freq: 660, start: 0, duration: 0.3, type: 'sine', gain: 0.12 });
+    tone({ freq: 550, start: 0.28, duration: 0.34, type: 'sine', gain: 0.12 });
+    tone({ freq: 440, start: 0.6, duration: 0.45, type: 'sine', gain: 0.12 });
+  },
   happy: () => {
     tone({ freq: 784, start: 0, duration: 0.12, type: 'sine', gain: 0.16 });
     tone({ freq: 1046, start: 0.12, duration: 0.18, type: 'sine', gain: 0.16 });
+  },
+  // a magical sparkle for tap surprises (window/rainbow)
+  twinkle: () => {
+    tone({ freq: 988, start: 0, duration: 0.09, type: 'triangle', gain: 0.13 });
+    tone({ freq: 1319, start: 0.08, duration: 0.09, type: 'triangle', gain: 0.13 });
+    tone({ freq: 1760, start: 0.16, duration: 0.14, type: 'sine', gain: 0.12 });
   },
 
   // --- distinct animal voices ---

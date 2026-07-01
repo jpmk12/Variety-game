@@ -230,6 +230,64 @@
 @keyframes shine-sweep { 0% { background-position: 150% 0; } 100% { background-position: -50% 0; } }
 
 /* ====================================================================
+   PLAY / BRUSH / BEDTIME motions + surprises
+   ==================================================================== */
+
+/* big play ball drops in and bounces a few times in front of the pet */
+@keyframes play-ball {
+  0% { transform: translate(-50%, -140px) scale(0.6); opacity: 0; }
+  15% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+  30% { transform: translate(-50%, -56px) scale(1); }
+  45% { transform: translate(-50%, 0) scale(1.1, 0.9); }
+  60% { transform: translate(-50%, -34px); }
+  75% { transform: translate(-50%, 0) scale(1.06, 0.94); }
+  88% { transform: translate(-50%, -16px); opacity: 1; }
+  100% { transform: translate(-50%, 0) scale(0.9); opacity: 0; }
+}
+
+/* play: crouch/wiggle ready to pounce */
+.ac-art.is-crouch { animation: crouch 0.35s ease-in-out 2; }
+@keyframes crouch { 0%, 100% { transform: translateY(0) scaleY(1); } 50% { transform: translateY(6px) scaleY(0.94); } }
+
+/* brush: gentle grooming sway */
+.ac-art.is-brushing { animation: brush-sway 0.34s ease-in-out 5; }
+@keyframes brush-sway { 0%, 100% { transform: rotate(0) translateY(0); } 25% { transform: rotate(-3deg) translateY(-1px); } 75% { transform: rotate(3deg) translateY(-1px); } }
+
+/* bedtime: yawn (a slow stretch up), sleep (settle low), wake (big stretch) */
+.ac-art.is-yawn { animation: yawn 1s ease; }
+@keyframes yawn { 0% { transform: scale(1); } 40% { transform: scale(1.05, 1.08) translateY(-6px); } 100% { transform: scale(1); } }
+.ac-art.is-sleeping { animation: sleep-breathe 1.6s ease-in-out infinite; }
+@keyframes sleep-breathe { 0%, 100% { transform: translateY(4px) scale(1, 0.98) rotate(-2deg); } 50% { transform: translateY(6px) scale(1.01, 0.96) rotate(-2deg); } }
+/* eyes shut while sleeping */
+.ac-art.is-sleeping .ac-eye-l, .ac-art.is-sleeping .ac-eye-r { animation: none; transform: scaleY(0.12); transform-origin: center; }
+.ac-art.is-wake { animation: wake-stretch 0.9s ease; }
+@keyframes wake-stretch { 0% { transform: translateY(4px); } 35% { transform: translateY(-10px) scale(1.06, 1.04); } 100% { transform: translateY(0); } }
+
+/* night sky stars twinkle */
+@keyframes twinkle-star { 0%, 100% { opacity: 0.4; transform: scale(0.85); } 50% { opacity: 1; transform: scale(1.15); } }
+
+/* window surprise: a sun rises, a bird flies past */
+@keyframes sun-rise {
+  0% { transform: translate(-50%, 40px) scale(0.6); opacity: 0; }
+  30% { transform: translate(-50%, -30px) scale(1); opacity: 1; }
+  75% { transform: translate(-50%, -30px) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, 10px) scale(0.9); opacity: 0; }
+}
+@keyframes bird-fly {
+  0% { transform: translate(0, 0); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translate(340%, -30%); opacity: 0; }
+}
+
+/* rainbow surprise: the frame pops and sparkles burst outward */
+@keyframes frame-pop { 0% { transform: scale(1) rotate(0); } 35% { transform: scale(1.25) rotate(-6deg); } 70% { transform: scale(0.95) rotate(6deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes burst {
+  0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+  25% { opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--bx, 0)), calc(-50% + var(--by, 0))) scale(1.1); opacity: 0; }
+}
+
+/* ====================================================================
    PROPS & PARTICLES
    ==================================================================== */
 

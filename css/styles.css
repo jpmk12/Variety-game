@@ -185,7 +185,10 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   justify-content: center;
   gap: clamp(4px, 3vw, 36px);
   padding: 0 12px 4%;
+  /* let taps in the empty upper area reach the window / rainbow behind */
+  pointer-events: none;
 }
+.ac-animal { pointer-events: auto; }
 .ac-animal {
   position: relative;
   width: clamp(120px, 28vw, 230px);
@@ -249,18 +252,19 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .ac-hint.is-hidden { opacity: 0; height: 0; padding: 0; overflow: hidden; }
 .ac-actionbar {
   display: flex;
-  gap: clamp(8px, 2vw, 18px);
+  flex-wrap: wrap;
+  gap: clamp(6px, 1.4vw, 14px);
   justify-content: center;
-  padding: 12px clamp(8px, 3vw, 28px);
+  padding: 10px clamp(8px, 3vw, 28px);
   padding-bottom: calc(12px + env(safe-area-inset-bottom, 0));
   background: rgba(255, 255, 255, 0.55);
   backdrop-filter: blur(6px);
   box-shadow: 0 -3px 12px var(--shadow);
 }
 .ac-action {
-  flex: 1;
-  max-width: 150px;
-  min-height: 78px;
+  flex: 1 1 90px;
+  max-width: 140px;
+  min-height: 74px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -292,7 +296,9 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .ac-prop-feed, .ac-prop-water { animation: prop-rise 1.4s ease both; }
 .ac-prop-bath { bottom: auto; top: 6%; font-size: 2rem; animation: prop-bath 1.4s ease both; }
-.ac-prop-play { animation: prop-bounce 1.4s ease both; }
+/* the play ball is big and bounces in front of the pet, up near its head */
+.ac-prop-play { bottom: auto; top: 16%; font-size: 3.6rem; animation: play-ball 2s ease both; z-index: 6; }
+.ac-prop-brush { bottom: auto; top: 20%; font-size: 2.4rem; animation: prop-rise 1.6s ease both; }
 .ac-particle {
   position: absolute;
   bottom: 30%;
@@ -479,9 +485,56 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   z-index: 0;
 }
 
+/* ---- Bedtime: dim the room ---- */
+.ac-night {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #2a2a5e 0%, #3d3a6b 70%, #4a3f70 100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+  z-index: 9;
+}
+.ac-night.show { opacity: 0.55; }
+.ac-moon { position: absolute; top: 10%; right: 14%; font-size: 3rem; filter: drop-shadow(0 0 12px #fff6c0); }
+.ac-star { position: absolute; font-size: 1.4rem; animation: twinkle-star 1.8s ease-in-out infinite; }
+.ac-star.s1 { top: 16%; left: 20%; }
+.ac-star.s2 { top: 28%; left: 60%; animation-delay: -0.6s; }
+.ac-star.s3 { top: 12%; left: 44%; animation-delay: -1.2s; }
+
+/* ---- Window / rainbow tap surprises ---- */
+.ac-window, .ac-frame { cursor: pointer; padding: 0; }
+.ac-window { transition: box-shadow 0.3s ease; }
+.ac-window.is-sunny { box-shadow: 0 0 24px 6px #ffe39a, 0 6px 0 var(--shadow); }
+.ac-window:active, .ac-frame:active { transform: scale(0.96); }
+.ac-sun {
+  position: absolute;
+  left: 50%;
+  bottom: -30%;
+  transform: translateX(-50%);
+  font-size: 2.6rem;
+  animation: sun-rise 1.7s ease forwards;
+}
+.ac-bird {
+  position: absolute;
+  top: 34%;
+  left: -20%;
+  font-size: 1.4rem;
+  animation: bird-fly 1.7s linear forwards;
+}
+.ac-frame.pop { animation: frame-pop 0.7s ease; }
+.ac-burst {
+  position: absolute;
+  font-size: 1.7rem;
+  transform: translate(-50%, -50%);
+  animation: burst 0.85s ease-out forwards;
+  pointer-events: none;
+  z-index: 12;
+}
+
 /* respect users who prefer less motion: keep gentle fades, drop big movement */
 @media (prefers-reduced-motion: reduce) {
   .ac-cloud, .ac-particle, .ac-prop, .ac-confetti, .ac-thought.show,
-  .ac-meter.is-low .ac-meter-icon,
+  .ac-meter.is-low .ac-meter-icon, .ac-star, .ac-burst, .ac-sun, .ac-bird,
   .ac-animal.is-selected::after { animation-duration: 0.6s !important; }
 }
