@@ -128,6 +128,22 @@ const EFFECTS = {
     tone({ freq: 1760, start: 0.16, duration: 0.14, type: 'sine', gain: 0.12 });
   },
 
+  // --- Samurai game ---
+  // slice: a quick blade whoosh
+  slice: () => {
+    noise({ start: 0, duration: 0.14, gain: 0.12, freq: 3200 });
+    tone({ freq: 1200, start: 0, duration: 0.1, type: 'sine', gain: 0.06, slideTo: 400 });
+  },
+  // point: a bright correct-answer ding
+  point: () => {
+    tone({ freq: 880, start: 0, duration: 0.1, type: 'triangle', gain: 0.16 });
+    tone({ freq: 1319, start: 0.09, duration: 0.16, type: 'triangle', gain: 0.16 });
+  },
+  // oops: a soft, non-scary "not that one"
+  oops: () => {
+    tone({ freq: 320, start: 0, duration: 0.16, type: 'sine', gain: 0.12, slideTo: 220 });
+  },
+
   // --- distinct animal voices ---
   // dog: two short low "woof" barks
   'voice-dog': () => {

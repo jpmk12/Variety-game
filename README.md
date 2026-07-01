@@ -4,9 +4,12 @@
   <img src="assets/animal-care-thumbnail.png" alt="Animal Care — feed, water, bathe and play with a cartoony dog, cat, and unicorn" width="100%" />
 </p>
 
-A touch-friendly game hub for kids. The home screen is a menu of games; the
-first game is **Animal Care**, where you look after three cartoony pets — a dog,
-a cat, and a unicorn — by feeding, watering, bathing, and playing with them.
+A touch-friendly game hub for kids. The home screen is a menu of games:
+- **Animal Care** — look after three cartoony pets (a dog, a cat, and a unicorn)
+  by feeding, watering, bathing, brushing, playing, and tucking them in.
+- **Letter Samurai** — a gentle "Fruit Ninja" with a learning twist: the game
+  says a letter out loud and tosses letters up like fruit; swipe to slash the
+  one you heard.
 
 Built as a **zero-build static site**: plain HTML, CSS, and JavaScript (ES
 modules) with hand-drawn inline SVG characters. No installs, no bundler, no
@@ -53,6 +56,16 @@ python3 -m http.server 8000
 - Use the 🔊 button in the top bar to mute/unmute sounds (sounds are generated
   with the Web Audio API — there are no audio files).
 
+## How Letter Samurai works
+
+- Tap **Start**, then listen: the game says "Slash the letter B!" (device
+  text-to-speech) and shows the target letter in the corner.
+- Letters are tossed up like fruit. **Swipe through the called letter** to slash
+  it — it bursts with juice and sparkles, plays a ding, and your score goes up.
+- Slashing the **wrong** letter just puffs away with a soft "oops" — no penalty,
+  nothing ends. Tap the 🔊 chip to hear the letter again.
+- Rendered on a `<canvas>` with a DOM HUD; respects the same top-bar mute.
+
 ## Project layout
 
 ```
@@ -73,6 +86,10 @@ js/
     sequences.js        multi-step animation script for each action
     stats.js            stat model, needs metadata, time decay, mood mapping
     drag.js             pointer drag-and-drop helper (treat → pet)
+  games/samurai/
+    index.js            canvas game: physics, slicing, waves, HUD
+    content.js          letter pool + colors + wave builder
+    speech.js           Web Speech API wrapper (says the target letter)
 assets/
   favicon.svg, icon-*.png     app icons (tab + home screen)
   animal-care-thumbnail.png   README hero image

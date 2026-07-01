@@ -538,3 +538,90 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .ac-meter.is-low .ac-meter-icon, .ac-star, .ac-burst, .ac-sun, .ac-bird,
   .ac-animal.is-selected::after { animation-duration: 0.6s !important; }
 }
+
+/* ==================================================================
+   SAMURAI game (letter-slashing)
+   ================================================================== */
+.sam-game { position: absolute; inset: 0; overflow: hidden; }
+.sam-canvas { position: absolute; inset: 0; display: block; touch-action: none; }
+
+.sam-hud {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 12px 16px;
+  pointer-events: none;
+}
+.sam-target {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  background: #fff;
+  border-radius: 999px;
+  box-shadow: 0 5px 0 var(--shadow);
+}
+.sam-target.pulse { animation: sam-pulse 0.5s ease; }
+.sam-target-label { font-size: 1.1rem; font-weight: 800; color: var(--ink); }
+.sam-target-letter { font-size: 2.4rem; font-weight: 900; line-height: 1; }
+.sam-target-say { font-size: 1.2rem; }
+
+.sam-scores { pointer-events: none; text-align: right; }
+.sam-score {
+  display: inline-block;
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.7);
+  padding: 4px 16px;
+  border-radius: 999px;
+  box-shadow: 0 4px 0 var(--shadow);
+}
+.sam-streak { display: block; margin-top: 6px; font-size: 1.1rem; font-weight: 800; color: #ff7043; }
+
+/* start overlay */
+.sam-start {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(60, 50, 90, 0.35);
+  backdrop-filter: blur(3px);
+  z-index: 5;
+}
+.sam-start.hidden { display: none; }
+.sam-start-card {
+  text-align: center;
+  background: #fff;
+  padding: 28px 34px;
+  border-radius: 28px;
+  box-shadow: 0 10px 0 var(--shadow), 0 16px 30px var(--shadow);
+  max-width: 90%;
+}
+.sam-start-emoji { font-size: 4rem; line-height: 1; }
+.sam-start-card h2 { margin: 8px 0 4px; font-size: 1.8rem; font-weight: 900; color: var(--ink); }
+.sam-start-card p { margin: 0 0 18px; font-size: 1.05rem; color: var(--ink); opacity: 0.8; }
+.sam-start-btn {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(180deg, #5eb6e0, #3f9ad0);
+  padding: 14px 40px;
+  border-radius: 999px;
+  box-shadow: 0 6px 0 var(--shadow);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.sam-start-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--shadow); }
+
+@keyframes sam-pulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sam-target.pulse { animation: none; }
+}
