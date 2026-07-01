@@ -669,3 +669,149 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   box-shadow: 0 3px 0 var(--shadow);
 }
 .sam-seg button:active { transform: scale(0.95); }
+
+/* ==================================================================
+   CLIMB & SPELL game
+   ================================================================== */
+.cs-game { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.cs-wall {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.35) 0 2px, transparent 2px 64px),
+    repeating-linear-gradient(90deg, rgba(60,90,110,0.06) 0 2px, transparent 2px 84px),
+    linear-gradient(180deg, #d7ecf0 0%, #bfe0e6 100%);
+}
+.cs-web-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; }
+.cs-web { stroke: #ffffff; stroke-width: 4; stroke-linecap: round; opacity: 0; filter: drop-shadow(0 1px 1px rgba(60,50,90,.3)); }
+.cs-web.show { opacity: 0.95; }
+
+/* prompt chip */
+.cs-prompt {
+  position: absolute;
+  top: 12px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 8;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  padding: 8px 18px;
+  border-radius: 999px;
+  box-shadow: 0 5px 0 var(--shadow);
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.cs-prompt b { color: #2ec4b6; font-size: 1.5rem; }
+.cs-say { font-size: 1.2rem; }
+
+/* perches */
+.cs-perches { position: absolute; inset: 0; z-index: 3; }
+.cs-perch {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: clamp(46px, 10vw, 66px);
+  height: clamp(46px, 10vw, 66px);
+  border-radius: 50%;
+  background: #fff;
+  border: 4px solid #cfd6e0;
+  box-shadow: 0 4px 0 var(--shadow);
+  opacity: 0.42;
+  filter: grayscale(0.4);
+  transition: opacity 0.2s ease, transform 0.1s ease;
+}
+.cs-perch-letter { font-size: clamp(1.1rem, 3.4vw, 1.7rem); font-weight: 900; color: var(--ink); }
+.cs-perch.is-reachable {
+  opacity: 1;
+  filter: none;
+  border-color: #2ec4b6;
+  animation: cs-perch-pulse 1.4s ease-in-out infinite;
+}
+.cs-perch.bump { animation: cs-bump 0.35s ease; }
+
+/* hero */
+.cs-hero {
+  position: absolute;
+  left: 0; top: 0;
+  width: clamp(58px, 13vw, 96px);
+  z-index: 6;
+  pointer-events: none;
+  will-change: transform;
+}
+.cs-hero-svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 6px 5px rgba(60,50,90,.25)); animation: cs-idle 2.6s ease-in-out infinite; }
+.cs-hero.is-crawling .cs-hero-svg { animation: cs-crawl 0.3s ease-in-out infinite; }
+.cs-hero.is-swinging .cs-arm { transform-origin: top center; animation: cs-reach 0.9s ease; }
+.cs-hero.is-cheering .cs-hero-svg { animation: cs-cheer 0.5s ease-in-out 3; }
+
+/* fx + celebration */
+.cs-fx { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 10; }
+.cs-confetti { position: absolute; top: -24px; width: 14px; height: 18px; border-radius: 3px; animation: confetti-fall 2.2s ease-in forwards; }
+.cs-cheer {
+  position: absolute;
+  top: 16%; left: 50%;
+  transform: translate(-50%, -10px);
+  z-index: 12;
+  padding: 10px 26px;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(180deg, #3fd9cb, #2ec4b6);
+  border-radius: 999px;
+  box-shadow: 0 8px 0 var(--shadow), 0 12px 22px var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.cs-cheer.show { opacity: 1; transform: translate(-50%, 0); animation: banner-pop 0.5s ease; }
+
+/* word bar */
+.cs-wordbar {
+  display: flex;
+  gap: clamp(8px, 2vw, 16px);
+  justify-content: center;
+  align-items: center;
+  padding: 12px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0));
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 -3px 12px var(--shadow);
+}
+.cs-slot {
+  width: clamp(38px, 9vw, 58px);
+  height: clamp(46px, 11vw, 68px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1.4rem, 5vw, 2.2rem);
+  font-weight: 900;
+  color: var(--ink);
+  background: #fff;
+  border-bottom: 5px solid #2ec4b6;
+  border-radius: 10px;
+  box-shadow: 0 4px 0 var(--shadow);
+}
+.cs-slot.filled { animation: cs-pop 0.35s ease; background: #eafaf8; }
+
+/* start overlay (mirrors sam-start) */
+.cs-start { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(60,50,90,.35); backdrop-filter: blur(3px); z-index: 15; }
+.cs-start.hidden { display: none; }
+.cs-start-card { text-align: center; background: #fff; padding: 28px 34px; border-radius: 28px; box-shadow: 0 10px 0 var(--shadow), 0 16px 30px var(--shadow); max-width: 90%; }
+.cs-start-emoji { font-size: 4rem; line-height: 1; }
+.cs-start-card h2 { margin: 8px 0 4px; font-size: 1.8rem; font-weight: 900; color: var(--ink); }
+.cs-start-card p { margin: 0 0 18px; font-size: 1.05rem; color: var(--ink); opacity: 0.8; }
+.cs-start-btn { font-size: 1.4rem; font-weight: 800; color: #fff; background: linear-gradient(180deg, #3fd9cb, #23a99d); padding: 14px 40px; border-radius: 999px; box-shadow: 0 6px 0 var(--shadow); transition: transform 0.08s ease, box-shadow 0.08s ease; }
+.cs-start-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--shadow); }
+
+@keyframes cs-perch-pulse { 0%,100% { box-shadow: 0 4px 0 var(--shadow), 0 0 0 0 rgba(46,196,182,.5); } 50% { box-shadow: 0 4px 0 var(--shadow), 0 0 0 8px rgba(46,196,182,0); } }
+@keyframes cs-bump { 0%,100% { transform: translate(-50%,-50%); } 25% { transform: translate(-56%,-50%) rotate(-6deg); } 75% { transform: translate(-44%,-50%) rotate(6deg); } }
+@keyframes cs-idle { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes cs-crawl { 0%,100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-2px) rotate(1deg); } }
+@keyframes cs-reach { 0% { transform: rotate(0); } 40% { transform: rotate(-8deg); } 100% { transform: rotate(0); } }
+@keyframes cs-cheer { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-10px) scale(1.05); } }
+@keyframes cs-pop { 0% { transform: scale(0.7); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .cs-perch.is-reachable, .cs-hero-svg, .cs-confetti { animation-duration: 0.6s !important; }
+}

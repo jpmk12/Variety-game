@@ -144,6 +144,18 @@ const EFFECTS = {
     tone({ freq: 320, start: 0, duration: 0.16, type: 'sine', gain: 0.12, slideTo: 220 });
   },
 
+  // --- Climb & Spell ---
+  // thwip: a web-shot whoosh for swinging
+  thwip: () => {
+    noise({ start: 0, duration: 0.16, gain: 0.1, freq: 2600 });
+    tone({ freq: 700, start: 0, duration: 0.14, type: 'sine', gain: 0.06, slideTo: 1500 });
+  },
+  // crawl: a soft double scuttle for crawling
+  crawl: () => {
+    tone({ freq: 260, start: 0, duration: 0.06, type: 'triangle', gain: 0.08 });
+    tone({ freq: 240, start: 0.09, duration: 0.06, type: 'triangle', gain: 0.08 });
+  },
+
   // --- distinct animal voices ---
   // dog: two short low "woof" barks
   'voice-dog': () => {

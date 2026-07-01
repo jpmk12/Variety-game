@@ -4,6 +4,7 @@
 
 import { mountAnimalCare } from './games/animal-care/index.js';
 import { mountSamurai } from './games/samurai/index.js';
+import { mountClimbSpell } from './games/climb-spell/index.js';
 
 export const games = [
   {
@@ -21,6 +22,14 @@ export const games = [
     blurb: 'Slash the letter you hear!',
     accent: '#8ecae6',
     mount: mountSamurai,
+  },
+  {
+    id: 'climb-spell',
+    title: 'Climb & Spell',
+    emoji: '🕸️',
+    blurb: 'Climb and swing to spell words!',
+    accent: '#2ec4b6',
+    mount: mountClimbSpell,
   },
   // Placeholder slot proves the menu scales to more games.
   {
