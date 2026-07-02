@@ -5,6 +5,7 @@
 import { mountAnimalCare } from './games/animal-care/index.js';
 import { mountSamurai } from './games/samurai/index.js';
 import { mountClimbSpell } from './games/climb-spell/index.js';
+import { mountBeatBuddies } from './games/beat-buddies/index.js';
 
 export const games = [
   {
@@ -34,13 +35,12 @@ export const games = [
     thumb: 'assets/tiles/climb-spell.png',
     mount: mountClimbSpell,
   },
-  // Placeholder slot proves the menu scales to more games.
   {
-    id: 'coming-soon',
-    title: 'More Soon',
-    emoji: '✨',
-    blurb: 'New games are on the way!',
-    accent: '#bdb2ff',
-    comingSoon: true,
+    id: 'beat-buddies',
+    title: 'Beat Buddies',
+    emoji: '🎵',
+    blurb: 'Tap the animal band to the beat!',
+    accent: '#ff6b9d',
+    mount: mountBeatBuddies,
   },
 ];

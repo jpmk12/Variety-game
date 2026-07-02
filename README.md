@@ -13,6 +13,8 @@ A touch-friendly game hub for kids. The home screen is a menu of games:
 - **Climb & Spell** — a masked climber hero crawls and web-swings between letter
   perches; the game says "Crawl/Swing to C!" and reaching the right letters in
   order spells simple words.
+- **Beat Buddies** — the three pets are a band (drum dog, piano cat, chime
+  unicorn); tap each animal in time as beat bubbles reach it to play a song.
 
 Built as a **zero-build static site**: plain HTML, CSS, and JavaScript (ES
 modules) with hand-drawn inline SVG characters. No installs, no bundler, no
@@ -110,6 +112,20 @@ hands-on game with a goal meter you fill to win.
   own designs (a goblin/octo/rhino bug), not based on any trademarked character.
 - The hero is an **original** masked climber (our own colors + a star emblem),
   not based on any trademarked character.
+
+## How Beat Buddies works
+
+- Pick a song (or **Free Jam**). After a "3 · 2 · 1 · Go!" count-in, **beat
+  bubbles** float down each pet's lane toward a hit ring.
+- **Tap each pet as its bubble reaches the ring** — the drum dog, piano cat, and
+  chime unicorn each play their (synthesized) instrument, and repeated taps walk
+  up a little scale so it sounds musical. Nail the timing for a "Perfect!"; a
+  combo counter tracks your streak.
+- Fill the song meter to finish for confetti, a band cheer, and stars (with
+  **First Gig / Showstopper / Rock Star** stickers). **No fail state** — missed
+  bubbles just drift away, and tapping a pet always makes a sound.
+- **Free Jam** has no bubbles at all — it's a three-instrument toy for the
+  littlest players. All sound is Web Audio synthesis; no audio files.
 
 ## Letter Samurai belts
 
@@ -224,6 +240,9 @@ js/
     index.js            wall scene, perch reachability, crawl/swing, worlds
     hero.js             original masked-climber SVG
     words.js            three worlds of words (3/4/5 letters) + distractors
+  games/beat-buddies/
+    index.js            3-lane rhythm engine: beat clock, bubbles, hits, win
+    songs.js            band instruments + data-driven songs
 assets/
   favicon.svg, icon-*.png     app icons (tab + home screen)
   animal-care-thumbnail.png   README hero image
