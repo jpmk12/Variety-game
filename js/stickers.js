@@ -3,7 +3,7 @@
 // a `when(state, helpers)` predicate that progress.js auto-checks after any
 // award (milestones on the star wallet, lifetime counters, or a pet's bond).
 
-export const GROUPS = ['Animal Care', 'Letter Samurai', 'Climb & Spell', 'Milestones'];
+export const GROUPS = ['Animal Care', 'Letter Samurai', 'Climb & Spell', 'Beat Buddies', 'Milestones'];
 
 export const STICKERS = [
   // --- Animal Care: one per activity, earned the first time you win it ---
@@ -35,6 +35,13 @@ export const STICKERS = [
   { id: 'cs-5',     group: 'Climb & Spell', emoji: '📖', name: 'Word Wizard',   hint: 'Spell 5 words',
     when: (s) => (s.counters.csWords || 0) >= 5 },
   { id: 'cs-web',   group: 'Climb & Spell', emoji: '🦸', name: 'Web Hero',      hint: 'Web up a baddie' },
+
+  // --- Beat Buddies: songs finished ---
+  { id: 'bb-first', group: 'Beat Buddies', emoji: '🎵', name: 'First Gig',    hint: 'Finish a song' },
+  { id: 'bb-3',     group: 'Beat Buddies', emoji: '🎤', name: 'Showstopper',  hint: 'Finish 3 songs',
+    when: (s) => (s.counters.bbSongs || 0) >= 3 },
+  { id: 'bb-10',    group: 'Beat Buddies', emoji: '🌟', name: 'Rock Star',    hint: 'Finish 10 songs',
+    when: (s) => (s.counters.bbSongs || 0) >= 10 },
 
   // --- Milestones: the star wallet ---
   { id: 'stars-25',  group: 'Milestones', emoji: '⭐', name: 'Star Collector', hint: 'Earn 25 stars',

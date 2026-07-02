@@ -183,6 +183,15 @@ export function play(name) {
   if (fx) fx();
 }
 
+// Play a single musical note now (respects mute, shares the AudioContext).
+// Reusable building block for games that make music, like Beat Buddies.
+export function playNote(freq, opts = {}) {
+  if (muted) return;
+  unlock();
+  const { type = 'sine', gain = 0.18, duration = 0.3, slideTo = null } = opts;
+  tone({ freq, start: 0, duration, type, gain, slideTo });
+}
+
 // Play an animal's signature voice (falls back silently if unknown).
 export function playVoice(animalId) {
   play('voice-' + animalId);
