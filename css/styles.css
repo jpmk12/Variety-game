@@ -1102,3 +1102,63 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .ac-buy:disabled { opacity: 0.45; box-shadow: none; }
 .ac-equip { background: #cdeffe; }
 .ac-equip.is-on { background: #2ec4b6; color: #fff; }
+
+/* ============================================================
+   Trick School — buttons, trick poses, show-off label
+   ============================================================ */
+
+/* the four trick buttons along the bottom of the trick-school stage */
+.ac-trick-row {
+  position: absolute; left: 0; right: 0; bottom: 4%;
+  display: flex; justify-content: center; gap: clamp(8px, 2.5vw, 20px);
+  padding: 0 12px; z-index: 6;
+}
+.ac-trick-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  min-width: 74px; padding: 10px 12px; border-radius: 20px;
+  background: #fff; box-shadow: 0 5px 0 var(--shadow);
+  border: 3px solid transparent; transition: transform .1s ease;
+}
+.ac-trick-btn:active { transform: scale(0.94); }
+.ac-trick-emoji { font-size: 1.9rem; line-height: 1; }
+.ac-trick-name { font-weight: 800; font-size: 0.9rem; }
+/* the glowing "press me" trick */
+.ac-trick-btn.is-target {
+  border-color: #ffb84d;
+  animation: ac-trick-glow 0.9s ease-in-out infinite;
+}
+@keyframes ac-trick-glow {
+  0%, 100% { box-shadow: 0 5px 0 var(--shadow), 0 0 0 0 rgba(255,184,77,0.7); }
+  50%      { box-shadow: 0 5px 0 var(--shadow), 0 0 0 10px rgba(255,184,77,0); }
+}
+
+/* detail pet is now a tappable button; keep it clean + show a pointer */
+.ac-detail-pet { padding: 0; cursor: pointer; }
+.ac-detail-stage { position: relative; }
+.ac-trick-say {
+  position: absolute; top: 8%; left: 50%; transform: translate(-50%, -6px);
+  font-size: 1.4rem; font-weight: 900; color: #ff8c1a; text-shadow: 0 2px 0 #fff;
+  background: #fff; padding: 6px 18px; border-radius: 999px; box-shadow: 0 5px 0 var(--shadow);
+  opacity: 0; transition: opacity .3s ease, transform .3s ease; pointer-events: none; z-index: 6;
+}
+.ac-trick-say.show { opacity: 1; transform: translate(-50%, 0); }
+.ac-trick-say.tip {
+  opacity: 0.85; font-size: 0.95rem; color: var(--ink); background: rgba(255,255,255,0.85);
+  animation: ac-tip-bob 1.6s ease-in-out infinite;
+}
+@keyframes ac-tip-bob { 0%,100% { transform: translate(-50%, 0);} 50% { transform: translate(-50%, -5px);} }
+
+/* trick poses — reused in the mini-game and on the detail pet */
+.mg-trick-spin  { animation: mg-trick-spin 0.85s ease-in-out; }
+.mg-trick-jump  { animation: mg-trick-jump 0.7s ease; }
+.mg-trick-sit   { animation: mg-trick-sit 0.7s ease; transform-origin: bottom center; }
+.mg-trick-shake { animation: mg-trick-shake 0.6s ease-in-out; }
+@keyframes mg-trick-spin { to { transform: rotate(360deg); } }
+@keyframes mg-trick-jump { 0%,100% { transform: translateY(0);} 40% { transform: translateY(-16%);} }
+@keyframes mg-trick-sit  { 0%,100% { transform: scaleY(1);} 45% { transform: scaleY(0.82) translateY(4%);} }
+@keyframes mg-trick-shake { 0%,100% { transform: rotate(0);} 25% { transform: rotate(-8deg);} 75% { transform: rotate(8deg);} }
+
+@media (prefers-reduced-motion: reduce) {
+  .mg-trick-spin, .mg-trick-jump, .mg-trick-sit, .mg-trick-shake,
+  .ac-trick-btn.is-target, .ac-trick-say.tip { animation-duration: .5s !important; }
+}

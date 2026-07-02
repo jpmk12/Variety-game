@@ -12,6 +12,7 @@ import { load, save } from '../../storage.js';
 import { play } from '../../audio.js';
 import { award, getBond, getStars, spendStars, unlockSticker } from '../../progress.js';
 import { MINIGAMES } from './minigames/index.js';
+import { mountTricks, TRICKS } from './minigames/tricks.js';
 import { ACCESSORIES, accessoryById } from './accessories.js';
 import { decoratePet } from './wardrobe.js';
 
@@ -43,6 +44,8 @@ export function mountAnimalCare(root) {
     equipped: { ...(saved?.wardrobe?.equipped || {}) },
   };
   ANIMALS.forEach((a) => { if (!wardrobe.equipped[a.id]) wardrobe.equipped[a.id] = {}; });
+  // Tricks each pet has learned at Trick School ({ petId: ['sit','spin',…] }).
+  const tricks = { ...(saved?.tricks || {}) };
   if (saved?.lastSaved) {
     const elapsed = now - saved.lastSaved;
     ANIMALS.forEach((a) => { state.animals[a.id].stats = applyDecay(state.animals[a.id].stats, elapsed); });
@@ -59,9 +62,10 @@ export function mountAnimalCare(root) {
   let mgCleanup = null;
   let roomEls = null;
 
-  function persist() { save(SAVE_KEY, { animals: state.animals, wardrobe, lastSaved: Date.now() }); }
+  function persist() { save(SAVE_KEY, { animals: state.animals, wardrobe, tricks, lastSaved: Date.now() }); }
   const petDef = (id) => ANIMALS.find((a) => a.id === id);
   const equippedFor = (id) => wardrobe.equipped[id] || {};
+  const tricksFor = (id) => tricks[id] || [];
 
   // test hook
   wrap.__ac = {
@@ -71,9 +75,12 @@ export function mountAnimalCare(root) {
     openDetail: (id) => showDetail(id),
     openMini: (actionId) => openMini(actionId),
     openShop: (id) => showShop(id ?? currentPet),
+    openTricks: (id) => openTricks(id ?? currentPet),
     goRoom: () => showRoom(),
     equipped: (id) => ({ ...equippedFor(id) }),
     owned: () => ({ ...wardrobe.owned }),
+    learnedTricks: (id) => [...tricksFor(id)],
+    performTrick: () => performTrick(),
   };
 
   function clearView() {
@@ -133,15 +140,22 @@ export function mountAnimalCare(root) {
           <button class="ac-back" aria-label="Back to room">← Room</button>
           <span class="ac-detail-name">${a.name}</span>
           <span class="ac-bond" aria-label="Friendship level"></span>
+          <button class="ac-tricks-btn" aria-label="Go to trick school">🎓 Tricks</button>
           <button class="ac-shop-btn" aria-label="Open dress-up shop">🛍️ Shop</button>
         </div>
-        <div class="ac-detail-stage"><span class="ac-detail-pet">${a.svg}</span></div>
+        <div class="ac-detail-stage">
+          <button class="ac-detail-pet" aria-label="Tap ${a.name} to see a trick">${a.svg}</button>
+          <div class="ac-trick-say" role="status" aria-live="polite"></div>
+        </div>
         <div class="ac-meters"></div>
         <div class="ac-actionbar" role="toolbar" aria-label="Care tasks"></div>
       </div>
     `;
     wrap.querySelector('.ac-back').addEventListener('click', () => { play('select'); showRoom(); });
     wrap.querySelector('.ac-shop-btn').addEventListener('click', () => { play('select'); showShop(id); });
+    wrap.querySelector('.ac-tricks-btn').addEventListener('click', () => { play('select'); openTricks(id); });
+    // Tapping a pet that has been to Trick School makes it show off a trick.
+    wrap.querySelector('.ac-detail-pet').addEventListener('click', () => performTrick());
 
     const meters = wrap.querySelector('.ac-meters');
     NEEDS.forEach((need) => {
@@ -169,6 +183,30 @@ export function mountAnimalCare(root) {
     renderBond(id);
     refreshMeters();
     decoratePet(wrap.querySelector('.ac-detail-pet'), equippedFor(id));
+    // Invite a trick if this pet has graduated Trick School.
+    if (tricksFor(id).length) {
+      const say = wrap.querySelector('.ac-trick-say');
+      if (say) { say.textContent = 'Tap me to see a trick!'; say.classList.add('tip'); }
+    }
+  }
+
+  // Make the current pet perform a random trick it has learned. Called when the
+  // child taps the big pet on the detail screen.
+  function performTrick() {
+    if (view !== 'detail') return;
+    const learned = tricksFor(currentPet);
+    if (!learned.length) return;
+    const petEl = wrap.querySelector('.ac-detail-pet');
+    const say = wrap.querySelector('.ac-trick-say');
+    if (!petEl) return;
+    const trick = TRICKS.find((t) => t.id === learned[Math.floor(Math.random() * learned.length)]);
+    if (!trick) return;
+    petEl.classList.remove(trick.anim);
+    void petEl.offsetWidth;
+    petEl.classList.add(trick.anim);
+    play('happy');
+    if (say) { say.textContent = `${trick.name}! ${trick.emoji}`; say.classList.remove('tip'); say.classList.add('show'); }
+    setTimeout(() => { petEl.classList.remove(trick.anim); if (say) say.classList.remove('show'); }, 1100);
   }
 
   // Friendship badge: a heart per level (up to 5) + the level label. Grows as
@@ -219,6 +257,30 @@ export function mountAnimalCare(root) {
       onBack: () => showDetail(petId),
     });
     // Dress the pet inside the mini-game too, so accessories are worn everywhere.
+    decoratePet(wrap.querySelector('.ac-mini-pet'), equippedFor(petId));
+  }
+
+  // ---------------- TRICK SCHOOL ----------------
+  function openTricks(id) {
+    view = 'mini';
+    currentPet = id;
+    clearView();
+    const petId = id;
+    mgCleanup = mountTricks(wrap, {
+      pet: petDef(petId),
+      onReward: () => award({
+        stars: 3, bondPet: petId, bondXp: 10, counter: 'acWins',
+        stickers: ['ac-first', 'ac-trick'],
+      }),
+      onWin: () => {
+        // Graduating school teaches the pet all its tricks (to show off later).
+        tricks[petId] = TRICKS.map((t) => t.id);
+        state.animals[petId].stats.happiness = 100; // a good lesson is fun!
+        persist();
+        showDetail(petId);
+      },
+      onBack: () => showDetail(petId),
+    });
     decoratePet(wrap.querySelector('.ac-mini-pet'), equippedFor(petId));
   }
 
