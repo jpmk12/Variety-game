@@ -1263,3 +1263,53 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 @media (prefers-reduced-motion: reduce) {
   .sam-word-slot.filled, .sam-wordbar.done { animation-duration: .3s; }
 }
+
+/* ============================================================
+   Climb & Spell — worlds (word tiers + themed backdrops)
+   ============================================================ */
+
+/* World label (top-right) + the "new world" banner */
+.cs-world {
+  position: absolute; top: 12px; right: 12px; z-index: 8;
+  background: #fff; padding: 6px 14px; border-radius: 999px;
+  box-shadow: 0 4px 0 var(--shadow); font-size: 1rem; font-weight: 800; color: var(--ink);
+}
+.cs-world-banner {
+  position: absolute; top: 26%; left: 50%; transform: translate(-50%, -8px) scale(0.8);
+  z-index: 12; font-size: 1.9rem; font-weight: 900; color: #fff;
+  background: rgba(58,51,87,0.85); padding: 12px 30px; border-radius: 999px;
+  box-shadow: 0 8px 0 var(--shadow); opacity: 0; pointer-events: none;
+  text-shadow: 0 2px 3px rgba(0,0,0,0.25);
+}
+.cs-world-banner.show { animation: cs-world-in 2.2s ease forwards; }
+@keyframes cs-world-in {
+  0% { opacity: 0; transform: translate(-50%, -8px) scale(0.8); }
+  12% { opacity: 1; transform: translate(-50%, 0) scale(1.08); }
+  25% { transform: translate(-50%, 0) scale(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -14px) scale(0.95); }
+}
+
+/* Per-world backdrops (two-class selectors override the base .cs-wall) */
+.cs-wall.cs-world-backyard {
+  background:
+    repeating-linear-gradient(90deg, rgba(60,90,60,0.05) 0 2px, transparent 2px 84px),
+    linear-gradient(180deg, #cdeafd 0%, #bfe6c6 60%, #9ed489 100%);
+}
+.cs-wall.cs-world-rooftops {
+  background:
+    repeating-linear-gradient(90deg, rgba(70,50,90,0.08) 0 2px, transparent 2px 74px),
+    linear-gradient(180deg, #ffd59b 0%, #f5926a 42%, #7b6699 100%);
+}
+.cs-wall.cs-world-nightsky {
+  background:
+    radial-gradient(2px 2px at 18% 22%, #fff 50%, transparent 51%),
+    radial-gradient(2px 2px at 72% 16%, #fff 50%, transparent 51%),
+    radial-gradient(2px 2px at 40% 34%, #fff 50%, transparent 51%),
+    radial-gradient(3px 3px at 86% 40%, #fff 50%, transparent 51%),
+    radial-gradient(2px 2px at 58% 12%, #fff 50%, transparent 51%),
+    linear-gradient(180deg, #1b2350 0%, #33407a 70%, #4a5aa0 100%);
+}
+/* On the night sky, keep the letters readable */
+.cs-wall.cs-world-nightsky .cs-score,
+.cs-wall.cs-world-nightsky .cs-world { color: var(--ink); }
