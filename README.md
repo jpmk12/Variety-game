@@ -137,6 +137,18 @@ Stars now have a purpose — spend them to dress up your pets:
   every mini-game — and each pet has its own outfit that persists between
   sessions. Buying your first item unlocks the **Fashionista** sticker.
 
+## Trick School
+
+Teach your pet tricks it will remember and show off:
+
+- Open **🎓 Tricks** from a zoomed pet. The teacher names a trick and the pet
+  demos it while the matching button (**Sit / Spin / Jump / Shake**) glows — tap
+  it and the pet performs. Five good reps graduates the pet (fills the meter,
+  earns stars + friendship, unlocks the **Star Pupil** sticker).
+- Once graduated, **tap the pet** on its screen and it performs a random learned
+  trick with a little animation and a shout-out ("Spin! 🌀"). Learned tricks
+  persist per pet between sessions.
+
 ## Project layout
 
 ```
@@ -169,6 +181,7 @@ js/
       brush.js          stroke over the fur to smooth the tufts
       play.js           tap the ball to rally a happy pet
       night.js          dim the room and pat the pet to sleep
+      tricks.js         Trick School: teach sit / spin / jump / shake
   games/samurai/
     index.js            canvas game: physics, slicing, waves, HUD
     content.js          letter pool + colors + wave builder
