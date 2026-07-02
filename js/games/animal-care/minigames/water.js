@@ -6,10 +6,13 @@ import { createShell, onDrag } from './shell.js';
 export function mountWater(host, ctx) {
   const shell = createShell(host, {
     title: `Water ${ctx.pet.name}`, icon: '💧', color: '#5ec8ff', meterIcon: '💧',
-    pet: ctx.pet, petId: ctx.pet.id, winPraise: 'Slurp! All better!',
+    pet: ctx.pet, petId: ctx.pet.id, winPraise: 'Slurp! All better!', level: ctx.level,
     onWin: ctx.onWin, onBack: ctx.onBack, onReward: ctx.onReward,
   });
   shell.setHint('Hold to pour the water!');
+
+  // Higher levels pour slower, so it takes a steadier hold to fill the bowl.
+  const RATE = [0.5, 0.4, 0.32][(ctx.level || 1) - 1] || 0.32;
 
   // bowl + stream
   const bowl = document.createElement('div');
@@ -41,7 +44,7 @@ export function mountWater(host, ctx) {
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     if (holding && level < 1) {
-      level = Math.min(1, level + dt * 0.5);
+      level = Math.min(1, level + dt * RATE);
       bowlWater.style.height = (level * 100) + '%';
       shell.setProgress(level);
       if (level >= 1) shell.petEl.classList.add('mg-drink');

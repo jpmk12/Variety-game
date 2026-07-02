@@ -1162,3 +1162,31 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .mg-trick-spin, .mg-trick-jump, .mg-trick-sit, .mg-trick-shake,
   .ac-trick-btn.is-target, .ac-trick-say.tip { animation-duration: .5s !important; }
 }
+
+/* ============================================================
+   Mini-game levels — level badge + higher-level twists
+   ============================================================ */
+
+/* "Lv N" badge in the mini-game header */
+.ac-mini-level {
+  font-weight: 900; font-size: 0.9rem; color: #fff;
+  background: var(--mg); padding: 3px 12px; border-radius: 999px;
+  box-shadow: 0 3px 0 var(--shadow); white-space: nowrap;
+}
+
+/* Play level 3: a smaller, zippier ball */
+.ac-ball.ac-ball-small { font-size: 2.4rem; }
+
+/* Feed: yucky foods the pet refuses (subtly greenish so they read as "not a treat") */
+.ac-treat.is-yucky { filter: saturate(1.15); }
+
+/* Feed refuse pose — a quick "no thanks" head shake */
+.ac-mini-pet.mg-refuse { animation: ac-refuse 0.5s ease; }
+@keyframes ac-refuse {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5%) rotate(-4deg); }
+  75% { transform: translateX(5%) rotate(4deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ac-mini-pet.mg-refuse { animation-duration: .3s !important; }
+}

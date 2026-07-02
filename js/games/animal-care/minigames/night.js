@@ -6,13 +6,14 @@ import { createShell } from './shell.js';
 export function mountNight(host, ctx) {
   const shell = createShell(host, {
     title: `${ctx.pet.name}'s Bedtime`, icon: '🌙', color: '#8a8de0', meterIcon: '🌙',
-    pet: ctx.pet, petId: ctx.pet.id, winPraise: 'All rested! 😴',
+    pet: ctx.pet, petId: ctx.pet.id, winPraise: 'All rested! 😴', level: ctx.level,
     onWin: ctx.onWin, onBack: ctx.onBack, onReward: ctx.onReward,
   });
   shell.el.classList.add('is-night');
   shell.setHint('Pat gently to help them sleep');
 
-  const TARGET = 8;
+  // Higher levels = more pats to drift off.
+  const TARGET = 6 + (ctx.level || 1) * 2;
   let pats = 0;
 
   function onPat() {

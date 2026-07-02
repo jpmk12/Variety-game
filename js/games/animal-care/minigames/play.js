@@ -6,15 +6,17 @@ import { createShell } from './shell.js';
 export function mountPlay(host, ctx) {
   const shell = createShell(host, {
     title: `Play with ${ctx.pet.name}`, icon: '🎾', color: '#ffd166', meterIcon: '❤️',
-    pet: ctx.pet, petId: ctx.pet.id, winPraise: 'Wheee!',
+    pet: ctx.pet, petId: ctx.pet.id, winPraise: 'Wheee!', level: ctx.level,
     onWin: ctx.onWin, onBack: ctx.onBack, onReward: ctx.onReward,
   });
   shell.setHint('Tap the ball to play!');
 
-  const TARGET = 6;
+  // Higher levels = a longer rally, and a smaller, zippier ball at the top level.
+  const lvl = ctx.level || 1;
+  const TARGET = 4 + lvl * 2;
   let hits = 0;
   const ball = document.createElement('button');
-  ball.className = 'ac-ball';
+  ball.className = 'ac-ball' + (lvl >= 3 ? ' ac-ball-small' : '');
   ball.textContent = '🎾';
   shell.stage.appendChild(ball);
 

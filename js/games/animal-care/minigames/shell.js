@@ -19,6 +19,7 @@ export function createShell(host, opts) {
     <div class="ac-mini-top">
       <button class="ac-mini-back" aria-label="Back to pet">←</button>
       <span class="ac-mini-title">${opts.icon} ${opts.title}</span>
+      ${opts.level > 1 ? `<span class="ac-mini-level" aria-label="Level ${opts.level}">Lv ${opts.level}</span>` : ''}
       <span class="ac-mini-goal">
         <span class="ac-mini-goal-icon" aria-hidden="true">${opts.meterIcon || '⭐'}</span>
         <span class="ac-mini-track"><span class="ac-mini-fill"></span></span>
