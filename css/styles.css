@@ -1190,3 +1190,49 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 @media (prefers-reduced-motion: reduce) {
   .ac-mini-pet.mg-refuse { animation-duration: .3s !important; }
 }
+
+/* ============================================================
+   Letter Samurai — belts (rank progression)
+   ============================================================ */
+
+/* In-game rank chip next to the score */
+.sam-belt-chip {
+  font-size: 0.95rem; font-weight: 900; padding: 4px 12px; border-radius: 999px;
+  box-shadow: 0 3px 0 var(--shadow); white-space: nowrap; line-height: 1.3;
+}
+
+/* Belt panel on the start card */
+.sam-belt-panel {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  margin: 0 0 18px;
+}
+.sam-belt-badge {
+  font-size: 1.1rem; font-weight: 900; padding: 6px 18px; border-radius: 999px;
+  box-shadow: 0 4px 0 var(--shadow);
+}
+.sam-belt-bar {
+  width: 200px; max-width: 70vw; height: 12px; border-radius: 999px;
+  background: #eceaf3; overflow: hidden; box-shadow: inset 0 1px 3px var(--shadow);
+}
+.sam-belt-fill { display: block; height: 100%; border-radius: 999px; transition: width .4s ease; }
+.sam-belt-next { font-size: 0.85rem; font-weight: 700; color: var(--ink); opacity: 0.7; }
+
+/* Belt-up celebration banner */
+.sam-beltup {
+  position: absolute; top: 28%; left: 50%; transform: translate(-50%, -8px) scale(0.8);
+  font-size: 1.8rem; font-weight: 900; color: #fff;
+  background: var(--belt, #ffd23f); padding: 12px 30px; border-radius: 999px;
+  box-shadow: 0 8px 0 var(--shadow); z-index: 15; opacity: 0; pointer-events: none;
+  text-shadow: 0 2px 3px rgba(0,0,0,0.2);
+}
+.sam-beltup.show { animation: sam-beltup 2.2s ease forwards; }
+@keyframes sam-beltup {
+  0%   { opacity: 0; transform: translate(-50%, -8px) scale(0.8); }
+  12%  { opacity: 1; transform: translate(-50%, 0) scale(1.08); }
+  25%  { transform: translate(-50%, 0) scale(1); }
+  80%  { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -14px) scale(0.95); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sam-beltup.show { animation-duration: 1.6s; }
+}
