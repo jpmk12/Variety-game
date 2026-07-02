@@ -122,7 +122,20 @@ Every game shares one reward economy so playing always earns something to keep:
   you've collected, so there's always a next one to chase.
 
 All of this persists to `localStorage` and works offline; there's no way to lose
-progress and nothing is ever spent.
+progress.
+
+## Dress-Up Shop
+
+Stars now have a purpose — spend them to dress up your pets:
+
+- Open **🛍️ Shop** from a zoomed pet to browse **9 accessories** (bow, ball cap,
+  top hat, flower, crown, shades, scarf, medal, ribbon) in three slots (hat,
+  face, neck — one worn per slot at a time).
+- **Buy** an item once with stars; it's then owned forever and auto-worn.
+  **Wear / Take off** toggles it on the current pet.
+- Accessories are worn **everywhere** — the room, the zoomed detail, and inside
+  every mini-game — and each pet has its own outfit that persists between
+  sessions. Buying your first item unlocks the **Fashionista** sticker.
 
 ## Project layout
 
@@ -141,10 +154,12 @@ js/
   stickerbook.js        the collection screen reached from the hub
   audio.js              Web Audio sound effects + mute
   games/animal-care/
-    index.js            router across room / zoomed pet / mini-game views
+    index.js            router across room / zoomed pet / mini-game / shop views
     animals.js          dog / cat / unicorn SVG characters
     actions.js          feed / water / bath / play definitions + praise copy
     stats.js            stat model, needs metadata, time decay, mood mapping
+    accessories.js      dress-up catalog (emoji, slot, cost, on-pet position)
+    wardrobe.js         decoratePet(): renders equipped accessories on a pet
     minigames/
       index.js          maps an action id to its mini-game module
       shell.js          shared mini-game shell: goal meter + pet stage + win

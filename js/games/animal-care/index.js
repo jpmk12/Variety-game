@@ -10,8 +10,10 @@ import { ACTIONS } from './actions.js';
 import { freshStats, applyDecay, moodFor, lowestNeed, NEEDS, STAT_KEYS } from './stats.js';
 import { load, save } from '../../storage.js';
 import { play } from '../../audio.js';
-import { award, getBond } from '../../progress.js';
+import { award, getBond, getStars, spendStars, unlockSticker } from '../../progress.js';
 import { MINIGAMES } from './minigames/index.js';
+import { ACCESSORIES, accessoryById } from './accessories.js';
+import { decoratePet } from './wardrobe.js';
 
 const SAVE_KEY = 'animal-care';
 const TICK_MS = 15000;
@@ -34,6 +36,13 @@ export function mountAnimalCare(root) {
     const prev = saved?.animals?.[a.id]?.stats;
     state.animals[a.id] = { stats: prev ? { ...freshStats(), ...prev } : freshStats() };
   });
+  // Wardrobe: which accessories are owned (bought once, shared) and which each
+  // pet currently wears ({ petId: { slot: accessoryId } }).
+  const wardrobe = {
+    owned: { ...(saved?.wardrobe?.owned || {}) },
+    equipped: { ...(saved?.wardrobe?.equipped || {}) },
+  };
+  ANIMALS.forEach((a) => { if (!wardrobe.equipped[a.id]) wardrobe.equipped[a.id] = {}; });
   if (saved?.lastSaved) {
     const elapsed = now - saved.lastSaved;
     ANIMALS.forEach((a) => { state.animals[a.id].stats = applyDecay(state.animals[a.id].stats, elapsed); });
@@ -50,8 +59,9 @@ export function mountAnimalCare(root) {
   let mgCleanup = null;
   let roomEls = null;
 
-  function persist() { save(SAVE_KEY, { animals: state.animals, lastSaved: Date.now() }); }
+  function persist() { save(SAVE_KEY, { animals: state.animals, wardrobe, lastSaved: Date.now() }); }
   const petDef = (id) => ANIMALS.find((a) => a.id === id);
+  const equippedFor = (id) => wardrobe.equipped[id] || {};
 
   // test hook
   wrap.__ac = {
@@ -60,7 +70,10 @@ export function mountAnimalCare(root) {
     stats: (id) => ({ ...state.animals[id].stats }),
     openDetail: (id) => showDetail(id),
     openMini: (actionId) => openMini(actionId),
+    openShop: (id) => showShop(id ?? currentPet),
     goRoom: () => showRoom(),
+    equipped: (id) => ({ ...equippedFor(id) }),
+    owned: () => ({ ...wardrobe.owned }),
   };
 
   function clearView() {
@@ -94,6 +107,7 @@ export function mountAnimalCare(root) {
       roomEls[a.id] = { faceEl: btn.querySelector('.ac-mood'), thoughtEl: btn.querySelector('.ac-thought'), artEl: btn.querySelector('.ac-art') };
     });
     ANIMALS.forEach((a) => refreshRoomPet(a.id));
+    ANIMALS.forEach((a) => decoratePet(roomEls[a.id].artEl, equippedFor(a.id)));
   }
 
   function refreshRoomPet(id) {
@@ -119,6 +133,7 @@ export function mountAnimalCare(root) {
           <button class="ac-back" aria-label="Back to room">← Room</button>
           <span class="ac-detail-name">${a.name}</span>
           <span class="ac-bond" aria-label="Friendship level"></span>
+          <button class="ac-shop-btn" aria-label="Open dress-up shop">🛍️ Shop</button>
         </div>
         <div class="ac-detail-stage"><span class="ac-detail-pet">${a.svg}</span></div>
         <div class="ac-meters"></div>
@@ -126,6 +141,7 @@ export function mountAnimalCare(root) {
       </div>
     `;
     wrap.querySelector('.ac-back').addEventListener('click', () => { play('select'); showRoom(); });
+    wrap.querySelector('.ac-shop-btn').addEventListener('click', () => { play('select'); showShop(id); });
 
     const meters = wrap.querySelector('.ac-meters');
     NEEDS.forEach((need) => {
@@ -152,6 +168,7 @@ export function mountAnimalCare(root) {
 
     renderBond(id);
     refreshMeters();
+    decoratePet(wrap.querySelector('.ac-detail-pet'), equippedFor(id));
   }
 
   // Friendship badge: a heart per level (up to 5) + the level label. Grows as
@@ -201,6 +218,91 @@ export function mountAnimalCare(root) {
       },
       onBack: () => showDetail(petId),
     });
+    // Dress the pet inside the mini-game too, so accessories are worn everywhere.
+    decoratePet(wrap.querySelector('.ac-mini-pet'), equippedFor(petId));
+  }
+
+  // ---------------- SHOP (dress-up) ----------------
+  function showShop(id) {
+    view = 'shop';
+    currentPet = id;
+    clearView();
+    const a = petDef(id);
+    wrap.innerHTML = `
+      <div class="ac-shop">
+        <div class="ac-shop-top">
+          <button class="ac-back" aria-label="Back to pet">← ${a.name}</button>
+          <span class="ac-shop-title">🛍️ Dress-Up Shop</span>
+          <span class="ac-shop-stars">⭐ <span class="ac-shop-stars-n">${getStars()}</span></span>
+        </div>
+        <div class="ac-shop-stage"><span class="ac-shop-pet">${a.svg}</span></div>
+        <div class="ac-shop-grid"></div>
+      </div>
+    `;
+    wrap.querySelector('.ac-back').addEventListener('click', () => { play('select'); showDetail(id); });
+
+    const grid = wrap.querySelector('.ac-shop-grid');
+    ACCESSORIES.forEach((acc) => {
+      const card = document.createElement('div');
+      card.className = 'ac-shop-card';
+      card.dataset.id = acc.id;
+      grid.appendChild(card);
+      renderShopCard(card, acc, id);
+    });
+
+    decoratePet(wrap.querySelector('.ac-shop-pet'), equippedFor(id));
+  }
+
+  function renderShopCard(card, acc, id) {
+    const owned = !!wardrobe.owned[acc.id];
+    const worn = equippedFor(id)[acc.slot] === acc.id;
+    const enough = getStars() >= acc.cost;
+    let btn;
+    if (!owned) {
+      btn = `<button class="ac-buy" ${enough ? '' : 'disabled'}>Buy ⭐${acc.cost}</button>`;
+    } else if (worn) {
+      btn = `<button class="ac-equip is-on">Take off</button>`;
+    } else {
+      btn = `<button class="ac-equip">Wear</button>`;
+    }
+    card.className = 'ac-shop-card' + (worn ? ' is-worn' : '') + (owned ? ' is-owned' : '');
+    card.innerHTML = `
+      <span class="ac-shop-emoji" aria-hidden="true">${acc.emoji}</span>
+      <span class="ac-shop-name">${acc.name}</span>
+      ${btn}
+    `;
+    const action = card.querySelector('button');
+    action.addEventListener('click', () => onShopAction(acc, id));
+  }
+
+  function onShopAction(acc, id) {
+    const owned = !!wardrobe.owned[acc.id];
+    if (!owned) {
+      if (!spendStars(acc.cost)) return;      // not enough stars (button is disabled anyway)
+      wardrobe.owned[acc.id] = true;
+      wardrobe.equipped[id][acc.slot] = acc.id; // auto-wear a freshly bought item
+      unlockSticker('ac-style');
+      play('point');
+    } else {
+      const eq = wardrobe.equipped[id];
+      if (eq[acc.slot] === acc.id) delete eq[acc.slot]; // take off
+      else eq[acc.slot] = acc.id;                       // wear (replaces same slot)
+      play('select');
+    }
+    persist();
+    refreshShop(id);
+  }
+
+  // Re-render the shop in place after a buy/equip so stars, buttons, and the
+  // dressed pet all update.
+  function refreshShop(id) {
+    const n = wrap.querySelector('.ac-shop-stars-n');
+    if (n) n.textContent = getStars();
+    wrap.querySelectorAll('.ac-shop-card').forEach((card) => {
+      const acc = accessoryById(card.dataset.id);
+      if (acc) renderShopCard(card, acc, id);
+    });
+    decoratePet(wrap.querySelector('.ac-shop-pet'), equippedFor(id));
   }
 
   // ---------------- decay ticker ----------------
