@@ -102,6 +102,17 @@ hands-on game with a goal meter you fill to win.
 - The hero is an **original** masked climber (our own colors + a star emblem),
   not based on any trademarked character.
 
+## Letter Samurai belts
+
+Slashing correctly builds a **karate belt rank** that grows over time (across
+every session — it counts lifetime correct slashes):
+
+- **White → Yellow → Orange → Green → Blue → Red → Black.** The start card shows
+  your current belt with a progress bar to the next one ("10 more to Yellow
+  belt"), and a rank chip sits by the score during play.
+- Cross a threshold mid-game and a **"🥋 Orange Belt!"** banner pops up with
+  spoken praise. It's pure encouragement — belts never make the game harder.
+
 ## Stars & the Sticker Book
 
 Every game shares one reward economy so playing always earns something to keep:
@@ -198,6 +209,7 @@ js/
   games/samurai/
     index.js            canvas game: physics, slicing, waves, HUD
     content.js          letter pool + colors + wave builder
+    belts.js            karate-belt ranks (by lifetime correct slashes)
     speech.js           Web Speech API wrapper (says the target letter)
   games/climb-spell/
     index.js            wall scene, perch reachability, crawl/swing movement

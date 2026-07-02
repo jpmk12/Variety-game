@@ -5,9 +5,10 @@
 
 import { play, isMuted, unlock } from '../../audio.js';
 import { load, save } from '../../storage.js';
-import { award } from '../../progress.js';
+import { award, getCounter } from '../../progress.js';
 import { speak, cancelSpeech } from './speech.js';
 import { pickTarget, buildWave, colorFor, poolFor, isNumber } from './content.js';
+import { beltFor, nextBelt, beltProgress } from './belts.js';
 
 const JUICE_GRAV = 900; // particle gravity (constant — slices stay punchy)
 const reduceMotion = typeof matchMedia === 'function'
@@ -36,15 +37,18 @@ export function mountSamurai(root) {
       </button>
       <div class="sam-scores">
         <button class="sam-settings-btn" aria-label="Settings" title="Settings">⚙️</button>
+        <span class="sam-belt-chip" aria-label="Belt rank"></span>
         <span class="sam-score">0</span>
         <span class="sam-streak"></span>
       </div>
     </div>
+    <div class="sam-beltup" role="status" aria-live="polite"></div>
     <div class="sam-start">
       <div class="sam-start-card">
         <div class="sam-start-emoji" aria-hidden="true">⚔️</div>
         <h2>Letter Samurai</h2>
         <p>Listen, then slash what you hear!</p>
+        <div class="sam-belt-panel" aria-label="Your belt"></div>
         <div class="sam-setting" data-setting="mode">
           <span class="sam-setting-label">Slash</span>
           <div class="sam-seg" role="group" aria-label="What to slash">
@@ -76,6 +80,9 @@ export function mountSamurai(root) {
   const startOverlay = game.querySelector('.sam-start');
   const startBtn = game.querySelector('.sam-start-btn');
   const settingsBtn = game.querySelector('.sam-settings-btn');
+  const beltChip = game.querySelector('.sam-belt-chip');
+  const beltPanel = game.querySelector('.sam-belt-panel');
+  const beltupEl = game.querySelector('.sam-beltup');
 
   // --- settings (persisted): what to slash + how fast ---
   const settings = { mode: 'letters', speed: 'slow', ...load(SETTINGS_KEY, {}) };
@@ -102,8 +109,57 @@ export function mountSamurai(root) {
   let waveClock = 0;
   let betweenUntil = 0;
 
+  // Current belt (by lifetime correct slashes) — used to detect belt-ups.
+  let beltName = beltFor(getCounter('samCorrect')).name;
+
   // Expose a tiny hook for automated tests.
-  canvas.__game = { objects, getScore: () => score, getStreak: () => streak, getTarget: () => target };
+  canvas.__game = {
+    objects, getScore: () => score, getStreak: () => streak, getTarget: () => target,
+    getBelt: () => beltFor(getCounter('samCorrect')).name,
+    checkBelt: () => maybeBeltUp(),
+  };
+
+  // Paint the belt on the start card (with a progress bar to the next belt) and
+  // the little rank chip in the in-game HUD.
+  function renderBelt() {
+    const count = getCounter('samCorrect');
+    const belt = beltFor(count);
+    const next = nextBelt(count);
+    const p = beltProgress(count);
+    if (beltChip) {
+      beltChip.textContent = `🥋 ${belt.name}`;
+      beltChip.style.background = belt.color;
+      beltChip.style.color = belt.ink;
+    }
+    if (beltPanel) {
+      const goal = next
+        ? `<span class="sam-belt-next">${p.need} more to ${next.name} belt</span>`
+        : `<span class="sam-belt-next">Top rank!</span>`;
+      beltPanel.innerHTML = `
+        <span class="sam-belt-badge" style="background:${belt.color};color:${belt.ink}">🥋 ${belt.name} Belt</span>
+        <span class="sam-belt-bar"><span class="sam-belt-fill" style="width:${Math.round(p.frac * 100)}%;background:${(next || belt).color}"></span></span>
+        ${goal}
+      `;
+    }
+  }
+
+  // After a correct slash, if the lifetime count crossed a belt threshold, throw
+  // a quick celebration + spoken praise and refresh the rank chip.
+  function maybeBeltUp() {
+    const belt = beltFor(getCounter('samCorrect'));
+    if (belt.name === beltName) return;
+    beltName = belt.name;
+    renderBelt();
+    if (beltupEl) {
+      beltupEl.textContent = `🥋 ${belt.name} Belt!`;
+      beltupEl.style.setProperty('--belt', belt.color);
+      beltupEl.classList.remove('show');
+      void beltupEl.offsetWidth;
+      beltupEl.classList.add('show');
+    }
+    play('point');
+    if (!isMuted()) speak(`${belt.name} belt! Well done!`);
+  }
 
   // --- sizing ---
   function fit() {
@@ -239,6 +295,7 @@ export function mountSamurai(root) {
       // Reward: a star per correct slash, count toward the belt stickers, and
       // the "On Fire" sticker for a 5-streak. (Milestone belts auto-unlock.)
       award({ stars: 1, counter: 'samCorrect', stickers: streak >= 5 ? ['sam-first', 'sam-streak'] : ['sam-first'] });
+      maybeBeltUp();
       // occasional spoken reinforcement
       if (!isMuted() && (streak % 5 === 0)) speak(`${o.char}! Great!`);
     } else {
@@ -448,6 +505,7 @@ export function mountSamurai(root) {
     running = false;
     cancelAnimationFrame(raf);
     cancelSpeech();
+    renderBelt();
     startOverlay.classList.remove('hidden');
   }
 
@@ -473,6 +531,7 @@ export function mountSamurai(root) {
     });
   });
   syncSettingsUI();
+  renderBelt();
 
   // --- listeners ---
   startBtn.addEventListener('click', start);
