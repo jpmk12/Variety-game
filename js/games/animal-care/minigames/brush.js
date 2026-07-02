@@ -6,12 +6,13 @@ import { createShell, onDrag, spot, dist } from './shell.js';
 export function mountBrush(host, ctx) {
   const shell = createShell(host, {
     title: `Brush ${ctx.pet.name}`, icon: '🪮', color: '#c9b6ff', meterIcon: '✨',
-    pet: ctx.pet, petId: ctx.pet.id, winPraise: 'So fluffy!',
+    pet: ctx.pet, petId: ctx.pet.id, winPraise: 'So fluffy!', level: ctx.level,
     onWin: ctx.onWin, onBack: ctx.onBack, onReward: ctx.onReward,
   });
   shell.setHint('Brush out the tangles!');
 
-  const N = 6;
+  // Higher levels = more tangles to smooth.
+  const N = 4 + (ctx.level || 1) * 2;
   const tufts = [];
   for (let i = 0; i < N; i++) {
     const s = spot('ac-tuft', 0.24 + Math.random() * 0.52, 0.30 + Math.random() * 0.45);

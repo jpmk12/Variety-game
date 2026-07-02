@@ -18,6 +18,7 @@ import { decoratePet } from './wardrobe.js';
 
 const SAVE_KEY = 'animal-care';
 const TICK_MS = 15000;
+const MAX_LEVEL = 3;
 const clamp = (n) => Math.max(0, Math.min(100, n));
 
 // Each care task grants stars + friendship XP and unlocks its activity sticker
@@ -46,6 +47,9 @@ export function mountAnimalCare(root) {
   ANIMALS.forEach((a) => { if (!wardrobe.equipped[a.id]) wardrobe.equipped[a.id] = {}; });
   // Tricks each pet has learned at Trick School ({ petId: ['sit','spin',…] }).
   const tricks = { ...(saved?.tricks || {}) };
+  // Per-game difficulty level (1..MAX_LEVEL), shared across pets — each win in a
+  // game bumps its level so the challenge grows with the child.
+  const levels = { ...(saved?.levels || {}) };
   if (saved?.lastSaved) {
     const elapsed = now - saved.lastSaved;
     ANIMALS.forEach((a) => { state.animals[a.id].stats = applyDecay(state.animals[a.id].stats, elapsed); });
@@ -62,10 +66,11 @@ export function mountAnimalCare(root) {
   let mgCleanup = null;
   let roomEls = null;
 
-  function persist() { save(SAVE_KEY, { animals: state.animals, wardrobe, tricks, lastSaved: Date.now() }); }
+  function persist() { save(SAVE_KEY, { animals: state.animals, wardrobe, tricks, levels, lastSaved: Date.now() }); }
   const petDef = (id) => ANIMALS.find((a) => a.id === id);
   const equippedFor = (id) => wardrobe.equipped[id] || {};
   const tricksFor = (id) => tricks[id] || [];
+  const levelFor = (actionId) => Math.min(MAX_LEVEL, levels[actionId] || 1);
 
   // test hook
   wrap.__ac = {
@@ -81,6 +86,8 @@ export function mountAnimalCare(root) {
     owned: () => ({ ...wardrobe.owned }),
     learnedTricks: (id) => [...tricksFor(id)],
     performTrick: () => performTrick(),
+    level: (actionId) => levelFor(actionId),
+    setLevel: (actionId, n) => { levels[actionId] = n; },
   };
 
   function clearView() {
@@ -236,8 +243,10 @@ export function mountAnimalCare(root) {
     view = 'mini';
     clearView();
     const petId = currentPet;
+    const level = levelFor(actionId);
     mgCleanup = mg(wrap, {
       pet: petDef(petId),
+      level,
       // Pay out the reward at win time; the shell shows what was earned and
       // returns the summary so it can pop stars/level/stickers on screen.
       onReward: () => award({
@@ -251,6 +260,8 @@ export function mountAnimalCare(root) {
         const s = state.animals[petId].stats;
         s[act.primary] = 100;
         for (const k of STAT_KEYS) { if (act.restore?.[k] > 0) s[k] = clamp(s[k] + act.restore[k]); }
+        // Each win nudges this game's difficulty up (capped), so it grows.
+        levels[actionId] = Math.min(MAX_LEVEL, levelFor(actionId) + 1);
         persist();
         showDetail(petId);
       },

@@ -149,6 +149,19 @@ Teach your pet tricks it will remember and show off:
   trick with a little animation and a shout-out ("Spin! 🌀"). Learned tricks
   persist per pet between sessions.
 
+## Mini-game levels
+
+The six care games **grow with the child**. Each game has a level (1–3) that
+goes up a notch every time you win it (shown as a **"Lv N"** badge, and saved):
+
+- **More to do:** Bath adds dirt (7 → 9 → 11), Brush adds tangles (6 → 8 → 10),
+  Bedtime needs more pats (8 → 10 → 12), Play is a longer rally (6 → 8 → 10).
+- **New twists:** Water pours slower so it takes a steadier hold; Play's ball
+  gets small and zippy at level 3; and **Feed** mixes in *yucky* foods
+  (🥦🧅🌶️) the pet shakes its head at — the child has to pick the good treats.
+
+Nothing here can be failed — the meter still just fills as you play.
+
 ## Project layout
 
 ```
