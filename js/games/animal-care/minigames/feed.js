@@ -9,7 +9,7 @@ export function mountFeed(host, ctx) {
   const shell = createShell(host, {
     title: `Feed ${ctx.pet.name}`, icon: '🍖', color: '#ff9f68', meterIcon: '🍖',
     pet: ctx.pet, petId: ctx.pet.id, winPraise: 'Yum yum!',
-    onWin: ctx.onWin, onBack: ctx.onBack,
+    onWin: ctx.onWin, onBack: ctx.onBack, onReward: ctx.onReward,
   });
   shell.setHint('Drag the food to the mouth!');
 

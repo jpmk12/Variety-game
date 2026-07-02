@@ -7,7 +7,7 @@ export function mountBrush(host, ctx) {
   const shell = createShell(host, {
     title: `Brush ${ctx.pet.name}`, icon: '🪮', color: '#c9b6ff', meterIcon: '✨',
     pet: ctx.pet, petId: ctx.pet.id, winPraise: 'So fluffy!',
-    onWin: ctx.onWin, onBack: ctx.onBack,
+    onWin: ctx.onWin, onBack: ctx.onBack, onReward: ctx.onReward,
   });
   shell.setHint('Brush out the tangles!');
 

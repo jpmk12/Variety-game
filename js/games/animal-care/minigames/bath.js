@@ -7,7 +7,7 @@ export function mountBath(host, ctx) {
   const shell = createShell(host, {
     title: `${ctx.pet.name}'s Bath`, icon: '🛁', color: '#9be7c4', meterIcon: '🫧',
     pet: ctx.pet, petId: ctx.pet.id, winPraise: 'Squeaky clean!',
-    onWin: ctx.onWin, onBack: ctx.onBack,
+    onWin: ctx.onWin, onBack: ctx.onBack, onReward: ctx.onReward,
   });
   shell.setHint('Scrub off the dirt!');
 

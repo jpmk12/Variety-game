@@ -1,10 +1,36 @@
 // Renders the game-selection menu from the registry. Tapping a playable card
-// asks main.js to launch that game.
+// asks main.js to launch that game. A header shows the ⭐ star wallet and opens
+// the Sticker Book; each card shows how many of its stickers you've collected.
 
 import { games } from './registry.js';
+import { getStars, groupProgress } from './progress.js';
+import { renderStickerBook } from './stickerbook.js';
+import { play } from './audio.js';
+
+// Which sticker group each game contributes to (for the per-card progress hint).
+const GAME_GROUP = {
+  'animal-care': 'Animal Care',
+  'samurai': 'Letter Samurai',
+  'climb-spell': 'Climb & Spell',
+};
 
 export function renderHub(container, onLaunch) {
   container.innerHTML = '';
+
+  const hub = document.createElement('div');
+  hub.className = 'hub';
+
+  const header = document.createElement('div');
+  header.className = 'hub-header';
+  header.innerHTML = `
+    <div class="hub-stars" aria-label="Stars earned">⭐ <span class="hub-stars-n">${getStars()}</span></div>
+    <button class="hub-book-btn" aria-label="Open sticker book">📖 Sticker Book</button>
+  `;
+  header.querySelector('.hub-book-btn').addEventListener('click', () => {
+    play('select');
+    renderStickerBook(container, () => renderHub(container, onLaunch));
+  });
+  hub.appendChild(header);
 
   const grid = document.createElement('div');
   grid.className = 'hub-grid';
@@ -21,10 +47,19 @@ export function renderHub(container, onLaunch) {
       ? `<span class="game-thumb" style="background-image:url(${game.thumb})" aria-hidden="true"></span>`
       : `<span class="game-emoji" aria-hidden="true">${game.emoji}</span>`;
 
+    // Sticker progress badge for playable games that map to a group.
+    const group = GAME_GROUP[game.id];
+    let progressBadge = '';
+    if (group) {
+      const { got, total } = groupProgress(group);
+      progressBadge = `<span class="game-progress" aria-label="${got} of ${total} stickers">🏅 ${got}/${total}</span>`;
+    }
+
     card.innerHTML = `
       ${art}
       <span class="game-title">${game.title}</span>
       <span class="game-blurb">${game.blurb || ''}</span>
+      ${progressBadge}
       ${game.comingSoon ? '<span class="soon-badge">Coming soon</span>' : ''}
     `;
 
@@ -35,5 +70,6 @@ export function renderHub(container, onLaunch) {
     grid.appendChild(card);
   });
 
-  container.appendChild(grid);
+  hub.appendChild(grid);
+  container.appendChild(hub);
 }

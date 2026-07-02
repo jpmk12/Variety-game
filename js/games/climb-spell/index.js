@@ -8,6 +8,7 @@ import { speak, cancelSpeech } from '../samurai/speech.js';
 import { pickWord, distractors } from './words.js';
 import { HERO_SVG } from './hero.js';
 import { ENEMIES, ENEMY_BONUS } from './enemies.js';
+import { award } from '../../progress.js';
 
 const reduceMotion = typeof matchMedia === 'function'
   && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -353,6 +354,8 @@ export function mountClimbSpell(root) {
     confetti(30);
     addScore(10);
     play('point');
+    // Reward: stars per word + the word-count stickers (Word Wizard auto-unlocks).
+    award({ stars: 3, counter: 'csWords', stickers: ['cs-first'] });
     if (!isMuted()) later(() => speak(`${word}! Great job!`), 200);
     later(() => {
       heroEl.classList.remove('is-cheering');
@@ -424,6 +427,7 @@ export function mountClimbSpell(root) {
     play('thwip');
     later(() => { el.classList.add('webbed'); }, 130); // web lands → splat
     addScore(ENEMY_BONUS);
+    award({ stars: 2, stickers: ['cs-web'] }); // "Web Hero" sticker + bonus stars
     floatText(el.style.left, el.style.top, '+' + ENEMY_BONUS);
     later(() => { el.remove(); if (activeEnemy === el) activeEnemy = null; }, 800);
   }

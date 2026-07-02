@@ -7,7 +7,7 @@ export function mountWater(host, ctx) {
   const shell = createShell(host, {
     title: `Water ${ctx.pet.name}`, icon: '💧', color: '#5ec8ff', meterIcon: '💧',
     pet: ctx.pet, petId: ctx.pet.id, winPraise: 'Slurp! All better!',
-    onWin: ctx.onWin, onBack: ctx.onBack,
+    onWin: ctx.onWin, onBack: ctx.onBack, onReward: ctx.onReward,
   });
   shell.setHint('Hold to pour the water!');
 

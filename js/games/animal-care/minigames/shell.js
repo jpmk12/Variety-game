@@ -3,6 +3,7 @@
 // a hint line, and a goal meter that — when full — celebrates and calls onWin.
 
 import { play, playVoice } from '../../../audio.js';
+import { stickerById } from '../../../stickers.js';
 
 export const reduceMotion = typeof matchMedia === 'function'
   && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -60,7 +61,32 @@ export function createShell(host, opts) {
     confetti(fx, reduceMotion ? 10 : 26);
     play('happy');
     if (opts.petId) later(() => playVoice(opts.petId), 160);
-    later(() => opts.onWin(), 1500);
+    // Pay out the reward (stars, bond, stickers) and show what was earned.
+    const reward = opts.onReward ? opts.onReward() : null;
+    if (reward) showReward(reward);
+    later(() => opts.onWin(), reward && reward.newStickers.length ? 2300 : 1600);
+  }
+
+  // A little chip that pops under the banner: "+3 ⭐", a level-up heart, and a
+  // "New sticker!" callout for anything freshly unlocked.
+  function showReward(r) {
+    const box = document.createElement('div');
+    box.className = 'ac-mini-reward';
+    const bits = [];
+    if (r.stars) bits.push(`<span class="ac-reward-stars">+${r.stars} ⭐</span>`);
+    if (r.leveledUp) bits.push(`<span class="ac-reward-level">❤️ Friends Lv ${r.level}!</span>`);
+    box.innerHTML = bits.join('');
+    for (const id of r.newStickers) {
+      const s = stickerById(id);
+      if (!s) continue;
+      const chip = document.createElement('div');
+      chip.className = 'ac-reward-sticker';
+      chip.innerHTML = `<span class="ac-reward-badge">${s.emoji}</span> New sticker: <b>${s.name}</b>!`;
+      box.appendChild(chip);
+    }
+    stage.appendChild(box);
+    requestAnimationFrame(() => box.classList.add('show'));
+    if (r.newStickers.length) play('point');
   }
 
   el.querySelector('.ac-mini-back').addEventListener('click', () => opts.onBack());
