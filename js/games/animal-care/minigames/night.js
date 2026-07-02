@@ -7,7 +7,7 @@ export function mountNight(host, ctx) {
   const shell = createShell(host, {
     title: `${ctx.pet.name}'s Bedtime`, icon: '🌙', color: '#8a8de0', meterIcon: '🌙',
     pet: ctx.pet, petId: ctx.pet.id, winPraise: 'All rested! 😴',
-    onWin: ctx.onWin, onBack: ctx.onBack,
+    onWin: ctx.onWin, onBack: ctx.onBack, onReward: ctx.onReward,
   });
   shell.el.classList.add('is-night');
   shell.setHint('Pat gently to help them sleep');

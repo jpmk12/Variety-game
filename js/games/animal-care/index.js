@@ -10,11 +10,20 @@ import { ACTIONS } from './actions.js';
 import { freshStats, applyDecay, moodFor, lowestNeed, NEEDS, STAT_KEYS } from './stats.js';
 import { load, save } from '../../storage.js';
 import { play } from '../../audio.js';
+import { award, getBond } from '../../progress.js';
 import { MINIGAMES } from './minigames/index.js';
 
 const SAVE_KEY = 'animal-care';
 const TICK_MS = 15000;
 const clamp = (n) => Math.max(0, Math.min(100, n));
+
+// Each care task grants stars + friendship XP and unlocks its activity sticker
+// (plus the shared "First Friend" one). progress.js also auto-checks milestone
+// stickers (bond level, star totals) after every award.
+const ACTION_STICKER = {
+  feed: 'ac-feed', water: 'ac-water', bath: 'ac-bath',
+  brush: 'ac-brush', play: 'ac-play', nighttime: 'ac-night',
+};
 
 export function mountAnimalCare(root) {
   // --- load + decay-on-return ---
@@ -109,6 +118,7 @@ export function mountAnimalCare(root) {
         <div class="ac-detail-top">
           <button class="ac-back" aria-label="Back to room">← Room</button>
           <span class="ac-detail-name">${a.name}</span>
+          <span class="ac-bond" aria-label="Friendship level"></span>
         </div>
         <div class="ac-detail-stage"><span class="ac-detail-pet">${a.svg}</span></div>
         <div class="ac-meters"></div>
@@ -140,7 +150,18 @@ export function mountAnimalCare(root) {
       bar.appendChild(btn);
     });
 
+    renderBond(id);
     refreshMeters();
+  }
+
+  // Friendship badge: a heart per level (up to 5) + the level label. Grows as
+  // the child plays the mini-games with this pet.
+  function renderBond(id) {
+    const el = wrap.querySelector('.ac-bond');
+    if (!el) return;
+    const b = getBond(id);
+    const hearts = b.level > 0 ? '❤️'.repeat(Math.min(5, b.level)) : '🤍';
+    el.innerHTML = `<span class="ac-bond-hearts" aria-hidden="true">${hearts}</span><span class="ac-bond-lv">Friends Lv ${b.level}</span>`;
   }
 
   function refreshMeters() {
@@ -159,16 +180,26 @@ export function mountAnimalCare(root) {
     if (!act || !mg) return;
     view = 'mini';
     clearView();
+    const petId = currentPet;
     mgCleanup = mg(wrap, {
-      pet: petDef(currentPet),
+      pet: petDef(petId),
+      // Pay out the reward at win time; the shell shows what was earned and
+      // returns the summary so it can pop stars/level/stickers on screen.
+      onReward: () => award({
+        stars: 3,
+        bondPet: petId,
+        bondXp: 10,
+        counter: 'acWins',
+        stickers: ['ac-first', ACTION_STICKER[act.id]].filter(Boolean),
+      }),
       onWin: () => {
-        const s = state.animals[currentPet].stats;
+        const s = state.animals[petId].stats;
         s[act.primary] = 100;
         for (const k of STAT_KEYS) { if (act.restore?.[k] > 0) s[k] = clamp(s[k] + act.restore[k]); }
         persist();
-        showDetail(currentPet);
+        showDetail(petId);
       },
-      onBack: () => showDetail(currentPet),
+      onBack: () => showDetail(petId),
     });
   }
 

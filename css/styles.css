@@ -971,3 +971,80 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 @media (prefers-reduced-motion: reduce) {
   .ac-detail-pet, .ac-mini-confetti, .ac-ball { animation-duration: .6s !important; }
 }
+
+/* ============================================================
+   Reward economy — hub header, sticker book, win toast, bond
+   ============================================================ */
+
+/* Hub layout: a header above the scrolling card grid. */
+.hub { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.hub-header {
+  flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 20px;
+}
+.hub-stars {
+  font-size: 1.4rem; font-weight: 900; color: var(--ink);
+  background: var(--card); padding: 6px 18px; border-radius: 999px;
+  box-shadow: 0 4px 0 var(--shadow); border: 3px solid #ffd166;
+}
+.hub-book-btn {
+  font-size: 1.1rem; font-weight: 800; color: var(--ink);
+  background: var(--card); padding: 8px 20px; border-radius: 999px;
+  box-shadow: 0 4px 0 var(--shadow); border: 3px solid #bdb2ff;
+  transition: transform .12s ease;
+}
+.hub-book-btn:active { transform: scale(0.94); }
+/* Grid now lives inside the flex column, scrolls under the header. */
+.hub .hub-grid { flex: 1 1 auto; height: auto; min-height: 0; }
+.game-progress {
+  margin-top: 4px; font-size: 0.85rem; font-weight: 800; color: var(--ink);
+  background: #fff6db; padding: 3px 12px; border-radius: 999px;
+}
+
+/* Sticker Book screen */
+.sticker-book { position: absolute; inset: 0; display: flex; flex-direction: column; background: linear-gradient(180deg, #fff, #eef6ff); }
+.sb-top { flex: 0 0 auto; display: flex; align-items: center; gap: 12px; padding: 14px 18px; }
+.sb-back {
+  font-size: 1.1rem; font-weight: 800; background: var(--card);
+  padding: 8px 16px; border-radius: 999px; box-shadow: 0 4px 0 var(--shadow);
+}
+.sb-title { flex: 1 1 auto; margin: 0; font-size: 1.5rem; text-align: center; }
+.sb-stars { font-size: 1.2rem; font-weight: 900; background: #fff6db; padding: 6px 14px; border-radius: 999px; box-shadow: 0 3px 0 var(--shadow); }
+.sb-progress { margin: 0 0 8px; text-align: center; font-weight: 700; opacity: 0.7; }
+.sb-groups { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 0 18px 24px; }
+.sb-group { margin-bottom: 18px; }
+.sb-group-title { display: flex; align-items: center; gap: 10px; font-size: 1.2rem; margin: 8px 0; }
+.sb-group-count { font-size: 0.9rem; font-weight: 800; background: #fff; padding: 2px 12px; border-radius: 999px; box-shadow: 0 2px 0 var(--shadow); }
+.sb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
+.sb-sticker {
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px;
+  padding: 14px 8px; border-radius: 20px; background: var(--card);
+  box-shadow: 0 5px 0 var(--shadow);
+}
+.sb-sticker.is-earned { border: 3px solid #ffd166; }
+.sb-sticker.is-locked { opacity: 0.7; filter: grayscale(0.5); background: #f1f0f6; }
+.sb-emoji { font-size: 2.6rem; line-height: 1; }
+.sb-name { font-weight: 800; font-size: 0.95rem; }
+.sb-hint { font-size: 0.75rem; opacity: 0.65; }
+
+/* Reward toast shown inside a mini-game win */
+.ac-mini-reward {
+  position: absolute; bottom: 5%; left: 50%; transform: translate(-50%, 8px);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  z-index: 7; opacity: 0; transition: opacity .35s ease, transform .35s ease;
+  pointer-events: none;
+}
+.ac-mini-reward.show { opacity: 1; transform: translate(-50%, 0); }
+.ac-reward-stars { font-size: 1.5rem; font-weight: 900; color: #f5a623; text-shadow: 0 2px 0 #fff; }
+.ac-reward-level { font-size: 1.1rem; font-weight: 900; color: #ff6b9d; text-shadow: 0 2px 0 #fff; }
+.ac-reward-sticker {
+  font-size: 0.95rem; font-weight: 700; color: var(--ink);
+  background: #fff; padding: 8px 16px; border-radius: 999px; box-shadow: 0 4px 0 var(--shadow);
+}
+.ac-reward-badge { font-size: 1.3rem; }
+
+/* Friendship badge in the pet detail header */
+.ac-bond { margin-left: auto; display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 0.95rem; }
+.ac-bond-hearts { font-size: 1rem; letter-spacing: -2px; }
+.ac-bond-lv { background: #fff; padding: 4px 12px; border-radius: 999px; box-shadow: 0 3px 0 var(--shadow); }

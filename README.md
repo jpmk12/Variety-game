@@ -102,6 +102,28 @@ hands-on game with a goal meter you fill to win.
 - The hero is an **original** masked climber (our own colors + a star emblem),
   not based on any trademarked character.
 
+## Stars & the Sticker Book
+
+Every game shares one reward economy so playing always earns something to keep:
+
+- **⭐ Stars** — a single wallet shown at the top of the hub. Winning an Animal
+  Care mini-game gives 3, spelling a word in Climb & Spell gives 3, each correct
+  Letter Samurai slash gives 1 (plus 2 for webbing a baddie).
+- **📖 Sticker Book** — open it from the hub to see every collectible. Earned
+  stickers are bright and named; locked ones show a mystery card with a hint on
+  how to unlock it (e.g. *"Finish a bath"*, *"Slash 10 correct"*, *"Spell 5
+  words"*). Milestone stickers auto-unlock as the star total and lifetime
+  counters climb.
+- **❤️ Pet friendship** — in Animal Care each pet has a friendship level that
+  grows as you play its mini-games; a win pops **"+3 ⭐"**, any level-up, and a
+  **"New sticker!"** callout right in the celebration. Reaching friendship
+  level 3 (and 5) unlocks its own sticker.
+- **Hub progress** — each game card shows a 🏅 badge of how many of its stickers
+  you've collected, so there's always a next one to chase.
+
+All of this persists to `localStorage` and works offline; there's no way to lose
+progress and nothing is ever spent.
+
 ## Project layout
 
 ```
@@ -111,9 +133,12 @@ css/
   animations.css        idle + action keyframes
 js/
   main.js               app shell + router (hub <-> game) + top-bar buttons
-  hub.js                renders the menu from the registry
+  hub.js                renders the menu (star wallet + sticker progress) from the registry
   registry.js           list of games (add new games here)
   storage.js            localStorage helpers
+  progress.js           shared reward store: stars, pet friendship, stickers
+  stickers.js           the sticker catalog (all games) + unlock rules
+  stickerbook.js        the collection screen reached from the hub
   audio.js              Web Audio sound effects + mute
   games/animal-care/
     index.js            router across room / zoomed pet / mini-game views

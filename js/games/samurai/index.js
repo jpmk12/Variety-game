@@ -5,6 +5,7 @@
 
 import { play, isMuted, unlock } from '../../audio.js';
 import { load, save } from '../../storage.js';
+import { award } from '../../progress.js';
 import { speak, cancelSpeech } from './speech.js';
 import { pickTarget, buildWave, colorFor, poolFor, isNumber } from './content.js';
 
@@ -235,6 +236,9 @@ export function mountSamurai(root) {
       play('point');
       floatText(o.x, o.y, '+1', '#ffd23f');
       sparkle(o.x, o.y);
+      // Reward: a star per correct slash, count toward the belt stickers, and
+      // the "On Fire" sticker for a 5-streak. (Milestone belts auto-unlock.)
+      award({ stars: 1, counter: 'samCorrect', stickers: streak >= 5 ? ['sam-first', 'sam-streak'] : ['sam-first'] });
       // occasional spoken reinforcement
       if (!isMuted() && (streak % 5 === 0)) speak(`${o.char}! Great!`);
     } else {

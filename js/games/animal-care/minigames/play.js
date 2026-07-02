@@ -7,7 +7,7 @@ export function mountPlay(host, ctx) {
   const shell = createShell(host, {
     title: `Play with ${ctx.pet.name}`, icon: '🎾', color: '#ffd166', meterIcon: '❤️',
     pet: ctx.pet, petId: ctx.pet.id, winPraise: 'Wheee!',
-    onWin: ctx.onWin, onBack: ctx.onBack,
+    onWin: ctx.onWin, onBack: ctx.onBack, onReward: ctx.onReward,
   });
   shell.setHint('Tap the ball to play!');
 
