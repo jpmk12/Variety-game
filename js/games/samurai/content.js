@@ -4,11 +4,27 @@
 export const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 export const NUMBERS = '0123456789'.split('');
 
-// Resolve the active character pool for a content mode.
+// Short, decodable words for Word Mode — the sensei calls one and the child
+// slashes its letters in order to spell it.
+export const WORDS = [
+  'CAT', 'DOG', 'SUN', 'HAT', 'BUG', 'BED', 'CUP', 'FOX', 'PIG', 'BOX',
+  'BAT', 'PEN', 'JAM', 'MUD', 'NET', 'BUS', 'HEN', 'LOG', 'MAP', 'RUG',
+  'STAR', 'FISH', 'MOON', 'CAKE', 'FROG', 'DUCK', 'BOAT', 'TREE',
+];
+
+// Resolve the active character pool for a content mode. Word Mode uses letters
+// for its flying distractors.
 export function poolFor(mode) {
   if (mode === 'numbers') return NUMBERS;
   if (mode === 'both') return LETTERS.concat(NUMBERS);
   return LETTERS;
+}
+
+// Pick a word, avoiding an immediate repeat.
+export function pickWord(prev) {
+  let w = WORDS[Math.floor(Math.random() * WORDS.length)];
+  while (w === prev && WORDS.length > 1) w = WORDS[Math.floor(Math.random() * WORDS.length)];
+  return w;
 }
 
 // Is this glyph a digit? (used to say "number" vs "letter")

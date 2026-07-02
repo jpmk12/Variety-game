@@ -7,7 +7,7 @@ import { play, isMuted, unlock } from '../../audio.js';
 import { load, save } from '../../storage.js';
 import { award, getCounter } from '../../progress.js';
 import { speak, cancelSpeech } from './speech.js';
-import { pickTarget, buildWave, colorFor, poolFor, isNumber } from './content.js';
+import { pickTarget, buildWave, colorFor, poolFor, isNumber, pickWord } from './content.js';
 import { beltFor, nextBelt, beltProgress } from './belts.js';
 
 const JUICE_GRAV = 900; // particle gravity (constant — slices stay punchy)
@@ -42,6 +42,7 @@ export function mountSamurai(root) {
         <span class="sam-streak"></span>
       </div>
     </div>
+    <div class="sam-wordbar" aria-label="Word to spell" hidden></div>
     <div class="sam-beltup" role="status" aria-live="polite"></div>
     <div class="sam-start">
       <div class="sam-start-card">
@@ -55,6 +56,7 @@ export function mountSamurai(root) {
             <button data-val="letters">A B C</button>
             <button data-val="numbers">1 2 3</button>
             <button data-val="both">A 1</button>
+            <button data-val="words">Words</button>
           </div>
         </div>
         <div class="sam-setting" data-setting="speed">
@@ -83,6 +85,7 @@ export function mountSamurai(root) {
   const beltChip = game.querySelector('.sam-belt-chip');
   const beltPanel = game.querySelector('.sam-belt-panel');
   const beltupEl = game.querySelector('.sam-beltup');
+  const wordBarEl = game.querySelector('.sam-wordbar');
 
   // --- settings (persisted): what to slash + how fast ---
   const settings = { mode: 'letters', speed: 'slow', ...load(SETTINGS_KEY, {}) };
@@ -109,6 +112,13 @@ export function mountSamurai(root) {
   let waveClock = 0;
   let betweenUntil = 0;
 
+  // Word Mode: the current word being spelled, how many letters are done, and
+  // whether this round kicks off a brand-new word (so we announce the word).
+  let currentWord = '';
+  let wordProgress = 0;
+  let justStartedWord = false;
+  const isWordMode = () => settings.mode === 'words';
+
   // Current belt (by lifetime correct slashes) — used to detect belt-ups.
   let beltName = beltFor(getCounter('samCorrect')).name;
 
@@ -117,6 +127,7 @@ export function mountSamurai(root) {
     objects, getScore: () => score, getStreak: () => streak, getTarget: () => target,
     getBelt: () => beltFor(getCounter('samCorrect')).name,
     checkBelt: () => maybeBeltUp(),
+    getWord: () => currentWord, getWordProgress: () => wordProgress,
   };
 
   // Paint the belt on the start card (with a progress bar to the next belt) and
@@ -161,6 +172,40 @@ export function mountSamurai(root) {
     if (!isMuted()) speak(`${belt.name} belt! Well done!`);
   }
 
+  // --- Word Mode HUD ---
+  // Show/hide the word bar to match the current mode (called on start + when
+  // the mode setting changes).
+  function updateWordUI() {
+    if (!wordBarEl) return;
+    if (isWordMode()) { wordBarEl.hidden = false; renderWordBar(); }
+    else { wordBarEl.hidden = true; wordBarEl.innerHTML = ''; }
+  }
+
+  // Draw the word's letter slots, filling the ones already slashed.
+  function renderWordBar() {
+    if (!wordBarEl || !isWordMode()) return;
+    wordBarEl.hidden = false;
+    wordBarEl.innerHTML = '';
+    for (let i = 0; i < currentWord.length; i++) {
+      const slot = document.createElement('span');
+      slot.className = 'sam-word-slot' + (i < wordProgress ? ' filled' : '');
+      slot.textContent = i < wordProgress ? currentWord[i] : '';
+      wordBarEl.appendChild(slot);
+    }
+  }
+
+  // The word is fully spelled — celebrate, reward, and let the next round pick
+  // a fresh word.
+  function completeWord() {
+    wordBarEl.classList.remove('done');
+    void wordBarEl.offsetWidth;
+    wordBarEl.classList.add('done');
+    floatText(W / 2, H * 0.5, `${currentWord}!`, '#1dd1a1');
+    award({ stars: 2, counter: 'samWords' });
+    play('point');
+    if (!isMuted()) speak(`${currentWord}! Great job!`);
+  }
+
   // --- sizing ---
   function fit() {
     const rect = game.getBoundingClientRect();
@@ -176,12 +221,28 @@ export function mountSamurai(root) {
   // --- rounds ---
   function announceTarget() {
     if (isMuted()) return;
+    if (isWordMode()) {
+      speak(justStartedWord ? `Spell ${currentWord}. Slash ${target}.` : `Slash ${target}.`);
+      return;
+    }
     const kind = isNumber(target) ? 'number' : 'letter';
     speak(`Slash the ${kind} ${target}`);
   }
 
   function startRound() {
-    target = pickTarget(prevTarget, pool);
+    justStartedWord = false;
+    if (isWordMode()) {
+      // Start (or continue) spelling a word: the target is its next letter.
+      if (!currentWord || wordProgress >= currentWord.length) {
+        currentWord = pickWord(currentWord);
+        wordProgress = 0;
+        justStartedWord = true;
+        renderWordBar();
+      }
+      target = currentWord[wordProgress];
+    } else {
+      target = pickTarget(prevTarget, pool);
+    }
     prevTarget = target;
     targetLetterEl.textContent = target;
     targetLetterEl.style.color = colorFor(target);
@@ -191,8 +252,10 @@ export function mountSamurai(root) {
     announceTarget();
 
     // Build a wave: 1 target (sometimes 2) + distractors, spaced per the chosen
-    // speed so the screen never feels rushed for the slower settings.
-    const targetCount = Math.random() < 0.4 ? 2 : 1;
+    // speed so the screen never feels rushed for the slower settings. In Word
+    // Mode there's always exactly one copy of the needed letter (one slash =
+    // one letter advanced).
+    const targetCount = isWordMode() ? 1 : (Math.random() < 0.4 ? 2 : 1);
     const distractors = cfg.dMin + Math.floor(Math.random() * (cfg.dExtra + 1));
     const items = buildWave(target, pool, { targetCount, distractors });
     spawnQueue = items.map((item, i) => ({
@@ -296,8 +359,14 @@ export function mountSamurai(root) {
       // the "On Fire" sticker for a 5-streak. (Milestone belts auto-unlock.)
       award({ stars: 1, counter: 'samCorrect', stickers: streak >= 5 ? ['sam-first', 'sam-streak'] : ['sam-first'] });
       maybeBeltUp();
-      // occasional spoken reinforcement
-      if (!isMuted() && (streak % 5 === 0)) speak(`${o.char}! Great!`);
+      if (isWordMode()) {
+        // Slashed the next letter of the word — lock it into the word bar.
+        wordProgress += 1;
+        renderWordBar();
+        if (wordProgress >= currentWord.length) completeWord();
+      } else if (!isMuted() && (streak % 5 === 0)) {
+        speak(`${o.char}! Great!`); // occasional spoken reinforcement
+      }
     } else {
       streak = 0;
       updateStreak();
@@ -494,6 +563,9 @@ export function mountSamurai(root) {
     objects.length = 0;
     particles.length = 0;
     blade.length = 0;
+    currentWord = '';
+    wordProgress = 0;
+    updateWordUI();
     running = true;
     lastT = performance.now();
     startRound();
@@ -526,12 +598,17 @@ export function mountSamurai(root) {
         cfg = SPEEDS[settings.speed] || SPEEDS.slow;
         pool = poolFor(settings.mode);
         save(SETTINGS_KEY, settings);
+        // Switching the content mode resets any in-progress word.
+        currentWord = '';
+        wordProgress = 0;
+        updateWordUI();
         syncSettingsUI();
       });
     });
   });
   syncSettingsUI();
   renderBelt();
+  updateWordUI();
 
   // --- listeners ---
   startBtn.addEventListener('click', start);
