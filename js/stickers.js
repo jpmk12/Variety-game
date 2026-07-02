@@ -19,6 +19,7 @@ export const STICKERS = [
     when: (s, h) => ['dog', 'cat', 'unicorn'].some((p) => h.getBond(p).level >= 3) },
   { id: 'ac-bond5',   group: 'Animal Care', emoji: '💞', name: 'Soul Mates',     hint: 'Reach friendship level 5',
     when: (s, h) => ['dog', 'cat', 'unicorn'].some((p) => h.getBond(p).level >= 5) },
+  { id: 'ac-style',   group: 'Animal Care', emoji: '🛍️', name: 'Fashionista',    hint: 'Buy something at the shop' },
 
   // --- Letter Samurai: counter milestones on correct slashes ---
   { id: 'sam-first', group: 'Letter Samurai', emoji: '⚔️', name: 'First Slash',  hint: 'Slash the right letter' },
