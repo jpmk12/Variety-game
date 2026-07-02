@@ -100,6 +100,11 @@ hands-on game with a goal meter you fill to win.
   letter drops into the word. Reaching the right letters in order **spells the
   word** (CAT, DOG, SUN…), then a celebration and a new word.
 - Wrong perch? A soft "oops" and it re-says the letter — no penalty.
+- **Three worlds, growing words 🌳🏙️🌙:** spell a few words in the **Backyard**
+  (3-letter words) to open the **City Rooftops** (4 letters), then the **Night
+  Sky** (5 letters). Each world has its own backdrop (sunny yard → dusk skyline →
+  starry navy), a **"City Rooftops!"** banner when it opens, and a label showing
+  how many words until the next one. Your world is saved between sessions.
 - **Baddies:** now and then an original cartoon critter scuttles onto the wall —
   tap it to **web it up for +5** points (score shows 🕸️ top-left). They're our
   own designs (a goblin/octo/rhino bug), not based on any trademarked character.
@@ -216,9 +221,9 @@ js/
     belts.js            karate-belt ranks (by lifetime correct slashes)
     speech.js           Web Speech API wrapper (says the target letter)
   games/climb-spell/
-    index.js            wall scene, perch reachability, crawl/swing movement
+    index.js            wall scene, perch reachability, crawl/swing, worlds
     hero.js             original masked-climber SVG
-    words.js            3-letter word list + distractor helper
+    words.js            three worlds of words (3/4/5 letters) + distractors
 assets/
   favicon.svg, icon-*.png     app icons (tab + home screen)
   animal-care-thumbnail.png   README hero image

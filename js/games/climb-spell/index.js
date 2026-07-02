@@ -4,11 +4,15 @@
 // spells a word. Wrong picks are gentle (no penalty). DOM + SVG, rAF movement.
 
 import { play, isMuted, unlock } from '../../audio.js';
+import { load, save } from '../../storage.js';
 import { speak, cancelSpeech } from '../samurai/speech.js';
-import { pickWord, distractors } from './words.js';
+import { WORLDS, pickWord, distractors } from './words.js';
 import { HERO_SVG } from './hero.js';
 import { ENEMIES, ENEMY_BONUS } from './enemies.js';
 import { award } from '../../progress.js';
+
+const SAVE_KEY = 'climb-spell';
+const WORDS_PER_WORLD = 4; // words to spell before the next world opens
 
 const reduceMotion = typeof matchMedia === 'function'
   && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -31,10 +35,12 @@ export function mountClimbSpell(root) {
         <button class="cs-say" aria-label="Say it again">🔊</button>
       </div>
       <div class="cs-score" aria-label="Score">🕸️ <span class="cs-score-n">0</span></div>
+      <div class="cs-world" aria-label="World"></div>
       <div class="cs-perches"></div>
       <div class="cs-enemies" aria-hidden="true"></div>
       <div class="cs-hero">${HERO_SVG}</div>
       <div class="cs-fx" aria-hidden="true"></div>
+      <div class="cs-world-banner" role="status" aria-live="polite"></div>
       <div class="cs-cheer" role="status" aria-live="polite"></div>
     </div>
     <div class="cs-wordbar"></div>
@@ -61,8 +67,17 @@ export function mountClimbSpell(root) {
   const promptText = game.querySelector('.cs-prompt-text');
   const sayBtn = game.querySelector('.cs-say');
   const wordBar = game.querySelector('.cs-wordbar');
+  const worldLabel = game.querySelector('.cs-world');
+  const worldBanner = game.querySelector('.cs-world-banner');
   const startOverlay = game.querySelector('.cs-start');
   const startBtn = game.querySelector('.cs-start-btn');
+
+  // --- world progression (persisted) ---
+  const saved = load(SAVE_KEY, {}) || {};
+  let worldIdx = Math.min(WORLDS.length - 1, Math.max(0, saved.worldIdx | 0));
+  let wordsInWorld = Math.max(0, saved.wordsInWorld | 0);
+  let currentWorld = WORLDS[worldIdx];
+  const persistWorld = () => save(SAVE_KEY, { worldIdx, wordsInWorld });
 
   // --- state ---
   let W = 0, H = 0;
@@ -92,9 +107,57 @@ export function mountClimbSpell(root) {
     get targetId() { return targetId; },
     get score() { return score; },
     get enemyId() { return activeEnemy ? activeEnemy.dataset.eid : null; },
+    get world() { return currentWorld.id; },
+    get worldIdx() { return worldIdx; },
+    get wordsInWorld() { return wordsInWorld; },
     spawnEnemy: () => spawnEnemy(),
+    bankWord: () => bankWord(),
     perchState: () => perches.map((p) => ({ id: p.id, letter: p.letter, reachable: p.reachable, isTarget: p.isTarget })),
   };
+
+  // Show the current world + how many words until the next one opens.
+  function updateWorldLabel() {
+    if (!worldLabel) return;
+    const last = worldIdx >= WORLDS.length - 1;
+    const dots = last ? '' : ` · ${wordsInWorld}/${WORDS_PER_WORLD}`;
+    worldLabel.textContent = `${currentWorld.emoji} ${currentWorld.name}${dots}`;
+  }
+
+  // Swap the wall's backdrop theme to match the current world.
+  function applyWorldTheme() {
+    if (!wall) return;
+    WORLDS.forEach((w) => wall.classList.remove('cs-world-' + w.id));
+    wall.classList.add('cs-world-' + currentWorld.id);
+  }
+
+  // A short "🏙️ City Rooftops!" banner when a new world opens.
+  function showWorldBanner(w) {
+    if (!worldBanner) return;
+    worldBanner.textContent = `${w.emoji} ${w.name}!`;
+    worldBanner.classList.remove('show');
+    void worldBanner.offsetWidth;
+    worldBanner.classList.add('show');
+    later(() => worldBanner.classList.remove('show'), 2200);
+  }
+
+  // Count a spelled word; open the next world after enough of them. Returns true
+  // if the world advanced (so the caller can time the celebration).
+  function bankWord() {
+    wordsInWorld += 1;
+    let advanced = false;
+    if (wordsInWorld >= WORDS_PER_WORLD && worldIdx < WORLDS.length - 1) {
+      worldIdx += 1;
+      wordsInWorld = 0;
+      currentWorld = WORLDS[worldIdx];
+      advanced = true;
+      applyWorldTheme();
+      showWorldBanner(currentWorld);
+      if (!isMuted()) later(() => speak(`Welcome to the ${currentWorld.name}!`), 300);
+    }
+    updateWorldLabel();
+    persistWorld();
+    return advanced;
+  }
 
   // --- geometry ---
   function fit() {
@@ -356,6 +419,8 @@ export function mountClimbSpell(root) {
     play('point');
     // Reward: stars per word + the word-count stickers (Word Wizard auto-unlocks).
     award({ stars: 3, counter: 'csWords', stickers: ['cs-first'] });
+    // Count it toward the world; may open the next world (banner + theme swap).
+    bankWord();
     if (!isMuted()) later(() => speak(`${word}! Great job!`), 200);
     later(() => {
       heroEl.classList.remove('is-cheering');
@@ -379,7 +444,7 @@ export function mountClimbSpell(root) {
   }
 
   function newWord() {
-    word = pickWord(prevWord);
+    word = pickWord(currentWorld.words, prevWord);
     prevWord = word;
     progress = 0;
     layout();
@@ -473,6 +538,9 @@ export function mountClimbSpell(root) {
   sayBtn.addEventListener('click', () => { if (started && !moving) announce(); });
   window.addEventListener('resize', fit);
 
+  // Theme the wall + show the world label for wherever the player left off.
+  applyWorldTheme();
+  updateWorldLabel();
   fit();
 
   // --- cleanup ---
