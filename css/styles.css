@@ -1236,3 +1236,30 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 @media (prefers-reduced-motion: reduce) {
   .sam-beltup.show { animation-duration: 1.6s; }
 }
+
+/* ============================================================
+   Letter Samurai — Word Mode word bar
+   ============================================================ */
+
+.sam-wordbar {
+  position: absolute; left: 50%; bottom: 5%; transform: translateX(-50%);
+  display: flex; gap: 8px; z-index: 12; pointer-events: none;
+}
+.sam-word-slot {
+  width: clamp(38px, 9vw, 56px); height: clamp(46px, 11vw, 66px);
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(1.4rem, 5vw, 2.2rem); font-weight: 900; color: var(--ink);
+  background: rgba(255,255,255,0.7); border-radius: 14px;
+  box-shadow: 0 4px 0 var(--shadow); border: 3px dashed rgba(58,51,87,0.25);
+}
+.sam-word-slot.filled {
+  background: #fff; border-style: solid; border-color: #1dd1a1;
+  animation: sam-slot-pop 0.3s ease;
+}
+@keyframes sam-slot-pop { 0% { transform: scale(0.6); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
+.sam-wordbar.done { animation: sam-word-done 0.7s ease; }
+@keyframes sam-word-done { 0%,100% { transform: translateX(-50%) scale(1); } 40% { transform: translateX(-50%) scale(1.12); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .sam-word-slot.filled, .sam-wordbar.done { animation-duration: .3s; }
+}

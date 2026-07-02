@@ -81,8 +81,12 @@ hands-on game with a goal meter you fill to win.
 - Slashing the **wrong** letter just puffs away with a soft "oops" — no penalty,
   nothing ends. Tap the 🔊 chip to hear the letter again.
 - **Settings** (on the start screen, or the ⚙️ button in-game): choose what to
-  slash — **Letters / Numbers / Both** — and the **Speed** (🐢 Slow / 🚶 Medium /
-  🐇 Fast, which changes how long the glyphs float). Choices are saved.
+  slash — **Letters / Numbers / Both / Words** — and the **Speed** (🐢 Slow /
+  🚶 Medium / 🐇 Fast, which changes how long the glyphs float). Choices are saved.
+- **Word Mode 🗡️:** the sensei calls a short word ("Spell CAT!") and you slash
+  its letters **in order** as they fly by — each one locks into a word bar at the
+  bottom. Spell the whole word for a cheer and bonus stars, then a new word
+  comes. A gentle bridge from letters to reading.
 - Rendered on a `<canvas>` with a DOM HUD; respects the same top-bar mute.
 
 ## How Climb & Spell works
