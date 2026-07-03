@@ -6,9 +6,12 @@
 
 import { ANIMALS } from '../animal-care/animals.js';
 import { play, playVoice, isMuted, unlock } from '../../audio.js';
+import { load, save } from '../../storage.js';
 import { cancelSpeech } from '../samurai/speech.js';
 import { award } from '../../progress.js';
-import { LANES, INSTRUMENTS, SONGS, songNotes, playInstrument } from './songs.js';
+import { LANES, INSTRUMENTS, SONGS, songNotes, songDifficulty, playInstrument } from './songs.js';
+
+const SAVE_KEY = 'beat-buddies';
 
 const reduceMotion = typeof matchMedia === 'function'
   && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -75,7 +78,13 @@ export function mountBeatBuddies(root) {
   let mode = 'idle';     // 'idle' | 'count' | 'play' | 'done'
   let freeJam = false;
   let auto = false;      // test hook: auto-hit bubbles perfectly
+  let curSong = null;    // the song being played (for the win summary + best)
+  let curBpm = 0;        // current song tempo (for the beat bob)
+  let beatAcc = 0;       // seconds since the last beat pulse
   const steps = [0, 0, 0];
+  // Best star rating earned per song (persisted), shown on the picker.
+  const best = { ...((load(SAVE_KEY, {}) || {}).best || {}) };
+  const saveBest = () => save(SAVE_KEY, { best });
   let raf = 0, lastT = 0, alive = true;
   const timers = new Set();
   const later = (fn, ms) => { const t = setTimeout(() => { timers.delete(t); fn(); }, ms); timers.add(t); return t; };
@@ -97,15 +106,23 @@ export function mountBeatBuddies(root) {
   function buildPicker() {
     songsEl.innerHTML = '';
     SONGS.forEach((song) => {
+      const diff = songDifficulty(song);
+      const stars = best[song.id] || 0;
       const b = document.createElement('button');
       b.className = 'bb-song';
-      b.innerHTML = `<span class="bb-song-emoji" aria-hidden="true">${song.emoji}</span><span class="bb-song-name">${song.name}</span>`;
+      b.dataset.song = song.id;
+      b.innerHTML = `
+        <span class="bb-song-emoji" aria-hidden="true">${song.emoji}</span>
+        <span class="bb-song-name">${song.name}</span>
+        <span class="bb-song-diff">${diff.emoji} ${diff.label}</span>
+        <span class="bb-song-best" aria-label="${stars} of 3 stars">${'⭐'.repeat(stars)}${'·'.repeat(3 - stars)}</span>
+      `;
       b.addEventListener('click', () => startSong(song));
       songsEl.appendChild(b);
     });
     const jam = document.createElement('button');
     jam.className = 'bb-song bb-song-jam';
-    jam.innerHTML = `<span class="bb-song-emoji" aria-hidden="true">🎶</span><span class="bb-song-name">Free Jam</span>`;
+    jam.innerHTML = `<span class="bb-song-emoji" aria-hidden="true">🎶</span><span class="bb-song-name">Free Jam</span><span class="bb-song-diff">🧸 Anytime</span>`;
     jam.addEventListener('click', () => startSong({ id: 'jam', name: 'Free Jam', freeJam: true }));
     songsEl.appendChild(jam);
   }
@@ -123,6 +140,9 @@ export function mountBeatBuddies(root) {
     spawnIdx = 0; songTime = 0; hits = 0; combo = 0;
     steps[0] = steps[1] = steps[2] = 0;
     freeJam = !!song.freeJam;
+    curSong = song;
+    curBpm = song.bpm || 100;
+    beatAcc = 0;
     setMeter(0); setCombo(0);
     banner.classList.remove('show');
     startOverlay.classList.add('hidden');
@@ -172,6 +192,11 @@ export function mountBeatBuddies(root) {
 
   function update(dt) {
     songTime += dt;
+
+    // gently bob the whole band on each beat so the stage feels alive
+    beatAcc += dt;
+    const beatDur = 60 / curBpm;
+    if (beatAcc >= beatDur) { beatAcc -= beatDur; pulseBeat(); }
 
     // spawn notes whose bubble should now begin its descent
     while (spawnIdx < notes.length && notes[spawnIdx].arrival - TRAVEL <= songTime) {
@@ -231,8 +256,27 @@ export function mountBeatBuddies(root) {
     if (!fromTap) { bouncePet(b.lane); playInstrumentLane(b.lane); }
     const rating = diff <= WINDOW * 0.5 ? 'Perfect!' : 'Nice!';
     floatRating(b.lane, rating);
+    flashRing(b.lane);
     b.el.classList.add('pop');
     later(() => b.el.remove(), 260);
+  }
+
+  // flash a lane's hit ring when a bubble lands there
+  function flashRing(i) {
+    const ring = laneEls[i].querySelector('.bb-hit');
+    if (!ring) return;
+    ring.classList.remove('flash');
+    void ring.offsetWidth;
+    ring.classList.add('flash');
+  }
+
+  // a soft nod of every instrument badge, once per beat
+  function pulseBeat() {
+    game.querySelectorAll('.bb-inst').forEach((el) => {
+      el.classList.remove('beat');
+      void el.offsetWidth;
+      el.classList.add('beat');
+    });
   }
 
   function missBubble(b) {
@@ -269,15 +313,22 @@ export function mountBeatBuddies(root) {
   // --- win ---
   function win() {
     mode = 'done';
-    banner.textContent = 'Great show! 🎉';
+    // Rate the performance by how many beats were hit (always at least 1 star —
+    // finishing is the achievement; timing just earns more).
+    const acc = total ? hits / total : 1;
+    const rating = acc >= 0.9 ? 3 : acc >= 0.6 ? 2 : 1;
+    if (curSong && curSong.id && rating > (best[curSong.id] || 0)) { best[curSong.id] = rating; saveBest(); }
+
+    banner.innerHTML = `<span class="bb-banner-stars">${'⭐'.repeat(rating)}</span><span class="bb-banner-text">${hits}/${total} beats!</span>`;
     banner.classList.add('show');
     confetti();
     play('happy');
-    const reward = award({ stars: 3, counter: 'bbSongs', stickers: ['bb-first'] });
+    // A perfect (all-beats) show pays a couple of bonus stars.
+    const reward = award({ stars: rating >= 3 ? 5 : 3, counter: 'bbSongs', stickers: ['bb-first'] });
     if (reward.newStickers.length) later(() => play('point'), 300);
     // little band cheer
     LANES.forEach((id, i) => later(() => playVoice(id), 200 + i * 180));
-    later(() => showPicker('You rocked! Play again?'), 2200);
+    later(() => { buildPicker(); showPicker('You rocked! Play again?'); }, 2400);
   }
 
   function showPicker(msg) {

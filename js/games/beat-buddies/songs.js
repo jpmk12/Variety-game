@@ -26,12 +26,28 @@ export function playInstrument(petId, step) {
 
 export const SONGS = [
   {
+    id: 'sleepy-lullaby', name: 'Sleepy Lullaby', emoji: '🌙', bpm: 70,
+    beats: [
+      { b: 0, l: 2 }, { b: 2, l: 1 }, { b: 4, l: 2 }, { b: 6, l: 1 },
+      { b: 8, l: 2 }, { b: 10, l: 1 }, { b: 12, l: 2 }, { b: 14, l: 1 },
+    ],
+  },
+  {
     id: 'puppy-parade', name: 'Puppy Parade', emoji: '🐶', bpm: 84,
     beats: [
       { b: 0, l: 0 }, { b: 1, l: 1 }, { b: 2, l: 0 }, { b: 3, l: 1 },
       { b: 4, l: 0 }, { b: 5, l: 2 }, { b: 6, l: 0 }, { b: 7, l: 1 },
       { b: 8, l: 0 }, { b: 9, l: 1 }, { b: 10, l: 2 }, { b: 11, l: 1 },
       { b: 12, l: 0 }, { b: 13, l: 1 }, { b: 14, l: 2 }, { b: 15, l: 0 },
+    ],
+  },
+  {
+    id: 'kitty-boogie', name: 'Kitty Boogie', emoji: '🐱', bpm: 100,
+    beats: [
+      { b: 0, l: 1 }, { b: 1, l: 0 }, { b: 2, l: 1 }, { b: 3, l: 1 },
+      { b: 4, l: 0 }, { b: 5, l: 1 }, { b: 6, l: 2 }, { b: 7, l: 1 },
+      { b: 8, l: 1 }, { b: 9, l: 0 }, { b: 10, l: 1 }, { b: 11, l: 2 },
+      { b: 12, l: 1 }, { b: 13, l: 0 }, { b: 14, l: 1 }, { b: 15, l: 1 },
     ],
   },
   {
@@ -43,7 +59,24 @@ export const SONGS = [
       { b: 11.5, l: 0 }, { b: 12, l: 1 }, { b: 13, l: 2 }, { b: 14, l: 0 }, { b: 14.5, l: 1 }, { b: 15, l: 2 },
     ],
   },
+  {
+    id: 'dance-party', name: 'Dance Party', emoji: '🎉', bpm: 128,
+    beats: [
+      { b: 0, l: 0 }, { b: 0.5, l: 1 }, { b: 1, l: 2 }, { b: 1.5, l: 1 }, { b: 2, l: 0 },
+      { b: 2.5, l: 2 }, { b: 3, l: 1 }, { b: 3.5, l: 0 }, { b: 4, l: 2 }, { b: 4.5, l: 1 },
+      { b: 5, l: 0 }, { b: 5.5, l: 2 }, { b: 6, l: 1 }, { b: 6.5, l: 0 }, { b: 7, l: 2 },
+      { b: 7.5, l: 1 }, { b: 8, l: 0 }, { b: 8.5, l: 2 }, { b: 9, l: 1 }, { b: 9.5, l: 0 }, { b: 10, l: 2 },
+    ],
+  },
 ];
+
+// A friendly difficulty tag from a song's tempo, shown on the picker.
+export function songDifficulty(song) {
+  const bpm = song.bpm || 0;
+  if (bpm <= 88) return { label: 'Easy', emoji: '🐢' };
+  if (bpm <= 116) return { label: 'Medium', emoji: '🚶' };
+  return { label: 'Fast', emoji: '🐇' };
+}
 
 // Turn a song's beats into timed notes (seconds). Free Jam has no notes.
 export function songNotes(song) {

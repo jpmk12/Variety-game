@@ -1420,3 +1420,26 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 @media (prefers-reduced-motion: reduce) {
   .bb-pet.bounce, .bb-bubble.pop, .bb-bubble.miss, .bb-rating, .bb-count.show, .bb-banner.show { animation-duration: .3s !important; }
 }
+
+/* ---- Beat Buddies Phase 2: difficulty + best on picker, polish ---- */
+.bb-song-diff { font-size: 0.75rem; font-weight: 700; opacity: 0.7; }
+.bb-song-best { font-size: 0.85rem; letter-spacing: 1px; color: #f5a623; }
+
+/* hit ring flashes when a bubble lands */
+.bb-hit.flash { animation: bb-ring-flash 0.3s ease; }
+@keyframes bb-ring-flash {
+  0% { border-color: #fff; box-shadow: 0 0 0 0 rgba(255,255,255,0.7); }
+  100% { border-color: rgba(255,255,255,0.5); box-shadow: 0 0 0 16px rgba(255,255,255,0); }
+}
+
+/* instrument badge nods on each beat */
+.bb-inst.beat { animation: bb-inst-beat 0.2s ease; }
+@keyframes bb-inst-beat { 0%,100% { transform: translateY(0) scale(1); } 45% { transform: translateY(-14%) scale(1.12); } }
+
+/* win banner: big stars over the hit count */
+.bb-banner-stars { display: block; font-size: 1.5rem; letter-spacing: 3px; }
+.bb-banner-text { display: block; font-size: 1.1rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bb-hit.flash, .bb-inst.beat { animation-duration: .2s !important; }
+}

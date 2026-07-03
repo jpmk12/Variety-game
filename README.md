@@ -115,17 +115,20 @@ hands-on game with a goal meter you fill to win.
 
 ## How Beat Buddies works
 
-- Pick a song (or **Free Jam**). After a "3 · 2 · 1 · Go!" count-in, **beat
-  bubbles** float down each pet's lane toward a hit ring.
+- Pick from **five songs** (each tagged 🐢 Easy / 🚶 Medium / 🐇 Fast by tempo)
+  or **Free Jam**. After a "3 · 2 · 1 · Go!" count-in, **beat bubbles** float
+  down each pet's lane toward a hit ring, and the band bobs along to the beat.
 - **Tap each pet as its bubble reaches the ring** — the drum dog, piano cat, and
   chime unicorn each play their (synthesized) instrument, and repeated taps walk
-  up a little scale so it sounds musical. Nail the timing for a "Perfect!"; a
-  combo counter tracks your streak.
-- Fill the song meter to finish for confetti, a band cheer, and stars (with
-  **First Gig / Showstopper / Rock Star** stickers). **No fail state** — missed
-  bubbles just drift away, and tapping a pet always makes a sound.
-- **Free Jam** has no bubbles at all — it's a three-instrument toy for the
-  littlest players. All sound is Web Audio synthesis; no audio files.
+  up a little scale so it sounds musical. Nail the timing for a "Perfect!" (the
+  ring flashes); a combo counter tracks your streak.
+- Finish the song for confetti, a band cheer, and a **star rating** (1–3 based on
+  how many beats you hit — a perfect show pays bonus stars). Your **best rating
+  per song is saved** and shown on the picker. Stickers: **First Gig /
+  Showstopper / Rock Star**.
+- **No fail state** — missed bubbles just drift away, and tapping a pet always
+  makes a sound. **Free Jam** has no bubbles at all — a three-instrument toy for
+  the littlest players. All sound is Web Audio synthesis; no audio files.
 
 ## Letter Samurai belts
 
