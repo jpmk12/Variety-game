@@ -18,10 +18,14 @@ function ensureCtx() {
   return ctx;
 }
 
-// Browsers block audio until a user gesture. Call this from the first tap.
+// Browsers block audio until a user gesture. Call this from any tap. We resume
+// whenever the context isn't actively running — that covers 'suspended' (before
+// the first gesture) and iOS Safari's 'interrupted' state (after a call, screen
+// lock, or the tab being backgrounded), both of which otherwise leave the game
+// silent until the context is nudged back to life.
 export function unlock() {
   const c = ensureCtx();
-  if (c && c.state === 'suspended') c.resume();
+  if (c && c.state !== 'running' && typeof c.resume === 'function') c.resume();
 }
 
 export function isMuted() {

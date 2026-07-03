@@ -49,4 +49,12 @@ muteBtn.addEventListener('click', () => {
 
 backBtn.addEventListener('click', showHub);
 
+// Audio safety net: the Web Audio context can start blocked (before any gesture)
+// and gets suspended when the tab is backgrounded or the device sleeps. Resume
+// it on ANY interaction and whenever the page becomes visible again, so sound
+// isn't silently lost no matter where the first tap lands.
+['pointerdown', 'touchstart', 'keydown'].forEach((ev) =>
+  window.addEventListener(ev, () => unlock(), { passive: true }));
+document.addEventListener('visibilitychange', () => { if (!document.hidden) unlock(); });
+
 showHub();
