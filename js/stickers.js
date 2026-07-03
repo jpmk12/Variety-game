@@ -3,7 +3,7 @@
 // a `when(state, helpers)` predicate that progress.js auto-checks after any
 // award (milestones on the star wallet, lifetime counters, or a pet's bond).
 
-export const GROUPS = ['Animal Care', 'Letter Samurai', 'Climb & Spell', 'Beat Buddies', 'Milestones'];
+export const GROUPS = ['Animal Care', 'Letter Samurai', 'Climb & Spell', 'Beat Buddies', 'Counting Market', 'Milestones'];
 
 export const STICKERS = [
   // --- Animal Care: one per activity, earned the first time you win it ---
@@ -43,6 +43,13 @@ export const STICKERS = [
     when: (s) => (s.counters.bbSongs || 0) >= 3 },
   { id: 'bb-10',    group: 'Beat Buddies', emoji: '🌟', name: 'Rock Star',    hint: 'Finish 10 songs',
     when: (s) => (s.counters.bbSongs || 0) >= 10 },
+
+  // --- Counting Market: market days completed ---
+  { id: 'cm-first', group: 'Counting Market', emoji: '🧺', name: 'Shopkeeper',    hint: 'Finish a market day' },
+  { id: 'cm-3',     group: 'Counting Market', emoji: '🍎', name: 'Fruit Seller',  hint: 'Finish 3 market days',
+    when: (s) => (s.counters.cmDays || 0) >= 3 },
+  { id: 'cm-10',    group: 'Counting Market', emoji: '🏪', name: 'Market Master', hint: 'Finish 10 market days',
+    when: (s) => (s.counters.cmDays || 0) >= 10 },
 
   // --- Milestones: the star wallet ---
   { id: 'stars-25',  group: 'Milestones', emoji: '⭐', name: 'Star Collector', hint: 'Earn 25 stars',

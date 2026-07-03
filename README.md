@@ -16,6 +16,8 @@ A touch-friendly game hub for kids. The home screen is a menu of games:
   order spells simple words.
 - **Beat Buddies** — the three pets are a band (drum dog, piano cat, chime
   unicorn); tap each animal in time as beat bubbles reach it to play a song.
+- **Counting Market** — a pet asks for a number of fruit ("3 apples!"); count
+  them out into the basket and hand it over. Early counting and numbers.
 
 Built as a **zero-build static site**: plain HTML, CSS, and JavaScript (ES
 modules) with hand-drawn inline SVG characters. No installs, no bundler, no
@@ -130,6 +132,21 @@ hands-on game with a goal meter you fill to win.
 - **No fail state** — missed bubbles just drift away, and tapping a pet always
   makes a sound. **Free Jam** has no bubbles at all — a three-instrument toy for
   the littlest players. All sound is Web Audio synthesis; no audio files.
+
+## How Counting Market works
+
+- Tap **Open the Shop!** A pet comes to the stall and asks for some fruit — shown
+  as a **numeral, counting dots, and the fruit**, and said out loud ("3 apples,
+  please!").
+- **Drag fruit from the bins into the basket** — each one is counted aloud (one…
+  two… three…). Tap a fruit in the basket to take it back out. Then press
+  **Give it!**: the right count makes the customer happy and pays a ⭐; a wrong
+  count gets a gentle "count again!" (no fail).
+- Serve a **whole day of customers** (5) to finish the day for confetti, stars,
+  and a sticker — then the next day levels up.
+- **Grows with the child:** Day 1 counts 1–5 of one fruit; Day 2 uses bigger
+  numbers and adds a wrong-fruit bin to pick past; Day 3 gives **two-item**
+  orders ("2 🍎 and 1 🍌"). Your day is saved.
 
 ## Letter Samurai belts
 
@@ -256,6 +273,9 @@ js/
   games/beat-buddies/
     index.js            3-lane rhythm engine: beat clock, bubbles, hits, win
     songs.js            band instruments + data-driven songs
+  games/counting-market/
+    index.js            stall, customer orders, basket drag/count, day loop
+    orders.js           fruit catalog + per-level order generation
 assets/
   favicon.svg, icon-*.png     app icons (tab + home screen)
   animal-care-thumbnail.png   README hero image
