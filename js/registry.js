@@ -7,6 +7,7 @@ import { mountSamurai } from './games/samurai/index.js';
 import { mountClimbSpell } from './games/climb-spell/index.js';
 import { mountBeatBuddies } from './games/beat-buddies/index.js';
 import { mountCountingMarket } from './games/counting-market/index.js';
+import { mountMemoryMatch } from './games/memory-match/index.js';
 
 export const games = [
   {
@@ -51,5 +52,13 @@ export const games = [
     blurb: 'Count out fruit for the customers!',
     accent: '#4cc38a',
     mount: mountCountingMarket,
+  },
+  {
+    id: 'memory-match',
+    title: 'Pet Pairs',
+    emoji: '🃏',
+    blurb: 'Flip cards to find matching pets!',
+    accent: '#b298dc',
+    mount: mountMemoryMatch,
   },
 ];

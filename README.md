@@ -18,6 +18,9 @@ A touch-friendly game hub for kids. The home screen is a menu of games:
   unicorn); tap each animal in time as beat bubbles reach it to play a song.
 - **Counting Market** — a pet asks for a number of fruit ("3 apples!"); count
   them out into the basket and hand it over. Early counting and numbers.
+- **Pet Pairs** — a memory game: flip paw-print cards two at a time to find
+  matching pets. Clear the board to win and level up to a bigger grid. No timer,
+  no losing.
 
 Built as a **zero-build static site**: plain HTML, CSS, and JavaScript (ES
 modules) with hand-drawn inline SVG characters. No installs, no bundler, no
