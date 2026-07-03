@@ -16,12 +16,13 @@ export const STICKERS = [
   { id: 'ac-night',   group: 'Animal Care', emoji: '🌙', name: 'Lullaby Singer', hint: 'Tuck a pet into bed' },
   // Bond milestone — auto-unlocks when ANY pet reaches friendship level 3.
   { id: 'ac-bond3',   group: 'Animal Care', emoji: '❤️', name: 'Best Friends',   hint: 'Reach friendship level 3',
-    when: (s, h) => ['dog', 'cat', 'unicorn', 'bunny'].some((p) => h.getBond(p).level >= 3) },
+    when: (s, h) => ['dog', 'cat', 'unicorn', 'bunny', 'dragon'].some((p) => h.getBond(p).level >= 3) },
   { id: 'ac-bond5',   group: 'Animal Care', emoji: '💞', name: 'Soul Mates',     hint: 'Reach friendship level 5',
-    when: (s, h) => ['dog', 'cat', 'unicorn', 'bunny'].some((p) => h.getBond(p).level >= 5) },
+    when: (s, h) => ['dog', 'cat', 'unicorn', 'bunny', 'dragon'].some((p) => h.getBond(p).level >= 5) },
   { id: 'ac-style',   group: 'Animal Care', emoji: '🛍️', name: 'Fashionista',    hint: 'Buy something at the shop' },
   { id: 'ac-trick',   group: 'Animal Care', emoji: '🎓', name: 'Star Pupil',      hint: 'Graduate Trick School' },
   { id: 'ac-hatch',   group: 'Animal Care', emoji: '🐣', name: 'Egg Hatcher',     hint: 'Hatch the mystery egg' },
+  { id: 'ac-dragon',  group: 'Animal Care', emoji: '🐉', name: 'Dragon Friend',   hint: 'Hatch the dragon egg' },
   { id: 'ac-decor',   group: 'Animal Care', emoji: '🏡', name: 'Decorator',       hint: 'Decorate the room' },
 
   // --- Letter Samurai: counter milestones on correct slashes ---

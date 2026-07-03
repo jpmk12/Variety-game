@@ -20,8 +20,13 @@ import { DECOR, decorById } from './decor.js';
 const SAVE_KEY = 'animal-care';
 const TICK_MS = 15000;
 const MAX_LEVEL = 3;
-const EGG_AT = 4;       // care-mini-game wins before the mystery egg appears
-const EGG_WARMTH = 6;   // taps to hatch the egg
+const EGG_WARMTH = 6;   // taps to hatch an egg
+// Pets that hatch from an egg, in order, once this many total care wins are in.
+// Each egg only appears after the previous one has hatched.
+const HATCH = [
+  { id: 'bunny',  at: 4 },
+  { id: 'dragon', at: 12 },
+];
 const clamp = (n) => Math.max(0, Math.min(100, n));
 
 // Each care task grants stars + friendship XP and unlocks its activity sticker
@@ -53,9 +58,11 @@ export function mountAnimalCare(root) {
   // Per-game difficulty level (1..MAX_LEVEL), shared across pets — each win in a
   // game bumps its level so the challenge grows with the child.
   const levels = { ...(saved?.levels || {}) };
-  // Living world: has the mystery egg hatched into the bunny yet?
-  let hatched = !!saved?.hatched;
+  // Living world: which egg-pets have hatched (migrates the old `hatched`
+  // boolean, which only ever meant the bunny).
+  const hatchedIds = new Set(saved?.hatchedIds || (saved?.hatched ? ['bunny'] : []));
   let eggWarmth = 0; // transient warmth while the egg is on screen this session
+  let eggPet = null; // which pet the current egg will hatch into
   // Room decorations: which are owned (bought once) and which are placed.
   const decor = {
     owned: { ...(saved?.decor?.owned || {}) },
@@ -79,7 +86,7 @@ export function mountAnimalCare(root) {
   let roomEls = null;
   let eggEl = null;
 
-  function persist() { save(SAVE_KEY, { animals: state.animals, wardrobe, tricks, levels, hatched, decor, lastSaved: Date.now() }); }
+  function persist() { save(SAVE_KEY, { animals: state.animals, wardrobe, tricks, levels, hatchedIds: [...hatchedIds], decor, lastSaved: Date.now() }); }
   const petDef = (id) => ANIMALS.find((a) => a.id === id);
   // Time of day drives the room's backdrop (real clock, override for tests).
   function timeOfDay() {
@@ -92,11 +99,13 @@ export function mountAnimalCare(root) {
   const equippedFor = (id) => wardrobe.equipped[id] || {};
   const tricksFor = (id) => tricks[id] || [];
   const levelFor = (actionId) => Math.min(MAX_LEVEL, levels[actionId] || 1);
-  // The pets currently living in the room: the starters, plus the bunny once
-  // it has hatched from the egg.
-  const roster = () => ANIMALS.filter((a) => STARTER_IDS.includes(a.id) || (a.id === 'bunny' && hatched));
-  // The mystery egg shows up once the child has cared for pets a few times.
-  const eggReady = () => !hatched && getCounter('acWins') >= EGG_AT;
+  // The pets currently living in the room: the starters, plus any that have
+  // hatched from an egg.
+  const roster = () => ANIMALS.filter((a) => STARTER_IDS.includes(a.id) || hatchedIds.has(a.id));
+  // The next pet still waiting in its egg, in order (or null when all hatched).
+  const nextHatch = () => HATCH.find((h) => !hatchedIds.has(h.id)) || null;
+  // The mystery egg shows up once enough care wins are in for the next pet.
+  const eggReady = () => { const h = nextHatch(); return h && getCounter('acWins') >= h.at ? h : null; };
 
   // test hook
   wrap.__ac = {
@@ -115,8 +124,8 @@ export function mountAnimalCare(root) {
     level: (actionId) => levelFor(actionId),
     setLevel: (actionId, n) => { levels[actionId] = n; },
     roster: () => roster().map((a) => a.id),
-    eggReady: () => eggReady(),
-    get hatched() { return hatched; },
+    eggReady: () => { const h = eggReady(); return h ? h.id : null; },
+    get hatched() { return [...hatchedIds]; },
     warmEgg: () => warmEgg(),
     timeOfDay: () => timeOfDay(),
     setHour: (h) => { hourOverride = h; if (view === 'room') showRoom(); },
@@ -246,8 +255,12 @@ export function mountAnimalCare(root) {
 
   // ---------------- MYSTERY EGG ----------------
   function addEgg(stage) {
+    const h = eggReady();
+    if (!h) return;
+    eggPet = h.id;
+    eggWarmth = 0;
     const btn = document.createElement('button');
-    btn.className = 'ac-egg';
+    btn.className = 'ac-egg egg-' + eggPet;
     btn.setAttribute('aria-label', 'Mystery egg — tap to keep it warm');
     btn.innerHTML = `
       <span class="ac-egg-shell" aria-hidden="true">🥚</span>
@@ -269,7 +282,7 @@ export function mountAnimalCare(root) {
   }
 
   function warmEgg() {
-    if (hatched || !eggReady() || !eggEl) return;
+    if (!eggPet || !eggEl || hatchedIds.has(eggPet)) return;
     eggWarmth += 1;
     eggEl.classList.remove('wiggle');
     void eggEl.offsetWidth;
@@ -287,24 +300,28 @@ export function mountAnimalCare(root) {
   }
 
   function hatchEgg() {
-    hatched = true;
+    const pet = petDef(eggPet);
+    hatchedIds.add(eggPet);
     eggWarmth = 0;
     unlockSticker('ac-hatch');
+    if (eggPet === 'dragon') unlockSticker('ac-dragon');
     persist();
     play('happy');
-    playVoice('bunny');
+    playVoice(eggPet);
     if (eggEl) {
       eggEl.classList.add('hatch');
       const boom = document.createElement('span');
       boom.className = 'ac-egg-boom';
-      boom.textContent = '🐣';
+      boom.textContent = pet ? pet.emoji : '🐣';
       eggEl.appendChild(boom);
     }
-    // rebuild the room (now with the bunny) after a beat, with a welcome banner.
+    const hatchedPet = eggPet;
+    eggPet = null;
+    // rebuild the room (now with the new pet) after a beat, with a welcome banner.
     setTimeout(() => {
       showRoom();
       const hint = wrap.querySelector('.ac-hint');
-      if (hint) hint.textContent = 'Clover the bunny hatched! 🐰 Tap to care for it!';
+      if (hint && pet) hint.textContent = `${pet.name} the ${hatchedPet} hatched! ${pet.emoji} Tap to care for it!`;
     }, 1300);
   }
 

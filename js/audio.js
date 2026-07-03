@@ -222,6 +222,11 @@ const EFFECTS = {
     tone({ freq: 400, start: 0, duration: 0.14, type: 'sine', gain: 0.14, slideTo: 900 });
     tone({ freq: 500, start: 0.16, duration: 0.16, type: 'sine', gain: 0.14, slideTo: 1100 });
   },
+  // dragon: a tiny, friendly growl-roar that rises
+  'voice-dragon': () => {
+    tone({ freq: 150, start: 0, duration: 0.22, type: 'sawtooth', gain: 0.14, slideTo: 260 });
+    tone({ freq: 260, start: 0.2, duration: 0.2, type: 'square', gain: 0.12, slideTo: 400 });
+  },
 };
 
 export function play(name) {
