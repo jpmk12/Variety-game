@@ -129,6 +129,35 @@ function bunnySVG() {
   </svg>`;
 }
 
+// --- DRAGON: round teal dragon with gold horns + little wings (hatches later) ---
+function dragonSVG() {
+  return `
+  <svg class="ac-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dragon">
+    <ellipse class="ac-shadow" cx="100" cy="188" rx="54" ry="10"/>
+    <g class="ac-body-group">
+      <path class="ac-tail" d="M150 152 q42 6 30 46 q-2 -28 -30 -26 z" fill="#37b799"/>
+      <path class="ac-ear-l" d="M58 116 q-36 -20 -46 6 q28 2 38 24 z" fill="#7fe3c8"/>
+      <path class="ac-ear-r" d="M142 116 q36 -20 46 6 q-28 2 -38 24 z" fill="#7fe3c8"/>
+      <ellipse class="ac-body" cx="100" cy="142" rx="56" ry="46" fill="#4ecfae"/>
+      <ellipse cx="100" cy="158" rx="36" ry="26" fill="#d9f8ee"/>
+      <path d="M84 152 h32 M84 164 h32" stroke="#c2f0e2" stroke-width="3" opacity="0.7"/>
+      <rect x="66" y="170" width="20" height="20" rx="9" fill="#41bd9d"/>
+      <rect x="114" y="170" width="20" height="20" rx="9" fill="#41bd9d"/>
+      <g class="ac-head">
+        <path d="M80 54 l-5 -20 l15 12 z" fill="#ffe08a"/>
+        <path d="M120 54 l5 -20 l-15 12 z" fill="#ffe08a"/>
+        <circle class="ac-headball" cx="100" cy="92" r="45" fill="#54d6b4"/>
+        <ellipse cx="100" cy="112" rx="28" ry="20" fill="#eafaf4"/>
+        <g class="ac-eye-l"><circle cx="85" cy="86" r="8" fill="#2a2a3a"/><circle cx="87" cy="83" r="2.5" fill="#fff"/></g>
+        <g class="ac-eye-r"><circle cx="115" cy="86" r="8" fill="#2a2a3a"/><circle cx="117" cy="83" r="2.5" fill="#fff"/></g>
+        <ellipse cx="92" cy="108" rx="3" ry="2.4" fill="#2f7d68"/>
+        <ellipse cx="108" cy="108" rx="3" ry="2.4" fill="#2f7d68"/>
+        <path class="ac-mouth" d="M88 114 q12 10 24 0" stroke="#2f7d68" stroke-width="3" fill="none" stroke-linecap="round"/>
+      </g>
+    </g>
+  </svg>`;
+}
+
 // Ids of the three starter pets — the rest of the roster is unlocked in-game.
 export const STARTER_IDS = ['dog', 'cat', 'unicorn'];
 
@@ -137,4 +166,5 @@ export const ANIMALS = [
   { id: 'cat', name: 'Mochi', emoji: '🐱', svg: catSVG() },
   { id: 'unicorn', name: 'Sparkle', emoji: '🦄', svg: unicornSVG() },
   { id: 'bunny', name: 'Clover', emoji: '🐰', svg: bunnySVG() },
+  { id: 'dragon', name: 'Ember', emoji: '🐉', svg: dragonSVG() },
 ];

@@ -189,7 +189,9 @@ room. **Tap it to keep it warm** — a little warmth meter fills, and when it's
 full the egg cracks open and **Clover the bunny 🐰 hatches!** The bunny becomes a
 full member of the family — its own friendship, all six care tasks, dress-up,
 and Trick School — and it's saved, so it's waiting for you next time. Hatching
-earns the **Egg Hatcher** sticker.
+earns the **Egg Hatcher** sticker. Keep caring for your pets and a **second egg**
+appears later — warm it to hatch **Ember the dragon 🐉** (the **Dragon Friend**
+sticker), for five pets in all.
 
 **A living room.** The room follows the **real time of day** — sunny mornings, a
 bright afternoon, an orange **dusk**, and a **night** sky with a moon and stars
