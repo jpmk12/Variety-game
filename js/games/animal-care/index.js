@@ -5,12 +5,12 @@
 //            and, on win, tops up that need and returns to the pet
 // Stats + gentle real-time decay persist to localStorage (as before).
 
-import { ANIMALS } from './animals.js';
+import { ANIMALS, STARTER_IDS } from './animals.js';
 import { ACTIONS } from './actions.js';
 import { freshStats, applyDecay, moodFor, lowestNeed, NEEDS, STAT_KEYS } from './stats.js';
 import { load, save } from '../../storage.js';
-import { play } from '../../audio.js';
-import { award, getBond, getStars, spendStars, unlockSticker } from '../../progress.js';
+import { play, playVoice } from '../../audio.js';
+import { award, getBond, getStars, spendStars, unlockSticker, getCounter } from '../../progress.js';
 import { MINIGAMES } from './minigames/index.js';
 import { mountTricks, TRICKS } from './minigames/tricks.js';
 import { ACCESSORIES, accessoryById } from './accessories.js';
@@ -19,6 +19,8 @@ import { decoratePet } from './wardrobe.js';
 const SAVE_KEY = 'animal-care';
 const TICK_MS = 15000;
 const MAX_LEVEL = 3;
+const EGG_AT = 4;       // care-mini-game wins before the mystery egg appears
+const EGG_WARMTH = 6;   // taps to hatch the egg
 const clamp = (n) => Math.max(0, Math.min(100, n));
 
 // Each care task grants stars + friendship XP and unlocks its activity sticker
@@ -50,6 +52,9 @@ export function mountAnimalCare(root) {
   // Per-game difficulty level (1..MAX_LEVEL), shared across pets — each win in a
   // game bumps its level so the challenge grows with the child.
   const levels = { ...(saved?.levels || {}) };
+  // Living world: has the mystery egg hatched into the bunny yet?
+  let hatched = !!saved?.hatched;
+  let eggWarmth = 0; // transient warmth while the egg is on screen this session
   if (saved?.lastSaved) {
     const elapsed = now - saved.lastSaved;
     ANIMALS.forEach((a) => { state.animals[a.id].stats = applyDecay(state.animals[a.id].stats, elapsed); });
@@ -65,12 +70,18 @@ export function mountAnimalCare(root) {
   let currentPet = ANIMALS[0].id;
   let mgCleanup = null;
   let roomEls = null;
+  let eggEl = null;
 
-  function persist() { save(SAVE_KEY, { animals: state.animals, wardrobe, tricks, levels, lastSaved: Date.now() }); }
+  function persist() { save(SAVE_KEY, { animals: state.animals, wardrobe, tricks, levels, hatched, lastSaved: Date.now() }); }
   const petDef = (id) => ANIMALS.find((a) => a.id === id);
   const equippedFor = (id) => wardrobe.equipped[id] || {};
   const tricksFor = (id) => tricks[id] || [];
   const levelFor = (actionId) => Math.min(MAX_LEVEL, levels[actionId] || 1);
+  // The pets currently living in the room: the starters, plus the bunny once
+  // it has hatched from the egg.
+  const roster = () => ANIMALS.filter((a) => STARTER_IDS.includes(a.id) || (a.id === 'bunny' && hatched));
+  // The mystery egg shows up once the child has cared for pets a few times.
+  const eggReady = () => !hatched && getCounter('acWins') >= EGG_AT;
 
   // test hook
   wrap.__ac = {
@@ -88,12 +99,17 @@ export function mountAnimalCare(root) {
     performTrick: () => performTrick(),
     level: (actionId) => levelFor(actionId),
     setLevel: (actionId, n) => { levels[actionId] = n; },
+    roster: () => roster().map((a) => a.id),
+    eggReady: () => eggReady(),
+    get hatched() { return hatched; },
+    warmEgg: () => warmEgg(),
   };
 
   function clearView() {
     if (mgCleanup) { mgCleanup(); mgCleanup = null; }
     wrap.innerHTML = '';
     roomEls = null;
+    eggEl = null;
   }
 
   // ---------------- ROOM ----------------
@@ -110,7 +126,8 @@ export function mountAnimalCare(root) {
     `;
     const stage = wrap.querySelector('.ac-stage');
     roomEls = {};
-    ANIMALS.forEach((a) => {
+    const pets = roster();
+    pets.forEach((a) => {
       const btn = document.createElement('button');
       btn.className = 'ac-animal';
       btn.dataset.id = a.id;
@@ -120,8 +137,75 @@ export function mountAnimalCare(root) {
       stage.appendChild(btn);
       roomEls[a.id] = { faceEl: btn.querySelector('.ac-mood'), thoughtEl: btn.querySelector('.ac-thought'), artEl: btn.querySelector('.ac-art') };
     });
-    ANIMALS.forEach((a) => refreshRoomPet(a.id));
-    ANIMALS.forEach((a) => decoratePet(roomEls[a.id].artEl, equippedFor(a.id)));
+    pets.forEach((a) => refreshRoomPet(a.id));
+    pets.forEach((a) => decoratePet(roomEls[a.id].artEl, equippedFor(a.id)));
+
+    // A mystery egg joins the room once enough care has been given.
+    if (eggReady()) addEgg(stage);
+  }
+
+  // ---------------- MYSTERY EGG ----------------
+  function addEgg(stage) {
+    const btn = document.createElement('button');
+    btn.className = 'ac-egg';
+    btn.setAttribute('aria-label', 'Mystery egg — tap to keep it warm');
+    btn.innerHTML = `
+      <span class="ac-egg-shell" aria-hidden="true">🥚</span>
+      <span class="ac-egg-meter"><span class="ac-egg-fill"></span></span>
+      <span class="ac-egg-tip">Keep me warm!</span>
+    `;
+    btn.addEventListener('click', () => warmEgg());
+    stage.appendChild(btn);
+    eggEl = btn;
+    updateEgg();
+    const hint = wrap.querySelector('.ac-hint');
+    if (hint) hint.textContent = 'A mystery egg appeared — tap it to keep it warm!';
+  }
+
+  function updateEgg() {
+    if (!eggEl) return;
+    const fill = eggEl.querySelector('.ac-egg-fill');
+    if (fill) fill.style.width = Math.min(1, eggWarmth / EGG_WARMTH) * 100 + '%';
+  }
+
+  function warmEgg() {
+    if (hatched || !eggReady() || !eggEl) return;
+    eggWarmth += 1;
+    eggEl.classList.remove('wiggle');
+    void eggEl.offsetWidth;
+    eggEl.classList.add('wiggle');
+    play('select');
+    // a little warmth heart
+    const h = document.createElement('span');
+    h.className = 'ac-mini-heart';
+    h.textContent = '💛';
+    h.style.left = '50%';
+    eggEl.appendChild(h);
+    setTimeout(() => h.remove(), 900);
+    updateEgg();
+    if (eggWarmth >= EGG_WARMTH) hatchEgg();
+  }
+
+  function hatchEgg() {
+    hatched = true;
+    eggWarmth = 0;
+    unlockSticker('ac-hatch');
+    persist();
+    play('happy');
+    playVoice('bunny');
+    if (eggEl) {
+      eggEl.classList.add('hatch');
+      const boom = document.createElement('span');
+      boom.className = 'ac-egg-boom';
+      boom.textContent = '🐣';
+      eggEl.appendChild(boom);
+    }
+    // rebuild the room (now with the bunny) after a beat, with a welcome banner.
+    setTimeout(() => {
+      showRoom();
+      const hint = wrap.querySelector('.ac-hint');
+      if (hint) hint.textContent = 'Clover the bunny hatched! 🐰 Tap to care for it!';
+    }, 1300);
   }
 
   function refreshRoomPet(id) {

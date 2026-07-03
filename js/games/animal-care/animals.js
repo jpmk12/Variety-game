@@ -101,8 +101,40 @@ function unicornSVG() {
   </svg>`;
 }
 
+// --- BUNNY: cream bunny with long pink-lined ears (hatches from the egg) ---
+function bunnySVG() {
+  return `
+  <svg class="ac-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Bunny">
+    <ellipse class="ac-shadow" cx="100" cy="188" rx="52" ry="10"/>
+    <g class="ac-body-group">
+      <circle class="ac-tail" cx="150" cy="152" r="15" fill="#ffffff"/>
+      <ellipse class="ac-body" cx="100" cy="144" rx="52" ry="44" fill="#f3eefb"/>
+      <ellipse cx="100" cy="158" rx="34" ry="26" fill="#ffffff"/>
+      <ellipse cx="80" cy="184" rx="16" ry="9" fill="#efe7fb"/>
+      <ellipse cx="120" cy="184" rx="16" ry="9" fill="#efe7fb"/>
+      <g class="ac-head">
+        <g class="ac-ear-l"><ellipse cx="82" cy="44" rx="12" ry="38" fill="#f3eefb"/><ellipse cx="82" cy="46" rx="6" ry="27" fill="#ffc2dd"/></g>
+        <g class="ac-ear-r"><ellipse cx="118" cy="44" rx="12" ry="38" fill="#f3eefb"/><ellipse cx="118" cy="46" rx="6" ry="27" fill="#ffc2dd"/></g>
+        <circle class="ac-headball" cx="100" cy="102" r="46" fill="#f8f4fe"/>
+        <circle cx="72" cy="114" r="10" fill="#ffd6e8"/>
+        <circle cx="128" cy="114" r="10" fill="#ffd6e8"/>
+        <g class="ac-eye-l"><circle cx="84" cy="98" r="8" fill="#4a3a5a"/><circle cx="86" cy="95" r="2.5" fill="#fff"/></g>
+        <g class="ac-eye-r"><circle cx="116" cy="98" r="8" fill="#4a3a5a"/><circle cx="118" cy="95" r="2.5" fill="#fff"/></g>
+        <path d="M100 110 l-6 6 h12 z" fill="#ff8fb3"/>
+        <path class="ac-mouth" d="M100 116 v5 M100 121 q-7 5 -13 1 M100 121 q7 5 13 1" stroke="#c98aa6" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M78 108 q-14 4 -22 -2 M78 113 q-15 5 -24 1" stroke="#e7d9f5" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M122 108 q14 4 22 -2 M122 113 q15 5 24 1" stroke="#e7d9f5" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </g>
+    </g>
+  </svg>`;
+}
+
+// Ids of the three starter pets — the rest of the roster is unlocked in-game.
+export const STARTER_IDS = ['dog', 'cat', 'unicorn'];
+
 export const ANIMALS = [
   { id: 'dog', name: 'Biscuit', emoji: '🐶', svg: dogSVG() },
   { id: 'cat', name: 'Mochi', emoji: '🐱', svg: catSVG() },
   { id: 'unicorn', name: 'Sparkle', emoji: '🦄', svg: unicornSVG() },
+  { id: 'bunny', name: 'Clover', emoji: '🐰', svg: bunnySVG() },
 ];
