@@ -18,14 +18,53 @@ function ensureCtx() {
   return ctx;
 }
 
+// Build a tiny silent WAV as a data URI (no audio files shipped). Used only to
+// flip the iOS audio session — see unmuteIOS below.
+function silentWavDataUri() {
+  const sr = 8000, n = Math.floor(sr * 0.2);
+  const buf = new ArrayBuffer(44 + n);
+  const dv = new DataView(buf);
+  const str = (o, s) => { for (let i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i)); };
+  str(0, 'RIFF'); dv.setUint32(4, 36 + n, true); str(8, 'WAVE');
+  str(12, 'fmt '); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
+  dv.setUint32(24, sr, true); dv.setUint32(28, sr, true); dv.setUint16(32, 1, true); dv.setUint16(34, 8, true);
+  str(36, 'data'); dv.setUint32(40, n, true);
+  for (let i = 0; i < n; i++) dv.setUint8(44 + i, 128); // 128 = silence for 8-bit PCM
+  let bin = '';
+  const u8 = new Uint8Array(buf);
+  for (let i = 0; i < u8.length; i++) bin += String.fromCharCode(u8[i]);
+  return 'data:audio/wav;base64,' + btoa(bin);
+}
+
+// iOS routes Web Audio through the *ringer* channel — silenced by the phone's
+// physical mute switch — until an HTMLMediaElement has actually played, which
+// switches the app to the *media* audio session that ignores the switch. So we
+// play a tiny looping silent clip on the first gesture; after that, all our
+// synthesized Web Audio is audible even with the mute switch on. Harmless on
+// desktop. (Same behavior in Chrome on iOS — it's WebKit under the hood.)
+let silentEl = null;
+function unmuteIOS() {
+  try {
+    if (!silentEl) {
+      silentEl = new Audio(silentWavDataUri());
+      silentEl.loop = true;
+      silentEl.volume = 0.001;
+      silentEl.setAttribute('playsinline', '');
+    }
+    if (silentEl.paused) { const p = silentEl.play(); if (p && p.catch) p.catch(() => {}); }
+  } catch (e) { /* private mode / blocked — nothing we can do, ignore */ }
+}
+
 // Browsers block audio until a user gesture. Call this from any tap. We resume
 // whenever the context isn't actively running — that covers 'suspended' (before
 // the first gesture) and iOS Safari's 'interrupted' state (after a call, screen
 // lock, or the tab being backgrounded), both of which otherwise leave the game
-// silent until the context is nudged back to life.
+// silent until the context is nudged back to life. We also flip the iOS audio
+// session so sound plays with the phone's mute switch on.
 export function unlock() {
   const c = ensureCtx();
   if (c && c.state !== 'running' && typeof c.resume === 'function') c.resume();
+  unmuteIOS();
 }
 
 export function isMuted() {
