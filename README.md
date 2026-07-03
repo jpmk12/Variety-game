@@ -182,6 +182,16 @@ Every game shares one reward economy so playing always earns something to keep:
 All of this persists to `localStorage` and works offline; there's no way to lose
 progress.
 
+## Player profiles 👦👧
+
+Siblings can share the app without stepping on each other's pets. Tap the
+**profile chip** in the top-left of the hub to open **"Who's playing?"**, where
+you can switch players or make a new one (up to three) with a name and an animal
+avatar. Each profile keeps its **own** stars, stickers, pets, and everything
+else — every save is namespaced by the active profile in `storage.js`. The first
+profile uses the original un-prefixed keys, so anyone who was already playing is
+folded into "Player 1" and keeps all of their progress.
+
 ## Hatch a new pet 🥚
 
 After you've cared for your pets a few times, a **mystery egg** appears in the
