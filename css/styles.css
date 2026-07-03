@@ -1635,3 +1635,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .ac-room.tod-night .ac-hint { color: #fff; }
 
 /* Decor shop grid reuses the dress-up shop card styles (.ac-shop-card). */
+
+/* Counting Market P2: addition-order operators */
+.cm-op { font-size: clamp(1.8rem, 7vw, 2.6rem); font-weight: 900; color: var(--ink); align-self: center; }
+.cm-eq { color: #37b985; }

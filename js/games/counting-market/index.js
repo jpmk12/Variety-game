@@ -8,12 +8,12 @@ import { ANIMALS, STARTER_IDS } from '../animal-care/animals.js';
 import { play, isMuted, unlock } from '../../audio.js';
 import { speak, cancelSpeech } from '../samurai/speech.js';
 import { load, save } from '../../storage.js';
-import { award } from '../../progress.js';
+import { award, unlockSticker } from '../../progress.js';
 import { FRUITS, fruitById, makeOrder } from './orders.js';
 
 const SAVE_KEY = 'counting-market';
 const DAY_TARGET = 5;   // customers to serve for a full market day
-const MAX_LEVEL = 3;
+const MAX_LEVEL = 4;    // Day 4 introduces addition ("a + b = ?")
 const reduceMotion = typeof matchMedia === 'function'
   && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -83,6 +83,7 @@ export function mountCountingMarket(root) {
     addItem: (id) => addItem(id),
     removeItem: (i) => removeItem(i),
     give: () => give(),
+    setLevel: (n) => { level = n; renderLevel(); nextCustomer(); },
   };
 
   // --- day / customer flow ---
@@ -113,15 +114,18 @@ export function mountCountingMarket(root) {
   function renderLevel() { levelEl.textContent = level > 1 ? `Day ${level}` : ''; }
   function setMeter() { meterFill.style.width = (served / DAY_TARGET) * 100 + '%'; }
 
+  const dots = (n) => `<span class="cm-dots" aria-hidden="true">${'<span class="cm-dot"></span>'.repeat(n)}</span>`;
+  const orderItem = (count, emoji) => `<span class="cm-order-item"><span class="cm-order-num">${count}</span><span class="cm-order-emoji">${emoji}</span>${dots(count)}</span>`;
+
   function renderOrder() {
-    orderEl.innerHTML = order.sentence.map((s, i) => `
-      ${i > 0 ? '<span class="cm-and">and</span>' : ''}
-      <span class="cm-order-item">
-        <span class="cm-order-num">${s.count}</span>
-        <span class="cm-order-emoji">${s.emoji}</span>
-        <span class="cm-dots" aria-hidden="true">${'<span class="cm-dot"></span>'.repeat(s.count)}</span>
-      </span>
-    `).join('');
+    if (order.addition) {
+      const { a, b, emoji } = order.addition;
+      orderEl.innerHTML = `${orderItem(a, emoji)}<span class="cm-op">+</span>${orderItem(b, emoji)}<span class="cm-op cm-eq">= ?</span>`;
+      return;
+    }
+    orderEl.innerHTML = order.sentence
+      .map((s, i) => `${i > 0 ? '<span class="cm-and">and</span>' : ''}${orderItem(s.count, s.emoji)}`)
+      .join('');
   }
 
   function renderBins() {
@@ -201,6 +205,7 @@ export function mountCountingMarket(root) {
     busy = true;
     served += 1;
     setMeter();
+    if (order.addition) unlockSticker('cm-add'); // solved an addition!
     play('point');
     custArt.classList.remove('cm-happy');
     void custArt.offsetWidth;
