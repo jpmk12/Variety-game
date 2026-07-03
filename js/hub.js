@@ -5,6 +5,8 @@
 import { games } from './registry.js';
 import { getStars, groupProgress } from './progress.js';
 import { renderStickerBook } from './stickerbook.js';
+import { renderProfileMenu } from './profilemenu.js';
+import { getActive } from './profiles.js';
 import { play } from './audio.js';
 
 // Which sticker group each game contributes to (for the per-card progress hint).
@@ -20,15 +22,24 @@ export function renderHub(container, onLaunch) {
   const hub = document.createElement('div');
   hub.className = 'hub';
 
+  const me = getActive();
   const header = document.createElement('div');
   header.className = 'hub-header';
   header.innerHTML = `
+    <button class="hub-profile-btn" aria-label="Switch player">
+      <span class="hub-profile-avatar" aria-hidden="true">${me.avatar}</span>
+      <span class="hub-profile-name">${me.name}</span>
+    </button>
     <div class="hub-stars" aria-label="Stars earned">⭐ <span class="hub-stars-n">${getStars()}</span></div>
     <button class="hub-book-btn" aria-label="Open sticker book">📖 Sticker Book</button>
   `;
   header.querySelector('.hub-book-btn').addEventListener('click', () => {
     play('select');
     renderStickerBook(container, () => renderHub(container, onLaunch));
+  });
+  header.querySelector('.hub-profile-btn').addEventListener('click', () => {
+    play('select');
+    renderProfileMenu(container, () => renderHub(container, onLaunch));
   });
   hub.appendChild(header);
 

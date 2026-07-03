@@ -995,6 +995,21 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   transition: transform .12s ease;
 }
 .hub-book-btn:active { transform: scale(0.94); }
+.hub-profile-btn {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 1.05rem; font-weight: 800; color: var(--ink);
+  background: var(--card); padding: 5px 16px 5px 6px; border-radius: 999px;
+  box-shadow: 0 4px 0 var(--shadow); border: 3px solid #a0e7a0;
+  transition: transform .12s ease;
+}
+.hub-profile-btn:active { transform: scale(0.94); }
+.hub-profile-avatar {
+  font-size: 1.4rem; line-height: 1;
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: #eefbef;
+}
+.hub-profile-name { max-width: 7ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* Grid now lives inside the flex column, scrolls under the header. */
 .hub .hub-grid { flex: 1 1 auto; height: auto; min-height: 0; }
 .game-progress {
@@ -1027,6 +1042,63 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .sb-emoji { font-size: 2.6rem; line-height: 1; }
 .sb-name { font-weight: 800; font-size: 0.95rem; }
 .sb-hint { font-size: 0.75rem; opacity: 0.65; }
+
+/* "Who's playing?" — the kid profile picker */
+.profile-menu { position: absolute; inset: 0; display: flex; flex-direction: column; background: linear-gradient(180deg, #fff, #eefbef); }
+.pm-top { flex: 0 0 auto; display: flex; align-items: center; gap: 12px; padding: 14px 18px; }
+.pm-back {
+  font-size: 1.1rem; font-weight: 800; background: var(--card);
+  padding: 8px 16px; border-radius: 999px; box-shadow: 0 4px 0 var(--shadow);
+}
+.pm-title { flex: 1 1 auto; margin: 0; font-size: 1.5rem; text-align: center; }
+.pm-spacer { width: 80px; flex: 0 0 auto; }
+.pm-grid {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px; padding: 12px 24px 28px; align-content: start;
+}
+.pm-card {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 22px 12px; border-radius: 24px; background: var(--card);
+  box-shadow: 0 6px 0 var(--shadow); border: 4px solid transparent;
+  transition: transform .12s ease;
+}
+.pm-card:active { transform: scale(0.95); }
+.pm-card.is-active { border-color: #a0e7a0; }
+.pm-card.pm-add { border-style: dashed; border-color: #cdb4ff; background: #f7f3ff; }
+.pm-avatar {
+  font-size: 3rem; line-height: 1;
+  width: 84px; height: 84px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; background: #eefbef;
+}
+.pm-add .pm-avatar { background: #efe6ff; }
+.pm-name { font-weight: 800; font-size: 1.1rem; }
+.pm-badge { font-size: 0.8rem; font-weight: 800; color: #2f8f2f; background: #e2f8e2; padding: 2px 12px; border-radius: 999px; }
+
+/* New-profile form */
+.pm-create { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 12px 24px 28px; }
+.pm-create-hint { margin: 0; font-size: 1.1rem; font-weight: 700; opacity: 0.7; }
+.pm-name-input {
+  font-size: 1.3rem; font-weight: 700; text-align: center;
+  padding: 12px 18px; border-radius: 16px; border: 3px solid #cdb4ff;
+  background: #fff; width: min(320px, 90%);
+}
+.pm-avatars { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; width: min(360px, 92%); }
+.pm-avatar-pick {
+  font-size: 2rem; padding: 8px; border-radius: 16px; background: #fff;
+  box-shadow: 0 3px 0 var(--shadow); border: 3px solid transparent;
+  transition: transform .1s ease;
+}
+.pm-avatar-pick:active { transform: scale(0.9); }
+.pm-avatar-pick.is-picked { border-color: #a0e7a0; background: #eefbef; }
+.pm-create-actions { display: flex; gap: 14px; margin-top: 4px; }
+.pm-cancel, .pm-save {
+  font-size: 1.15rem; font-weight: 800; padding: 12px 26px; border-radius: 999px;
+  box-shadow: 0 4px 0 var(--shadow); transition: transform .12s ease;
+}
+.pm-cancel { background: var(--card); }
+.pm-save { background: #a0e7a0; }
+.pm-cancel:active, .pm-save:active { transform: scale(0.94); }
 
 /* Reward toast shown inside a mini-game win */
 .ac-mini-reward {
