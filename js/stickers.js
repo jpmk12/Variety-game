@@ -47,6 +47,7 @@ export const STICKERS = [
 
   // --- Counting Market: market days completed ---
   { id: 'cm-first', group: 'Counting Market', emoji: '🧺', name: 'Shopkeeper',    hint: 'Finish a market day' },
+  { id: 'cm-add',   group: 'Counting Market', emoji: '➕', name: 'Little Adder',   hint: 'Solve an adding order' },
   { id: 'cm-3',     group: 'Counting Market', emoji: '🍎', name: 'Fruit Seller',  hint: 'Finish 3 market days',
     when: (s) => (s.counters.cmDays || 0) >= 3 },
   { id: 'cm-10',    group: 'Counting Market', emoji: '🏪', name: 'Market Master', hint: 'Finish 10 market days',

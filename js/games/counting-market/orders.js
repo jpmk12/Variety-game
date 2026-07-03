@@ -23,12 +23,15 @@ function sample(arr, n, exclude = []) {
 }
 
 // Build an order for a level. Returns:
-//   { items: [{fruitId, count}], bins: [fruitId…], speak: '…', sentence: [{count,emoji}] }
+//   { items: [{fruitId, count}], bins: [fruitId…], addition, speak, sentence }
+// `items` is always what must end up in the basket (for addition, the total).
 // `bins` is which fruit piles the child can drag from (order fruits + distractors).
+// `addition` is set on Day 4+ ("a + b of one fruit — how many?").
 export function makeOrder(level) {
   const ids = FRUITS.map((f) => f.id);
   let items;
   let distractors;
+  let addition = null;
 
   if (level <= 1) {
     // one item, count 1–5, no distractors
@@ -39,18 +42,26 @@ export function makeOrder(level) {
     const target = pick(ids);
     items = [{ fruitId: target, count: rnd(2, 8) }];
     distractors = sample(ids, 1, [target]);
-  } else {
+  } else if (level === 3) {
     // two different items, counts 1–4 each
     const two = sample(ids, 2);
     items = two.map((id) => ({ fruitId: id, count: rnd(1, 4) }));
     distractors = sample(ids, 1, two);
+  } else {
+    // Day 4+: addition — put out a + b of one fruit (count the total)
+    const fruit = pick(ids);
+    const a = rnd(1, 3);
+    const b = rnd(1, 3);
+    items = [{ fruitId: fruit, count: a + b }];
+    distractors = level >= 5 ? sample(ids, 1, [fruit]) : [];
+    addition = { a, b, fruitId: fruit, emoji: fruitById(fruit).emoji };
   }
 
-  const bins = [...items.map((it) => it.fruitId), ...distractors];
+  const bins = [...new Set([...items.map((it) => it.fruitId), ...distractors])];
   const sentence = items.map((it) => ({ count: it.count, emoji: fruitById(it.fruitId).emoji }));
-  const speak = items
-    .map((it) => `${it.count} ${fruitById(it.fruitId).name}${it.count > 1 ? 's' : ''}`)
-    .join(' and ') + ' please!';
+  const speak = addition
+    ? `${addition.a} plus ${addition.b} ${fruitById(addition.fruitId).name}s. How many?`
+    : items.map((it) => `${it.count} ${fruitById(it.fruitId).name}${it.count > 1 ? 's' : ''}`).join(' and ') + ' please!';
 
-  return { items, bins, sentence, speak };
+  return { items, bins, addition, sentence, speak };
 }

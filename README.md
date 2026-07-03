@@ -146,7 +146,8 @@ hands-on game with a goal meter you fill to win.
   and a sticker — then the next day levels up.
 - **Grows with the child:** Day 1 counts 1–5 of one fruit; Day 2 uses bigger
   numbers and adds a wrong-fruit bin to pick past; Day 3 gives **two-item**
-  orders ("2 🍎 and 1 🍌"). Your day is saved.
+  orders ("2 🍎 and 1 🍌"); **Day 4 introduces adding** — the order is a picture
+  sum ("2 🍓 + 1 🍓 = ?") and you count out the **total**. Your day is saved.
 
 ## Letter Samurai belts
 
