@@ -6,6 +6,7 @@ import { mountAnimalCare } from './games/animal-care/index.js';
 import { mountSamurai } from './games/samurai/index.js';
 import { mountClimbSpell } from './games/climb-spell/index.js';
 import { mountBeatBuddies } from './games/beat-buddies/index.js';
+import { mountCountingMarket } from './games/counting-market/index.js';
 
 export const games = [
   {
@@ -42,5 +43,13 @@ export const games = [
     blurb: 'Tap the animal band to the beat!',
     accent: '#ff6b9d',
     mount: mountBeatBuddies,
+  },
+  {
+    id: 'counting-market',
+    title: 'Counting Market',
+    emoji: '🧺',
+    blurb: 'Count out fruit for the customers!',
+    accent: '#4cc38a',
+    mount: mountCountingMarket,
   },
 ];

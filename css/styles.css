@@ -1479,3 +1479,100 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .ac-egg-fill { display: block; height: 100%; width: 0%; border-radius: 999px; background: linear-gradient(90deg, #ffd166, #ff8c42); transition: width .2s ease; }
 .ac-egg-tip { margin-top: 4px; font-size: 0.85rem; font-weight: 800; background: #fff; padding: 2px 12px; border-radius: 999px; box-shadow: 0 3px 0 var(--shadow); }
+
+/* ============================================================
+   Counting Market — numbers game
+   ============================================================ */
+
+.cm-game { height: 100%; position: relative; }
+.cm-stall {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  background: linear-gradient(180deg, #fff4de 0%, #ffe9c9 100%);
+  overflow: hidden;
+}
+.cm-awning {
+  height: 26px; flex: 0 0 auto;
+  background: repeating-linear-gradient(90deg, #ff6b6b 0 28px, #fff 28px 56px);
+  box-shadow: 0 3px 8px var(--shadow);
+}
+.cm-top { position: absolute; top: 34px; left: 12px; right: 12px; z-index: 6; display: flex; align-items: center; gap: 10px; }
+.cm-meter { flex: 1; height: 14px; border-radius: 999px; background: rgba(255,255,255,0.7); overflow: hidden; box-shadow: inset 0 1px 2px var(--shadow); }
+.cm-meter-fill { display: block; height: 100%; width: 0%; border-radius: 999px; background: linear-gradient(90deg, #4cc38a, #2ec4b6); transition: width .2s ease; }
+.cm-level { font-weight: 900; font-size: 0.95rem; background: #fff; padding: 3px 12px; border-radius: 999px; box-shadow: 0 3px 0 var(--shadow); }
+
+/* customer + order bubble */
+.cm-customer { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 44px 12px 4px; }
+.cm-cust-art { width: clamp(84px, 20vw, 140px); display: block; }
+.cm-cust-art.cm-arrive { animation: cm-arrive .4s ease; }
+.cm-cust-art.cm-happy { animation: cm-happy .5s ease; }
+@keyframes cm-arrive { 0% { transform: translateX(-40px) scale(.8); opacity: 0; } 100% { transform: none; opacity: 1; } }
+@keyframes cm-happy { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-12%) scale(1.05); } }
+.cm-order {
+  position: relative; background: #fff; border-radius: 22px; padding: 10px 18px;
+  box-shadow: 0 6px 0 var(--shadow); display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.cm-order-item { display: flex; flex-direction: column; align-items: center; }
+.cm-order-num { font-size: clamp(2rem, 8vw, 3rem); font-weight: 900; color: var(--ink); line-height: 1; }
+.cm-order-emoji { font-size: clamp(1.6rem, 6vw, 2.4rem); }
+.cm-dots { display: flex; gap: 4px; margin-top: 4px; }
+.cm-dot { width: 9px; height: 9px; border-radius: 50%; background: #ff8c42; }
+.cm-and { font-weight: 800; opacity: 0.7; }
+
+/* basket (drop zone) */
+.cm-basket {
+  flex: 1 1 auto; min-height: 0; margin: 8px 16px; border-radius: 26px;
+  background: rgba(255,255,255,0.6); border: 4px dashed #d9a86b;
+  display: flex; align-items: center; justify-content: center; overflow-y: auto;
+}
+.cm-basket-items { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; align-content: center; padding: 10px; }
+.cm-chip { font-size: clamp(1.8rem, 7vw, 2.6rem); line-height: 1; transition: transform .1s ease; }
+.cm-chip.pop { animation: cm-pop .3s ease; }
+@keyframes cm-pop { 0% { transform: scale(.4); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
+.cm-basket:empty::after { content: 'Drop fruit here'; opacity: 0.5; font-weight: 700; }
+
+/* give button */
+.cm-give {
+  flex: 0 0 auto; align-self: center; margin: 2px 0 6px;
+  font-size: 1.2rem; font-weight: 900; color: #fff;
+  background: linear-gradient(180deg, #59d19a, #37b985); padding: 10px 34px; border-radius: 999px;
+  box-shadow: 0 5px 0 rgba(0,0,0,0.15);
+}
+.cm-give:disabled { opacity: 0.5; box-shadow: none; }
+.cm-give:active { transform: translateY(2px); }
+
+/* fruit bins */
+.cm-bins { flex: 0 0 auto; display: flex; justify-content: center; gap: clamp(8px, 3vw, 20px); padding: 8px 12px calc(12px + env(safe-area-inset-bottom, 0)); }
+.cm-bin {
+  width: clamp(60px, 16vw, 92px); aspect-ratio: 1; border-radius: 20px;
+  background: #fff; box-shadow: 0 5px 0 var(--shadow); display: flex; align-items: center; justify-content: center;
+  touch-action: none;
+}
+.cm-bin:active { transform: scale(0.94); }
+.cm-bin-fruit { font-size: clamp(2rem, 8vw, 3rem); pointer-events: none; }
+.cm-drag { position: fixed; transform: translate(-50%,-50%); font-size: 3rem; z-index: 50; pointer-events: none; }
+
+/* banner + rewards */
+.cm-banner {
+  position: absolute; top: 40%; left: 50%; transform: translate(-50%,-8px) scale(0.85);
+  font-size: 1.5rem; font-weight: 900; color: #fff; background: #f0a94b;
+  padding: 10px 26px; border-radius: 999px; box-shadow: 0 8px 0 var(--shadow);
+  z-index: 12; opacity: 0; pointer-events: none;
+}
+.cm-banner.is-good { background: #4cc38a; }
+.cm-banner.show { animation: cm-banner 1.6s ease forwards; }
+@keyframes cm-banner { 0% { opacity: 0; transform: translate(-50%,-8px) scale(.85); } 15% { opacity: 1; transform: translate(-50%,0) scale(1.06); } 30%,75% { opacity: 1; transform: translate(-50%,0) scale(1); } 100% { opacity: 0; } }
+.cm-star { position: absolute; top: 30%; left: 50%; font-size: 2rem; z-index: 11; animation: particle-float 1s ease-out forwards; }
+.cm-confetti { position: absolute; top: -20px; width: 12px; height: 16px; border-radius: 3px; z-index: 12; animation: confetti-fall 2.2s ease-in forwards; }
+
+/* start card */
+.cm-start { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 15; background: rgba(60,50,90,0.35); }
+.cm-start.hidden { display: none; }
+.cm-start-card { text-align: center; background: #fff; padding: 26px 30px; border-radius: 28px; box-shadow: 0 10px 0 var(--shadow), 0 16px 30px var(--shadow); max-width: 90%; }
+.cm-start-emoji { font-size: 3rem; }
+.cm-start-card h2 { margin: 6px 0 4px; font-size: 1.8rem; font-weight: 900; color: var(--ink); }
+.cm-start-card p { margin: 0 0 16px; opacity: 0.8; }
+.cm-start-btn { font-size: 1.3rem; font-weight: 800; color: #fff; background: linear-gradient(180deg, #59d19a, #37b985); padding: 14px 34px; border-radius: 999px; box-shadow: 0 6px 0 rgba(0,0,0,0.15); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cm-cust-art.cm-arrive, .cm-cust-art.cm-happy, .cm-chip.pop, .cm-banner.show { animation-duration: .3s !important; }
+}
