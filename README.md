@@ -5,8 +5,9 @@
 </p>
 
 A touch-friendly game hub for kids. The home screen is a menu of games:
-- **Animal Care** — look after three cartoony pets (a dog, a cat, and a unicorn)
-  by feeding, watering, bathing, brushing, playing, and tucking them in.
+- **Animal Care** — look after cartoony pets (a dog, a cat, a unicorn, and a
+  bunny you hatch from an egg) by feeding, watering, bathing, brushing, playing,
+  and tucking them in.
 - **Letter Samurai** — a gentle "Fruit Ninja" with a learning twist: the game
   says a letter out loud and tosses letters up like fruit; swipe to slash the
   one you heard.
@@ -162,6 +163,15 @@ Every game shares one reward economy so playing always earns something to keep:
 
 All of this persists to `localStorage` and works offline; there's no way to lose
 progress.
+
+## Hatch a new pet 🥚
+
+After you've cared for your pets a few times, a **mystery egg** appears in the
+room. **Tap it to keep it warm** — a little warmth meter fills, and when it's
+full the egg cracks open and **Clover the bunny 🐰 hatches!** The bunny becomes a
+full member of the family — its own friendship, all six care tasks, dress-up,
+and Trick School — and it's saved, so it's waiting for you next time. Hatching
+earns the **Egg Hatcher** sticker.
 
 ## Dress-Up Shop
 

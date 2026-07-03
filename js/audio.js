@@ -178,6 +178,11 @@ const EFFECTS = {
     tone({ freq: 1175, start: 0.18, duration: 0.12, type: 'triangle', gain: 0.14 });
     tone({ freq: 1568, start: 0.28, duration: 0.18, type: 'sine', gain: 0.12 });
   },
+  // bunny: a cute springy "boing-boing"
+  'voice-bunny': () => {
+    tone({ freq: 400, start: 0, duration: 0.14, type: 'sine', gain: 0.14, slideTo: 900 });
+    tone({ freq: 500, start: 0.16, duration: 0.16, type: 'sine', gain: 0.14, slideTo: 1100 });
+  },
 };
 
 export function play(name) {
