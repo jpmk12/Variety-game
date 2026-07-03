@@ -15,6 +15,7 @@ import { MINIGAMES } from './minigames/index.js';
 import { mountTricks, TRICKS } from './minigames/tricks.js';
 import { ACCESSORIES, accessoryById } from './accessories.js';
 import { decoratePet } from './wardrobe.js';
+import { DECOR, decorById } from './decor.js';
 
 const SAVE_KEY = 'animal-care';
 const TICK_MS = 15000;
@@ -55,6 +56,12 @@ export function mountAnimalCare(root) {
   // Living world: has the mystery egg hatched into the bunny yet?
   let hatched = !!saved?.hatched;
   let eggWarmth = 0; // transient warmth while the egg is on screen this session
+  // Room decorations: which are owned (bought once) and which are placed.
+  const decor = {
+    owned: { ...(saved?.decor?.owned || {}) },
+    placed: { ...(saved?.decor?.placed || {}) },
+  };
+  let hourOverride = null; // test hook for the day/night cycle
   if (saved?.lastSaved) {
     const elapsed = now - saved.lastSaved;
     ANIMALS.forEach((a) => { state.animals[a.id].stats = applyDecay(state.animals[a.id].stats, elapsed); });
@@ -72,8 +79,16 @@ export function mountAnimalCare(root) {
   let roomEls = null;
   let eggEl = null;
 
-  function persist() { save(SAVE_KEY, { animals: state.animals, wardrobe, tricks, levels, hatched, lastSaved: Date.now() }); }
+  function persist() { save(SAVE_KEY, { animals: state.animals, wardrobe, tricks, levels, hatched, decor, lastSaved: Date.now() }); }
   const petDef = (id) => ANIMALS.find((a) => a.id === id);
+  // Time of day drives the room's backdrop (real clock, override for tests).
+  function timeOfDay() {
+    const h = hourOverride != null ? hourOverride : new Date().getHours();
+    if (h < 6 || h >= 20) return 'night';
+    if (h < 11) return 'morning';
+    if (h < 17) return 'day';
+    return 'dusk';
+  }
   const equippedFor = (id) => wardrobe.equipped[id] || {};
   const tricksFor = (id) => tricks[id] || [];
   const levelFor = (actionId) => Math.min(MAX_LEVEL, levels[actionId] || 1);
@@ -103,6 +118,11 @@ export function mountAnimalCare(root) {
     eggReady: () => eggReady(),
     get hatched() { return hatched; },
     warmEgg: () => warmEgg(),
+    timeOfDay: () => timeOfDay(),
+    setHour: (h) => { hourOverride = h; if (view === 'room') showRoom(); },
+    openDecor: () => showDecor(),
+    placedDecor: () => Object.keys(decor.placed).filter((k) => decor.placed[k]),
+    ownedDecor: () => ({ ...decor.owned }),
   };
 
   function clearView() {
@@ -117,13 +137,17 @@ export function mountAnimalCare(root) {
     view = 'room';
     clearView();
     wrap.innerHTML = `
-      <div class="ac-room">
-        <div class="ac-wall"><div class="ac-window"><span class="ac-cloud"></span><span class="ac-cloud ac-cloud2"></span></div><div class="ac-frame">🌈</div></div>
+      <div class="ac-room tod-${timeOfDay()}">
+        <button class="ac-decorate" aria-label="Decorate the room">🏡 Decorate</button>
+        <div class="ac-wall"><div class="ac-window"><span class="ac-cloud"></span><span class="ac-cloud ac-cloud2"></span><span class="ac-sun" aria-hidden="true"></span><span class="ac-moon" aria-hidden="true"></span><span class="ac-stars" aria-hidden="true"></span></div><div class="ac-frame">🌈</div></div>
         <div class="ac-floor"><div class="ac-rug"></div></div>
+        <div class="ac-decor-layer" aria-hidden="true"></div>
         <div class="ac-stage" role="group" aria-label="Your pets"></div>
       </div>
       <p class="ac-hint">Tap a pet to take care of it!</p>
     `;
+    wrap.querySelector('.ac-decorate').addEventListener('click', () => { play('select'); showDecor(); });
+    renderRoomDecor();
     const stage = wrap.querySelector('.ac-stage');
     roomEls = {};
     const pets = roster();
@@ -142,6 +166,82 @@ export function mountAnimalCare(root) {
 
     // A mystery egg joins the room once enough care has been given.
     if (eggReady()) addEgg(stage);
+  }
+
+  // ---------------- ROOM DECOR ----------------
+  // Paint the placed decorations into the room at their fixed spots.
+  function renderRoomDecor() {
+    const layer = wrap.querySelector('.ac-decor-layer');
+    if (!layer) return;
+    layer.innerHTML = '';
+    DECOR.forEach((d) => {
+      if (!decor.placed[d.id]) return;
+      const el = document.createElement('span');
+      el.className = 'ac-decor';
+      el.textContent = d.emoji;
+      el.style.left = d.x + '%';
+      el.style.top = d.y + '%';
+      el.style.fontSize = d.size + 'rem';
+      layer.appendChild(el);
+    });
+  }
+
+  // A little shop to buy decorations with stars and place them in the room.
+  function showDecor() {
+    view = 'decor';
+    clearView();
+    wrap.innerHTML = `
+      <div class="ac-shop">
+        <div class="ac-shop-top">
+          <button class="ac-back" aria-label="Back to room">← Room</button>
+          <span class="ac-shop-title">🏡 Decorate</span>
+          <span class="ac-shop-stars">⭐ <span class="ac-shop-stars-n">${getStars()}</span></span>
+        </div>
+        <div class="ac-shop-grid ac-decor-grid"></div>
+      </div>
+    `;
+    wrap.querySelector('.ac-back').addEventListener('click', () => { play('select'); showRoom(); });
+    const grid = wrap.querySelector('.ac-decor-grid');
+    DECOR.forEach((d) => {
+      const card = document.createElement('div');
+      card.className = 'ac-shop-card';
+      card.dataset.id = d.id;
+      grid.appendChild(card);
+      renderDecorCard(card, d);
+    });
+  }
+
+  function renderDecorCard(card, d) {
+    const owned = !!decor.owned[d.id];
+    const placed = !!decor.placed[d.id];
+    const enough = getStars() >= d.cost;
+    let btn;
+    if (!owned) btn = `<button class="ac-buy" ${enough ? '' : 'disabled'}>Buy ⭐${d.cost}</button>`;
+    else if (placed) btn = `<button class="ac-equip is-on">Put away</button>`;
+    else btn = `<button class="ac-equip">Place</button>`;
+    card.className = 'ac-shop-card' + (placed ? ' is-worn' : '');
+    card.innerHTML = `<span class="ac-shop-emoji" aria-hidden="true">${d.emoji}</span><span class="ac-shop-name">${d.name}</span>${btn}`;
+    card.querySelector('button').addEventListener('click', () => onDecorAction(d));
+  }
+
+  function onDecorAction(d) {
+    if (!decor.owned[d.id]) {
+      if (!spendStars(d.cost)) return;
+      decor.owned[d.id] = true;
+      decor.placed[d.id] = true;
+      unlockSticker('ac-decor');
+      play('point');
+    } else {
+      decor.placed[d.id] = !decor.placed[d.id];
+      play('select');
+    }
+    persist();
+    const n = wrap.querySelector('.ac-shop-stars-n');
+    if (n) n.textContent = getStars();
+    wrap.querySelectorAll('.ac-decor-grid .ac-shop-card').forEach((card) => {
+      const dd = decorById(card.dataset.id);
+      if (dd) renderDecorCard(card, dd);
+    });
   }
 
   // ---------------- MYSTERY EGG ----------------
@@ -469,8 +569,12 @@ export function mountAnimalCare(root) {
     const elapsed = t - lastTick;
     lastTick = t;
     ANIMALS.forEach((a) => { state.animals[a.id].stats = applyDecay(state.animals[a.id].stats, elapsed); });
-    if (view === 'room') ANIMALS.forEach((a) => refreshRoomPet(a.id));
-    else if (view === 'detail') refreshMeters();
+    if (view === 'room') {
+      ANIMALS.forEach((a) => refreshRoomPet(a.id));
+      // keep the backdrop in sync as the real clock moves through the day
+      const room = wrap.querySelector('.ac-room');
+      if (room) room.className = 'ac-room tod-' + timeOfDay();
+    } else if (view === 'detail') refreshMeters();
     persist();
   }, TICK_MS);
 
