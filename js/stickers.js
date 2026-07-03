@@ -3,7 +3,7 @@
 // a `when(state, helpers)` predicate that progress.js auto-checks after any
 // award (milestones on the star wallet, lifetime counters, or a pet's bond).
 
-export const GROUPS = ['Animal Care', 'Letter Samurai', 'Climb & Spell', 'Beat Buddies', 'Counting Market', 'Milestones'];
+export const GROUPS = ['Animal Care', 'Letter Samurai', 'Climb & Spell', 'Beat Buddies', 'Counting Market', 'Pet Pairs', 'Milestones'];
 
 export const STICKERS = [
   // --- Animal Care: one per activity, earned the first time you win it ---
@@ -53,6 +53,14 @@ export const STICKERS = [
     when: (s) => (s.counters.cmDays || 0) >= 3 },
   { id: 'cm-10',    group: 'Counting Market', emoji: '🏪', name: 'Market Master', hint: 'Finish 10 market days',
     when: (s) => (s.counters.cmDays || 0) >= 10 },
+
+  // --- Pet Pairs: memory boards cleared ---
+  { id: 'mm-first',   group: 'Pet Pairs', emoji: '🃏', name: 'Good Memory',    hint: 'Clear a memory board' },
+  { id: 'mm-perfect', group: 'Pet Pairs', emoji: '🧠', name: 'Perfect Recall', hint: 'Clear a board with no wrong flips' },
+  { id: 'mm-3',       group: 'Pet Pairs', emoji: '👀', name: 'Sharp Eyes',     hint: 'Clear 3 boards',
+    when: (s) => (s.counters.mmWins || 0) >= 3 },
+  { id: 'mm-10',      group: 'Pet Pairs', emoji: '🏆', name: 'Memory Master',  hint: 'Clear 10 boards',
+    when: (s) => (s.counters.mmWins || 0) >= 10 },
 
   // --- Milestones: the star wallet ---
   { id: 'stars-25',  group: 'Milestones', emoji: '⭐', name: 'Star Collector', hint: 'Earn 25 stars',

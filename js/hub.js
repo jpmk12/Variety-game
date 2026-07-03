@@ -14,6 +14,9 @@ const GAME_GROUP = {
   'animal-care': 'Animal Care',
   'samurai': 'Letter Samurai',
   'climb-spell': 'Climb & Spell',
+  'beat-buddies': 'Beat Buddies',
+  'counting-market': 'Counting Market',
+  'memory-match': 'Pet Pairs',
 };
 
 export function renderHub(container, onLaunch) {
