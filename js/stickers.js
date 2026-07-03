@@ -22,6 +22,7 @@ export const STICKERS = [
   { id: 'ac-style',   group: 'Animal Care', emoji: '🛍️', name: 'Fashionista',    hint: 'Buy something at the shop' },
   { id: 'ac-trick',   group: 'Animal Care', emoji: '🎓', name: 'Star Pupil',      hint: 'Graduate Trick School' },
   { id: 'ac-hatch',   group: 'Animal Care', emoji: '🐣', name: 'Egg Hatcher',     hint: 'Hatch the mystery egg' },
+  { id: 'ac-decor',   group: 'Animal Care', emoji: '🏡', name: 'Decorator',       hint: 'Decorate the room' },
 
   // --- Letter Samurai: counter milestones on correct slashes ---
   { id: 'sam-first', group: 'Letter Samurai', emoji: '⚔️', name: 'First Slash',  hint: 'Slash the right letter' },

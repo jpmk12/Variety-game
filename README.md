@@ -190,6 +190,12 @@ full member of the family — its own friendship, all six care tasks, dress-up,
 and Trick School — and it's saved, so it's waiting for you next time. Hatching
 earns the **Egg Hatcher** sticker.
 
+**A living room.** The room follows the **real time of day** — sunny mornings, a
+bright afternoon, an orange **dusk**, and a **night** sky with a moon and stars
+in the window. And with **🏡 Decorate** you can spend stars on decorations
+(a plant, balloons, a pet bed, a lantern…) and place them around the room; your
+choices are saved (and unlock the **Decorator** sticker).
+
 ## Dress-Up Shop
 
 Stars now have a purpose — spend them to dress up your pets:
