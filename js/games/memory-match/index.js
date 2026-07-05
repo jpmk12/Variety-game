@@ -7,7 +7,7 @@ import { play, playVoice, isMuted, unlock } from '../../audio.js';
 import { speak, cancelSpeech } from '../samurai/speech.js';
 import { load, save } from '../../storage.js';
 import { award, unlockSticker } from '../../progress.js';
-import { buildDeck, levelInfo, MAX_LEVEL } from './deck.js';
+import { buildDeck, deckInfo, MAX_LEVEL } from './deck.js';
 
 const SAVE_KEY = 'memory-match';
 const reduceMotion = typeof matchMedia === 'function'
@@ -31,6 +31,10 @@ export function mountMemoryMatch(root) {
         <div class="mm-start-emoji" aria-hidden="true">🃏</div>
         <h2>Pet Pairs</h2>
         <p>Flip the cards to find matching pets!</p>
+        <div class="mm-modes" role="group" aria-label="Game mode">
+          <button class="mm-mode" data-mode="faces">🐾 Faces</button>
+          <button class="mm-mode" data-mode="names">🔤 Names</button>
+        </div>
         <button class="mm-start-btn">Play! 🐾</button>
       </div>
     </div>
@@ -43,9 +47,12 @@ export function mountMemoryMatch(root) {
   const banner = game.querySelector('.mm-banner');
   const startOverlay = game.querySelector('.mm-start');
   const startBtn = game.querySelector('.mm-start-btn');
+  const modeBtns = game.querySelectorAll('.mm-mode');
 
   // --- state ---
-  let level = Math.min(MAX_LEVEL, Math.max(1, (load(SAVE_KEY, {}) || {}).level | 0 || 1));
+  const saved = load(SAVE_KEY, {}) || {};
+  let level = Math.min(MAX_LEVEL, Math.max(1, saved.level | 0 || 1));
+  let mode = saved.mode === 'names' ? 'names' : 'faces';
   let deck = [];
   let flipped = [];          // indices currently face-up and unmatched
   const matched = new Set(); // indices that have been paired off
@@ -55,20 +62,26 @@ export function mountMemoryMatch(root) {
   let won = false;
   const timers = new Set();
   const later = (fn, ms) => { const t = setTimeout(() => { timers.delete(t); fn(); }, ms); timers.add(t); return t; };
-  const persist = () => save(SAVE_KEY, { level });
+  const persist = () => save(SAVE_KEY, { level, mode });
 
   // test hook — deck order is exposed so tests can flip known pairs deterministically
   game.__mm = {
     get level() { return level; },
+    get mode() { return mode; },
     get found() { return matched.size / 2; },
     get total() { return deck.length / 2; },
     get won() { return won; },
     get busy() { return busy; },
-    get deck() { return deck.map((c, i) => ({ i, key: c.key, animalId: c.animalId, matched: matched.has(i), up: flipped.includes(i) })); },
+    get deck() { return deck.map((c, i) => ({ i, key: c.key, animalId: c.animalId, kind: c.kind, matched: matched.has(i), up: flipped.includes(i) })); },
     start: () => start(),
     flip: (i) => flip(i),
+    setMode: (m) => { mode = m === 'names' ? 'names' : 'faces'; syncModeBtns(); persist(); if (started) deal(); },
     setLevel: (n) => { level = Math.min(MAX_LEVEL, Math.max(1, n)); persist(); deal(); },
   };
+
+  function syncModeBtns() {
+    modeBtns.forEach((b) => b.classList.toggle('is-on', b.dataset.mode === mode));
+  }
 
   // --- deal a fresh board ---
   function start() {
@@ -84,7 +97,7 @@ export function mountMemoryMatch(root) {
     flipped = [];
     matched.clear();
     wrongFlips = 0;
-    deck = buildDeck(level);
+    deck = buildDeck(level, mode);
     renderLevel();
     renderGrid();
     renderFound();
@@ -94,7 +107,7 @@ export function mountMemoryMatch(root) {
   function renderFound() { foundEl.textContent = `🐾 ${matched.size / 2}/${deck.length / 2}`; }
 
   function renderGrid() {
-    const { cols } = levelInfo(level);
+    const { cols } = deckInfo(level, mode);
     gridEl.style.setProperty('--cols', cols);
     gridEl.innerHTML = '';
     deck.forEach((card, i) => {
@@ -102,11 +115,14 @@ export function mountMemoryMatch(root) {
       btn.className = 'mm-card';
       btn.dataset.i = i;
       btn.setAttribute('aria-label', 'Card');
-      const badge = card.accessory ? `<span class="mm-acc" aria-hidden="true">${card.accessory}</span>` : '';
+      // A name card shows the pet's name as a word; a face card shows its art.
+      const face = card.kind === 'name'
+        ? `<span class="mm-word">${card.name}</span>`
+        : `${card.svg}${card.accessory ? `<span class="mm-acc" aria-hidden="true">${card.accessory}</span>` : ''}`;
       btn.innerHTML = `
         <span class="mm-card-inner">
           <span class="mm-back" aria-hidden="true">🐾</span>
-          <span class="mm-front" aria-hidden="true">${card.svg}${badge}</span>
+          <span class="mm-front" aria-hidden="true">${face}</span>
         </span>`;
       btn.addEventListener('click', () => flip(i));
       gridEl.appendChild(btn);
@@ -167,6 +183,7 @@ export function mountMemoryMatch(root) {
     const pet = deck.length ? deck[0].animalId : 'dog';
     award({ stars: 3, counter: 'mmWins', bondPet: pet, bondXp: 1, stickers: ['mm-first'] });
     if (wrongFlips === 0) unlockSticker('mm-perfect');   // cleared with no wrong flips!
+    if (mode === 'names') unlockSticker('mm-names');     // matched pets to their names!
     const leveled = level < MAX_LEVEL;
     if (leveled) level += 1;
     persist();
@@ -204,6 +221,13 @@ export function mountMemoryMatch(root) {
     }
   }
 
+  modeBtns.forEach((b) => b.addEventListener('click', () => {
+    mode = b.dataset.mode === 'names' ? 'names' : 'faces';
+    syncModeBtns();
+    persist();
+    play('select');
+  }));
+  syncModeBtns();
   startBtn.addEventListener('click', start);
 
   return function unmount() {

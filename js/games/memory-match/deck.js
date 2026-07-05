@@ -43,15 +43,38 @@ export function levelInfo(level) {
   return LEVELS[Math.min(MAX_LEVEL, Math.max(1, level)) - 1];
 }
 
-// Build a shuffled deck for a level: `pairs` distinct faces, two cards each.
+// Grid shape for a level + mode. Name mode pairs a face with its NAME word, and
+// only the five plain pets have unique names — so it caps at 4 pairs and lays
+// out in two tidy rows.
+export function deckInfo(level, mode = 'faces') {
+  const info = levelInfo(level);
+  if (mode === 'names') {
+    const pairs = Math.min(info.pairs, 4, ANIMALS.length);
+    return { pairs, cols: pairs };
+  }
+  return info;
+}
+
+// Build a shuffled deck for a level + mode.
+//  - faces: `pairs` distinct faces, two identical face cards each.
+//  - names: each pair is one pet FACE card + one pet NAME card (same key).
 // rng defaults to Math.random but is injectable so tests stay deterministic.
-export function buildDeck(level, rng = Math.random) {
-  const { pairs } = levelInfo(level);
-  const faces = facePool().slice(0, pairs);
+export function buildDeck(level, mode = 'faces', rng = Math.random) {
+  const { pairs } = deckInfo(level, mode);
   const cards = [];
-  faces.forEach((f, i) => {
+
+  if (mode === 'names') {
+    ANIMALS.slice(0, pairs).forEach((a, i) => {
+      const base = { key: a.id, animalId: a.id, name: a.name, svg: a.svg, accessory: '' };
+      cards.push({ id: i * 2, ...base, kind: 'face' });
+      cards.push({ id: i * 2 + 1, ...base, kind: 'name' });
+    });
+    return shuffle(cards, rng);
+  }
+
+  facePool().slice(0, pairs).forEach((f, i) => {
     for (let n = 0; n < 2; n++) {
-      cards.push({ id: i * 2 + n, key: f.key, animalId: f.animalId, name: f.name, svg: f.svg, accessory: f.accessory });
+      cards.push({ id: i * 2 + n, key: f.key, animalId: f.animalId, name: f.name, svg: f.svg, accessory: f.accessory, kind: 'face' });
     }
   });
   return shuffle(cards, rng);

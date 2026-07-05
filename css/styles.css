@@ -1872,3 +1872,18 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .daily-modal, .daily-card { transition: none; }
   .daily-flame-pop, .daily-star { animation: none; }
 }
+
+/* Pet Pairs — mode toggle on the start card + name-word cards */
+.mm-modes { display: flex; gap: 10px; justify-content: center; margin: 4px 0 18px; }
+.mm-mode {
+  font-size: 1.05rem; font-weight: 800; color: var(--ink);
+  padding: 9px 18px; border-radius: 999px; background: #f1ecfa;
+  border: 3px solid transparent; box-shadow: 0 3px 0 var(--shadow);
+  transition: transform .1s ease;
+}
+.mm-mode:active { transform: scale(0.94); }
+.mm-mode.is-on { border-color: #b298dc; background: #efe4ff; }
+.mm-word {
+  font-size: clamp(1rem, 4.5vw, 1.9rem); font-weight: 900; color: #6b4fa0;
+  text-align: center; line-height: 1.1; padding: 4px;
+}

@@ -57,6 +57,7 @@ export const STICKERS = [
   // --- Pet Pairs: memory boards cleared ---
   { id: 'mm-first',   group: 'Pet Pairs', emoji: '🃏', name: 'Good Memory',    hint: 'Clear a memory board' },
   { id: 'mm-perfect', group: 'Pet Pairs', emoji: '🧠', name: 'Perfect Recall', hint: 'Clear a board with no wrong flips' },
+  { id: 'mm-names',   group: 'Pet Pairs', emoji: '🔤', name: 'Word Finder',    hint: 'Clear a board in Names mode' },
   { id: 'mm-3',       group: 'Pet Pairs', emoji: '👀', name: 'Sharp Eyes',     hint: 'Clear 3 boards',
     when: (s) => (s.counters.mmWins || 0) >= 3 },
   { id: 'mm-10',      group: 'Pet Pairs', emoji: '🏆', name: 'Memory Master',  hint: 'Clear 10 boards',
