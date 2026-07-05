@@ -19,8 +19,9 @@ A touch-friendly game hub for kids. The home screen is a menu of games:
 - **Counting Market** — a pet asks for a number of fruit ("3 apples!"); count
   them out into the basket and hand it over. Early counting and numbers.
 - **Pet Pairs** — a memory game: flip paw-print cards two at a time to find
-  matching pets. Clear the board to win and level up to a bigger grid. No timer,
-  no losing.
+  matching pets. Clear the board to win and level up to a bigger grid. A **Names**
+  mode swaps one card of each pair for the pet's name word, for early reading.
+  No timer, no losing.
 
 Built as a **zero-build static site**: plain HTML, CSS, and JavaScript (ES
 modules) with hand-drawn inline SVG characters. No installs, no bundler, no
