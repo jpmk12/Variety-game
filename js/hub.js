@@ -7,7 +7,13 @@ import { getStars, groupProgress } from './progress.js';
 import { renderStickerBook } from './stickerbook.js';
 import { renderProfileMenu } from './profilemenu.js';
 import { getActive } from './profiles.js';
+import { status as dailyStatus } from './daily.js';
+import { renderDailyModal } from './daily-modal.js';
 import { play } from './audio.js';
+
+// The daily treat pops up only on the first hub render of an app load, so it
+// doesn't nag every time you back out of a game or the sticker book.
+let dailyChecked = false;
 
 // Which sticker group each game contributes to (for the per-card progress hint).
 const GAME_GROUP = {
@@ -86,4 +92,15 @@ export function renderHub(container, onLaunch) {
 
   hub.appendChild(grid);
   container.appendChild(hub);
+
+  // First render of this load: offer today's daily treat if it's unclaimed.
+  if (!dailyChecked) {
+    dailyChecked = true;
+    if (!dailyStatus().claimedToday) {
+      renderDailyModal(container, () => {
+        const n = hub.querySelector('.hub-stars-n');
+        if (n) n.textContent = getStars();
+      });
+    }
+  }
 }
