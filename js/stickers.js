@@ -3,7 +3,7 @@
 // a `when(state, helpers)` predicate that progress.js auto-checks after any
 // award (milestones on the star wallet, lifetime counters, or a pet's bond).
 
-export const GROUPS = ['Animal Care', 'Letter Samurai', 'Climb & Spell', 'Beat Buddies', 'Counting Market', 'Pet Pairs', 'Milestones'];
+export const GROUPS = ['Animal Care', 'Letter Samurai', 'Climb & Spell', 'Beat Buddies', 'Counting Market', 'Pet Pairs', 'Shape Sorters', 'Milestones'];
 
 export const STICKERS = [
   // --- Animal Care: one per activity, earned the first time you win it ---
@@ -62,6 +62,14 @@ export const STICKERS = [
     when: (s) => (s.counters.mmWins || 0) >= 3 },
   { id: 'mm-10',      group: 'Pet Pairs', emoji: '🏆', name: 'Memory Master',  hint: 'Clear 10 boards',
     when: (s) => (s.counters.mmWins || 0) >= 10 },
+
+  // --- Shape Sorters: sorting days completed ---
+  { id: 'ss-first', group: 'Shape Sorters', emoji: '🔺', name: 'Sorter',        hint: 'Finish a sorting day' },
+  { id: 'ss-color', group: 'Shape Sorters', emoji: '🎨', name: 'Color Sorter',  hint: 'Finish a sort-by-color day' },
+  { id: 'ss-3',     group: 'Shape Sorters', emoji: '🟦', name: 'Sorting Pro',   hint: 'Finish 3 sorting days',
+    when: (s) => (s.counters.ssDays || 0) >= 3 },
+  { id: 'ss-10',    group: 'Shape Sorters', emoji: '🏆', name: 'Sort Master',   hint: 'Finish 10 sorting days',
+    when: (s) => (s.counters.ssDays || 0) >= 10 },
 
   // --- Milestones: the star wallet ---
   { id: 'stars-25',  group: 'Milestones', emoji: '⭐', name: 'Star Collector', hint: 'Earn 25 stars',

@@ -23,6 +23,7 @@ const GAME_GROUP = {
   'beat-buddies': 'Beat Buddies',
   'counting-market': 'Counting Market',
   'memory-match': 'Pet Pairs',
+  'shape-sort': 'Shape Sorters',
 };
 
 export function renderHub(container, onLaunch) {

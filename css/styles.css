@@ -1887,3 +1887,67 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   font-size: clamp(1rem, 4.5vw, 1.9rem); font-weight: 900; color: #6b4fa0;
   text-align: center; line-height: 1.1; padding: 4px;
 }
+
+/* ===== Shape Sorters ===== */
+.ss-game { position: absolute; inset: 0; }
+.ss-stage {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; gap: 14px; padding: 16px;
+  background: linear-gradient(180deg, #fff2e6 0%, #ffe9f0 100%); overflow: hidden;
+}
+.ss-top { flex: 0 0 auto; width: min(520px, 96%); display: flex; align-items: center; gap: 12px; }
+.ss-meter { flex: 1 1 auto; height: 16px; border-radius: 999px; background: #fff; box-shadow: inset 0 2px 0 rgba(0,0,0,0.06); overflow: hidden; }
+.ss-meter-fill { display: block; height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, #ffb26b, #ff8c42); transition: width .3s ease; }
+.ss-level { font-size: 1.05rem; font-weight: 800; color: var(--ink); }
+.ss-rule { margin: 0; font-size: 1.35rem; font-weight: 900; color: #d9612f; }
+.ss-item-wrap { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; min-height: 0; }
+.ss-item { width: clamp(90px, 26vw, 150px); height: clamp(90px, 26vw, 150px); filter: drop-shadow(0 6px 6px rgba(0,0,0,0.18)); }
+.ss-shape-svg { width: 100%; height: 100%; display: block; }
+.ss-drop { animation: ss-drop-in .35s ease; }
+@keyframes ss-drop-in { 0% { transform: translateY(-40px) scale(0.6); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
+.ss-into { animation: ss-into .5s ease forwards; }
+@keyframes ss-into { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(0.3) translateY(60px); opacity: 0; } }
+
+.ss-bins {
+  flex: 0 0 auto; width: min(560px, 98%);
+  display: grid; grid-template-columns: repeat(var(--bins, 3), 1fr); gap: 12px;
+}
+.ss-bin {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 14px 8px 12px; border-radius: 20px; background: var(--card);
+  box-shadow: 0 6px 0 var(--shadow); border: 3px solid #ffd9c2;
+  transition: transform .1s ease;
+}
+.ss-bin:active { transform: scale(0.95); }
+.ss-bin-icon { width: clamp(48px, 12vw, 72px); height: clamp(48px, 12vw, 72px); }
+.ss-bin-label { font-weight: 800; font-size: 0.95rem; color: var(--ink); }
+.ss-bin-yay { animation: ss-yay .5s ease; border-color: #a0e7a0; }
+@keyframes ss-yay { 0%{transform:scale(1)} 45%{transform:scale(1.12)} 100%{transform:scale(1)} }
+.ss-bin-no { animation: ss-no .4s ease; }
+@keyframes ss-no { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+.ss-banner {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0.8);
+  background: #fff; color: var(--ink); font-weight: 900; font-size: 1.4rem;
+  padding: 14px 28px; border-radius: 20px; box-shadow: 0 8px 0 var(--shadow);
+  opacity: 0; pointer-events: none; z-index: 20; transition: opacity .2s ease, transform .2s ease;
+}
+.ss-banner.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+.ss-banner.is-good { background: #fff3e0; }
+.ss-confetti { position: absolute; top: -20px; width: 12px; height: 16px; border-radius: 3px; z-index: 12; animation: confetti-fall 2.2s ease-in forwards; }
+
+.ss-start {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(180deg, #fff2e6 0%, #ffe9f0 100%); z-index: 30;
+}
+.ss-start.hidden { display: none; }
+.ss-start-card { background: var(--card); border-radius: 28px; padding: 30px 34px; text-align: center; box-shadow: 0 10px 0 var(--shadow); max-width: 90%; }
+.ss-start-emoji { font-size: 3.4rem; }
+.ss-start-card h2 { margin: 8px 0 4px; font-size: 1.8rem; }
+.ss-start-card p { margin: 0 0 18px; opacity: 0.75; font-weight: 600; }
+.ss-start-btn { font-size: 1.3rem; font-weight: 800; padding: 14px 34px; border-radius: 999px; background: #ff9f6b; color: #fff; box-shadow: 0 5px 0 var(--shadow); transition: transform .12s ease; }
+.ss-start-btn:active { transform: scale(0.94); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ss-drop, .ss-into, .ss-bin-yay, .ss-bin-no, .ss-meter-fill { animation: none; transition: none; }
+}

@@ -8,6 +8,7 @@ import { mountClimbSpell } from './games/climb-spell/index.js';
 import { mountBeatBuddies } from './games/beat-buddies/index.js';
 import { mountCountingMarket } from './games/counting-market/index.js';
 import { mountMemoryMatch } from './games/memory-match/index.js';
+import { mountShapeSort } from './games/shape-sort/index.js';
 
 export const games = [
   {
@@ -60,5 +61,13 @@ export const games = [
     blurb: 'Flip cards to find matching pets!',
     accent: '#b298dc',
     mount: mountMemoryMatch,
+  },
+  {
+    id: 'shape-sort',
+    title: 'Shape Sorters',
+    emoji: '🔺',
+    blurb: 'Sort shapes and colors into bins!',
+    accent: '#ff9f6b',
+    mount: mountShapeSort,
   },
 ];
