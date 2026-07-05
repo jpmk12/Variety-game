@@ -22,6 +22,9 @@ A touch-friendly game hub for kids. The home screen is a menu of games:
   matching pets. Clear the board to win and level up to a bigger grid. A **Names**
   mode swaps one card of each pair for the pet's name word, for early reading.
   No timer, no losing.
+- **Shape Sorters** — a sorting/logic game: an item (a colored shape) appears;
+  tap the bin it belongs in. The rule changes by level — sometimes sort by shape
+  (ignore the color), sometimes by color (ignore the shape). No timer, no losing.
 
 Built as a **zero-build static site**: plain HTML, CSS, and JavaScript (ES
 modules) with hand-drawn inline SVG characters. No installs, no bundler, no
