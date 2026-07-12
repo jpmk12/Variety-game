@@ -7,7 +7,8 @@
 A touch-friendly game hub for kids — **ten** playful games spanning pets, music,
 early reading, counting, sorting, and building, all under one roof. Everything is
 **no-timer, no-losing**, with big touch targets, spoken prompts, and a shared
-reward economy that ties the games together. The home screen is a menu of games:
+reward economy that ties the games together. The home screen is a menu of games,
+each shown as a **gameplay-art tile** so kids can recognize it at a glance:
 - **Animal Care** — look after cartoony pets (a dog, a cat, a unicorn, and a
   bunny you hatch from an egg) by feeding, watering, bathing, brushing, playing,
   and tucking them in.
@@ -334,7 +335,7 @@ js/
 assets/
   favicon.svg, icon-*.png     app icons (tab + home screen)
   hero.png                    README hero (montage of six games)
-  tiles/                      generated hub card art
+  tiles/                      one gameplay-art tile per game (hub cards)
 scripts/
   hero.html             an early single-game thumbnail generator
 ```
@@ -351,3 +352,12 @@ Add an entry to `js/registry.js` with an `id`, `title`, `emoji`, and a
 headless browser (e.g. Playwright) opens each game, screenshots its play area,
 and composes the shots into a titled collage — see the generation script used to
 produce it. Re-run it after adding a game to refresh the hero.
+
+## Hub tiles
+
+Every game card on the hub shows its own **gameplay-art tile** from
+`assets/tiles/<id>.png` (referenced as `thumb` in `js/registry.js`). Each tile
+captures a moment from that game — the welding torch mid-cut, the crane lowering
+a letter, a matched pair of pets — so the menu reads as a shelf of little games
+rather than a row of emoji. A game with no `thumb` falls back to its emoji, so
+tiles are optional when adding a game.
