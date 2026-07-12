@@ -9,6 +9,7 @@ import { mountBeatBuddies } from './games/beat-buddies/index.js';
 import { mountCountingMarket } from './games/counting-market/index.js';
 import { mountMemoryMatch } from './games/memory-match/index.js';
 import { mountShapeSort } from './games/shape-sort/index.js';
+import { mountWordBuilders } from './games/word-builders/index.js';
 
 export const games = [
   {
@@ -69,5 +70,13 @@ export const games = [
     blurb: 'Sort shapes and colors into bins!',
     accent: '#ff9f6b',
     mount: mountShapeSort,
+  },
+  {
+    id: 'word-builders',
+    title: 'Word Builders',
+    emoji: '🏗️',
+    blurb: 'Move letters to build the word!',
+    accent: '#f4a259',
+    mount: mountWordBuilders,
   },
 ];

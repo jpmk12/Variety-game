@@ -25,6 +25,9 @@ A touch-friendly game hub for kids. The home screen is a menu of games:
 - **Shape Sorters** — a sorting/logic game: an item (a colored shape) appears;
   tap the bin it belongs in. The rule changes by level — sometimes sort by shape
   (ignore the color), sometimes by color (ignore the shape). No timer, no losing.
+- **Word Builders** — a construction-themed spelling game: a word is laid out in
+  concrete slots; drag the scattered letter blocks into place to build it. Longer
+  words and decoy letters arrive as you level up. No timer, no losing.
 
 Built as a **zero-build static site**: plain HTML, CSS, and JavaScript (ES
 modules) with hand-drawn inline SVG characters. No installs, no bundler, no
