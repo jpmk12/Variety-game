@@ -137,9 +137,11 @@ export function mountWordBuilders(root) {
       const slot = document.createElement('div');
       slot.className = 'wb-slot' + (s.filled ? ' is-filled' : '');
       slot.dataset.slot = i;
+      // Empty slots are letter-shaped molds carved into the concrete, so the row
+      // reads as the word and the crane pulls each block into its matching form.
       slot.innerHTML = s.filled
         ? `<span class="wb-slot-letter">${s.expected}</span>`
-        : (puzzle.hint ? `<span class="wb-slot-hint">${s.expected}</span>` : '');
+        : `<span class="wb-slot-mold">${s.expected}</span>`;
       // tap a slot while the crane holds a letter → drop it here
       slot.addEventListener('pointerdown', () => { if (held != null) cranePlace(i); });
       slotsEl.appendChild(slot);
