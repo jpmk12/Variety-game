@@ -222,9 +222,9 @@ export function mountMetalMakers(root) {
       positionTool(torch, p.px, p.py);   // the torch ALWAYS follows the finger
       if (!tracing || busy) { lastP = p; return; }
       const f = frontier();
-      if (dist(p.x, p.y, f.x, f.y) < 34) {           // near the cut's leading edge → cut!
+      if (dist(p.x, p.y, f.x, f.y) < 44) {           // near the cut's leading edge → cut!
         const moved = lastP ? dist(p.x, p.y, lastP.x, lastP.y) : 0;
-        cutLen = Math.min(pathLen, cutLen + Math.max(moved * 1.25, 0.6));
+        cutLen = Math.min(pathLen, cutLen + Math.max(moved * 1.5, 0.9));
         paint();
         torch.classList.add('is-cutting');
         const now = e.timeStamp || 0;
@@ -324,9 +324,9 @@ export function mountMetalMakers(root) {
       const p = ptXY(wrap, e);
       positionTool(welder, p.px, p.py);        // the welder always follows the finger
       if (!welding || busy) { lastP = p; return; }
-      if (distSeg(p.x, p.y, seam.x1, seam.y1, seam.x2, seam.y2) < 26) {   // near the seam → weld!
+      if (distSeg(p.x, p.y, seam.x1, seam.y1, seam.x2, seam.y2) < 34) {   // near the seam → weld!
         const moved = lastP ? dist(p.x, p.y, lastP.x, lastP.y) : 0;
-        fill = Math.min(1, fill + Math.max(moved, 0.5) / 70);
+        fill = Math.min(1, fill + Math.max(moved, 0.6) / 58);
         paint(); welder.classList.add('is-arcing');
         const now = e.timeStamp || 0;
         if (now - sparkAt > 55) { sparkAt = now; spark(wrap, p.px, p.py); if (Math.random() < 0.5) play('weld'); }
