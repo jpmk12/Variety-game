@@ -10,6 +10,7 @@ import { mountCountingMarket } from './games/counting-market/index.js';
 import { mountMemoryMatch } from './games/memory-match/index.js';
 import { mountShapeSort } from './games/shape-sort/index.js';
 import { mountWordBuilders } from './games/word-builders/index.js';
+import { mountMetalMakers } from './games/metal-makers/index.js';
 
 export const games = [
   {
@@ -78,5 +79,13 @@ export const games = [
     blurb: 'Move letters to build the word!',
     accent: '#f4a259',
     mount: mountWordBuilders,
+  },
+  {
+    id: 'metal-makers',
+    title: 'Metal Makers',
+    emoji: '🔧',
+    blurb: 'Cut, weld and rivet metal creations!',
+    accent: '#8ecae6',
+    mount: mountMetalMakers,
   },
 ];
