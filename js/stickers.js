@@ -3,7 +3,7 @@
 // a `when(state, helpers)` predicate that progress.js auto-checks after any
 // award (milestones on the star wallet, lifetime counters, or a pet's bond).
 
-export const GROUPS = ['Animal Care', 'Letter Samurai', 'Climb & Spell', 'Beat Buddies', 'Counting Market', 'Pet Pairs', 'Shape Sorters', 'Milestones'];
+export const GROUPS = ['Animal Care', 'Letter Samurai', 'Climb & Spell', 'Beat Buddies', 'Counting Market', 'Pet Pairs', 'Shape Sorters', 'Word Builders', 'Milestones'];
 
 export const STICKERS = [
   // --- Animal Care: one per activity, earned the first time you win it ---
@@ -70,6 +70,14 @@ export const STICKERS = [
     when: (s) => (s.counters.ssDays || 0) >= 3 },
   { id: 'ss-10',    group: 'Shape Sorters', emoji: '🏆', name: 'Sort Master',   hint: 'Finish 10 sorting days',
     when: (s) => (s.counters.ssDays || 0) >= 10 },
+
+  // --- Word Builders: words built ---
+  { id: 'wb-first',  group: 'Word Builders', emoji: '🔨', name: 'Builder',         hint: 'Build your first word' },
+  { id: 'wb-nohint', group: 'Word Builders', emoji: '🏗️', name: 'Master Builder',  hint: 'Build a word with no hint' },
+  { id: 'wb-5',      group: 'Word Builders', emoji: '🧱', name: 'Word Site',       hint: 'Build 5 words',
+    when: (s) => (s.counters.wbWords || 0) >= 5 },
+  { id: 'wb-15',     group: 'Word Builders', emoji: '👷', name: 'Head Contractor', hint: 'Build 15 words',
+    when: (s) => (s.counters.wbWords || 0) >= 15 },
 
   // --- Milestones: the star wallet ---
   { id: 'stars-25',  group: 'Milestones', emoji: '⭐', name: 'Star Collector', hint: 'Earn 25 stars',

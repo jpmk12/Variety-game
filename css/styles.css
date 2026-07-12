@@ -1951,3 +1951,78 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 @media (prefers-reduced-motion: reduce) {
   .ss-drop, .ss-into, .ss-bin-yay, .ss-bin-no, .ss-meter-fill { animation: none; transition: none; }
 }
+
+/* ===== Word Builders ===== */
+.wb-game { position: absolute; inset: 0; }
+.wb-site {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; gap: 16px; padding: 16px;
+  background: linear-gradient(180deg, #fdf3e3 0%, #f3e7d3 100%); overflow: hidden;
+}
+.wb-top { flex: 0 0 auto; width: min(520px, 96%); display: flex; align-items: center; gap: 12px; }
+.wb-meter { flex: 1 1 auto; height: 16px; border-radius: 999px; background: #fff; box-shadow: inset 0 2px 0 rgba(0,0,0,0.06); overflow: hidden; }
+.wb-meter-fill { display: block; height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, #ffd166, #f4a259); transition: width .3s ease; }
+.wb-level { font-size: 1.05rem; font-weight: 800; color: var(--ink); }
+.wb-say { font-size: 1.6rem; background: #fff; width: 52px; height: 52px; border-radius: 50%; box-shadow: 0 4px 0 var(--shadow); }
+.wb-say:active { transform: scale(0.92); }
+
+/* Concrete slots — the word to build */
+.wb-slots { flex: 0 0 auto; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.wb-slot {
+  width: clamp(52px, 15vw, 84px); aspect-ratio: 1/1; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  background: repeating-linear-gradient(45deg, #d9d2c4, #d9d2c4 6px, #d2cabb 6px, #d2cabb 12px);
+  box-shadow: inset 0 0 0 4px #c3bbab, inset 0 4px 8px rgba(0,0,0,0.12);
+}
+.wb-slot.is-filled { background: linear-gradient(180deg, #ffe08a, #f4b860); box-shadow: 0 5px 0 #c98b3a; }
+.wb-slot.is-target { box-shadow: inset 0 0 0 4px #6bbf59, 0 0 0 4px #a7e39a; }
+.wb-slot-hint { font-size: clamp(1.6rem, 6vw, 2.6rem); font-weight: 900; color: rgba(90,80,60,0.28); }
+.wb-slot-letter { font-size: clamp(1.6rem, 6vw, 2.6rem); font-weight: 900; color: #6b4a1c; }
+.wb-slot-no { animation: wb-no .4s ease; }
+@keyframes wb-no { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+/* Scattered letter blocks */
+.wb-blocks { flex: 1 1 auto; min-height: 0; display: flex; flex-wrap: wrap; gap: 12px; align-content: center; justify-content: center; align-items: center; }
+.wb-block {
+  width: clamp(52px, 15vw, 84px); aspect-ratio: 1/1; border-radius: 14px;
+  font-size: clamp(1.6rem, 6vw, 2.6rem); font-weight: 900; color: #fff;
+  background: linear-gradient(180deg, #ffb765, #f08a3c);
+  box-shadow: 0 6px 0 #c56a26; text-shadow: 0 1px 1px rgba(0,0,0,0.25);
+  transition: transform .1s ease;
+}
+.wb-block:active { transform: scale(0.94); }
+.wb-block.is-lifting { opacity: 0.3; }
+.wb-block.is-used { visibility: hidden; }
+.wb-drag { position: fixed; transform: translate(-50%, -60%); z-index: 40; pointer-events: none; display: flex; flex-direction: column; align-items: center; }
+.wb-drag-hook { font-size: 1.6rem; margin-bottom: -6px; }
+.wb-drag-block {
+  width: 72px; height: 72px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
+  font-size: 2.4rem; font-weight: 900; color: #fff;
+  background: linear-gradient(180deg, #ffb765, #f08a3c); box-shadow: 0 6px 0 #c56a26;
+}
+
+.wb-banner {
+  position: absolute; top: 46%; left: 50%; transform: translate(-50%,-50%) scale(0.8);
+  background: #fff; color: var(--ink); font-weight: 900; font-size: 1.4rem;
+  padding: 14px 28px; border-radius: 20px; box-shadow: 0 8px 0 var(--shadow);
+  opacity: 0; pointer-events: none; z-index: 20; transition: opacity .2s ease, transform .2s ease;
+}
+.wb-banner.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+.wb-banner.is-good { background: #fff3e0; }
+.wb-confetti { position: absolute; top: -20px; width: 12px; height: 16px; border-radius: 3px; z-index: 12; animation: confetti-fall 2.2s ease-in forwards; }
+
+.wb-start {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(180deg, #fdf3e3 0%, #f3e7d3 100%); z-index: 30;
+}
+.wb-start.hidden { display: none; }
+.wb-start-card { background: var(--card); border-radius: 28px; padding: 30px 34px; text-align: center; box-shadow: 0 10px 0 var(--shadow); max-width: 90%; }
+.wb-start-emoji { font-size: 3.4rem; }
+.wb-start-card h2 { margin: 8px 0 4px; font-size: 1.8rem; }
+.wb-start-card p { margin: 0 0 18px; opacity: 0.75; font-weight: 600; }
+.wb-start-btn { font-size: 1.3rem; font-weight: 800; padding: 14px 34px; border-radius: 999px; background: #f4a259; color: #fff; box-shadow: 0 5px 0 var(--shadow); transition: transform .12s ease; }
+.wb-start-btn:active { transform: scale(0.94); }
+
+@media (prefers-reduced-motion: reduce) {
+  .wb-block, .wb-meter-fill, .wb-slot-no { animation: none; transition: none; }
+}

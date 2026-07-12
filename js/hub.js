@@ -24,6 +24,7 @@ const GAME_GROUP = {
   'counting-market': 'Counting Market',
   'memory-match': 'Pet Pairs',
   'shape-sort': 'Shape Sorters',
+  'word-builders': 'Word Builders',
 };
 
 export function renderHub(container, onLaunch) {
