@@ -39,7 +39,13 @@ export function mountWordBuilders(root) {
         <div class="wb-meter" aria-label="Words built"><span class="wb-meter-fill"></span></div>
         <span class="wb-level"></span>
       </div>
-      <button class="wb-say" aria-label="Say the word again">🔊</button>
+      <div class="wb-goal">
+        <div class="wb-blueprint" aria-label="Word to build">
+          <span class="wb-blueprint-tag">BUILD</span>
+          <span class="wb-blueprint-word"></span>
+        </div>
+        <button class="wb-say" aria-label="Say the word again">🔊</button>
+      </div>
       <div class="wb-slots" role="group" aria-label="Word to build"></div>
       <div class="wb-blocks" role="group" aria-label="Letter blocks"></div>
       <div class="wb-banner" role="status"></div>
@@ -64,6 +70,8 @@ export function mountWordBuilders(root) {
   const banner = game.querySelector('.wb-banner');
   const startOverlay = game.querySelector('.wb-start');
   const startBtn = game.querySelector('.wb-start-btn');
+  const blueprintWordEl = game.querySelector('.wb-blueprint-word');
+  const beam = game.querySelector('.wb-gantry-beam');
   const trolley = game.querySelector('.wb-trolley');
   const cable = game.querySelector('.wb-cable');
   const hook = game.querySelector('.wb-hook');
@@ -115,6 +123,8 @@ export function mountWordBuilders(root) {
     prevWord = puzzle.word;
     slots = puzzle.letters.map((ch) => ({ expected: ch, filled: false }));
     blocks = puzzle.blocks.map((ch) => ({ letter: ch, used: false }));
+    // Always show the word to build, so kids know their goal.
+    blueprintWordEl.textContent = puzzle.word.split('').join(' ');
     renderSlots();
     renderBlocks();
     parkCrane();
@@ -175,13 +185,23 @@ export function mountWordBuilders(root) {
   }
 
   // ---- the crane ----
-  const railTop = () => site.clientHeight * 0.15 + 16;   // y of the hook's rest point (matches the .wb-gantry-beam top)
+  // The rail floats just above the slot row, wherever that lands, so it always
+  // lines up regardless of the blueprint sign or screen size.
+  function beamY() {
+    const s = site.getBoundingClientRect();
+    const r = slotsEl.getBoundingClientRect();
+    return Math.max(40, (r.top - s.top) - 32);
+  }
+  const railTop = () => beamY() + 14;   // y of the hook's rest point
   function rel(el) {
     const s = site.getBoundingClientRect();
     const r = el.getBoundingClientRect();
     return { cx: r.left + r.width / 2 - s.left, cy: r.top + r.height / 2 - s.top };
   }
   function parkCrane() {
+    const y = beamY();
+    beam.style.top = y + 'px';
+    trolley.style.top = y + 'px';
     trolley.style.left = (site.clientWidth / 2) + 'px';
     cable.style.height = REST_CABLE + 'px';
   }
