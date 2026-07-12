@@ -26,8 +26,9 @@ A touch-friendly game hub for kids. The home screen is a menu of games:
   tap the bin it belongs in. The rule changes by level — sometimes sort by shape
   (ignore the color), sometimes by color (ignore the shape). No timer, no losing.
 - **Word Builders** — a construction-themed spelling game: a word is laid out in
-  concrete slots; drag the scattered letter blocks into place to build it. Longer
-  words and decoy letters arrive as you level up. No timer, no losing.
+  concrete slots. **Tap a letter and a gantry crane fetches it and drops it in**,
+  or drag it there yourself. Longer words and decoy letters arrive as you level
+  up. No timer, no losing.
 - **Metal Makers** — a welding workshop: cut a shape out of a metal sheet with
   the torch, weld the pieces together, and rivet them tight to build a creation
   (star → rocket → robot → trophy). Finished builds go on your shelf. No timer,

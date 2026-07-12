@@ -1963,11 +1963,11 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .wb-meter { flex: 1 1 auto; height: 16px; border-radius: 999px; background: #fff; box-shadow: inset 0 2px 0 rgba(0,0,0,0.06); overflow: hidden; }
 .wb-meter-fill { display: block; height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, #ffd166, #f4a259); transition: width .3s ease; }
 .wb-level { font-size: 1.05rem; font-weight: 800; color: var(--ink); }
-.wb-say { font-size: 1.6rem; background: #fff; width: 52px; height: 52px; border-radius: 50%; box-shadow: 0 4px 0 var(--shadow); }
+.wb-say { position: relative; z-index: 10; font-size: 1.6rem; background: #fff; width: 52px; height: 52px; border-radius: 50%; box-shadow: 0 4px 0 var(--shadow); }
 .wb-say:active { transform: scale(0.92); }
 
-/* Concrete slots — the word to build */
-.wb-slots { flex: 0 0 auto; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+/* Concrete slots — the word to build (pushed below the crane rail) */
+.wb-slots { flex: 0 0 auto; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: clamp(2.2rem, 8vh, 4rem); }
 .wb-slot {
   width: clamp(52px, 15vw, 84px); aspect-ratio: 1/1; border-radius: 14px;
   display: flex; align-items: center; justify-content: center;
@@ -2001,6 +2001,40 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   background: linear-gradient(180deg, #ffb765, #f08a3c); box-shadow: 0 6px 0 #c56a26;
 }
 
+/* The gantry crane — tap a letter and it fetches + places it */
+.wb-crane { position: absolute; inset: 0; pointer-events: none; }
+.wb-gantry-beam {
+  position: absolute; top: 15%; left: 4%; right: 4%; height: 12px; border-radius: 6px; z-index: 6;
+  background: linear-gradient(180deg, #ffd97a, #f0a53c);
+  box-shadow: 0 3px 0 #c67e22, inset 0 2px 0 rgba(255,255,255,0.4);
+}
+.wb-gantry-beam::before, .wb-gantry-beam::after {
+  content: ''; position: absolute; top: -13px; width: 10px; height: 15px; border-radius: 3px 3px 0 0; background: #d98f2c;
+}
+.wb-gantry-beam::before { left: 5%; }
+.wb-gantry-beam::after { right: 5%; }
+.wb-gantry-leg { display: none; }
+.wb-trolley {
+  position: absolute; top: 15%; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; z-index: 9;
+  transition: left .45s cubic-bezier(.4,0,.35,1);
+}
+.wb-trolley-box { width: 34px; height: 18px; border-radius: 5px; background: linear-gradient(180deg,#6b7883,#4a5560); box-shadow: 0 2px 0 #38424c; margin-top: -5px; }
+.wb-cable { width: 3px; height: 18px; background: linear-gradient(90deg,#3f4a54,#5b6b78,#3f4a54); transition: height .4s ease; }
+.wb-hook { display: flex; flex-direction: column; align-items: center; margin-top: -2px; }
+.wb-magnet { font-size: 1.5rem; line-height: 1; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.25)); transition: color .15s ease; }
+.wb-hook.is-loaded .wb-magnet { transform: scale(1.08); }
+.wb-held { display: none; }
+.wb-held.show {
+  display: flex; align-items: center; justify-content: center; margin-top: -3px;
+  width: clamp(44px, 12vw, 64px); aspect-ratio: 1/1; border-radius: 12px;
+  font-size: clamp(1.4rem, 5vw, 2.2rem); font-weight: 900; color: #fff;
+  background: linear-gradient(180deg, #ffb765, #f08a3c);
+  box-shadow: 0 5px 0 #c56a26; text-shadow: 0 1px 1px rgba(0,0,0,0.25);
+  animation: wb-sway 1.4s ease-in-out infinite;
+}
+@keyframes wb-sway { 0%,100%{transform:rotate(-3deg)} 50%{transform:rotate(3deg)} }
+
 .wb-banner {
   position: absolute; top: 46%; left: 50%; transform: translate(-50%,-50%) scale(0.8);
   background: #fff; color: var(--ink); font-weight: 900; font-size: 1.4rem;
@@ -2024,7 +2058,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .wb-start-btn:active { transform: scale(0.94); }
 
 @media (prefers-reduced-motion: reduce) {
-  .wb-block, .wb-meter-fill, .wb-slot-no { animation: none; transition: none; }
+  .wb-block, .wb-meter-fill, .wb-slot-no, .wb-held { animation: none; }
+  .wb-block, .wb-meter-fill, .wb-slot-no, .wb-trolley, .wb-cable { transition: none; }
 }
 
 /* ===== Metal Makers ===== */
