@@ -14,6 +14,27 @@ const SAVE_KEY = 'metal-makers';
 const reduceMotion = typeof matchMedia === 'function'
   && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+// A little goggled construction worker who watches you work in the corner —
+// bobs while idle, nods on each step, and throws their arms up on a finish.
+const WORKER_SVG = `<div class="met-worker" aria-hidden="true"><svg viewBox="0 0 100 132">
+  <ellipse cx="50" cy="127" rx="28" ry="5" fill="rgba(0,0,0,0.12)"/>
+  <rect x="40" y="104" width="9" height="20" rx="4" fill="#4a5560"/>
+  <rect x="51" y="104" width="9" height="20" rx="4" fill="#4a5560"/>
+  <g class="met-arm l"><rect x="21" y="74" width="10" height="27" rx="5" fill="#ffb765"/></g>
+  <g class="met-arm r"><rect x="69" y="74" width="10" height="27" rx="5" fill="#ffb765"/></g>
+  <rect x="28" y="70" width="44" height="42" rx="14" fill="#ff9f43"/>
+  <rect x="46" y="72" width="8" height="38" fill="#ffe08a"/>
+  <rect x="30" y="84" width="40" height="5" fill="#ffe08a"/>
+  <circle cx="50" cy="50" r="24" fill="#ffd8a8"/>
+  <rect x="30" y="44" width="40" height="14" rx="7" fill="#3f4a54"/>
+  <circle cx="42" cy="51" r="6.5" fill="#8fd0ff"/><circle cx="58" cy="51" r="6.5" fill="#8fd0ff"/>
+  <circle cx="40" cy="49" r="2" fill="#fff" opacity="0.85"/><circle cx="56" cy="49" r="2" fill="#fff" opacity="0.85"/>
+  <path d="M44 63 q6 6 12 0" stroke="#b5764a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M26 40 a24 20 0 0 1 48 0 Z" fill="#ffd166"/>
+  <rect x="34" y="25" width="32" height="8" rx="4" fill="#ffe08a"/>
+  <rect x="22" y="38" width="56" height="6" rx="3" fill="#f0a53c"/>
+</svg></div>`;
+
 export function mountMetalMakers(root) {
   const game = document.createElement('div');
   game.className = 'met-game';
@@ -26,6 +47,7 @@ export function mountMetalMakers(root) {
       <p class="met-step" role="status"></p>
       <div class="met-stagewrap"></div>
       <div class="met-banner" role="status"></div>
+      ${WORKER_SVG}
     </div>
     <div class="met-start">
       <div class="met-start-card">
@@ -43,8 +65,16 @@ export function mountMetalMakers(root) {
   const stepEl = game.querySelector('.met-step');
   const stage = game.querySelector('.met-stagewrap');
   const banner = game.querySelector('.met-banner');
+  const worker = game.querySelector('.met-worker');
   const startOverlay = game.querySelector('.met-start');
   const startBtn = game.querySelector('.met-start-btn');
+
+  // the worker reacts to what you do (nod on a step, cheer on a finish)
+  function workerReact(cls, ms) {
+    if (!worker || reduceMotion) return;
+    worker.classList.remove(cls); void worker.offsetWidth; worker.classList.add(cls);
+    later(() => worker.classList.remove(cls), ms);
+  }
 
   // --- state ---
   const saved = load(SAVE_KEY, {}) || {};
@@ -97,7 +127,7 @@ export function mountMetalMakers(root) {
   }
 
   function renderLevel() { levelEl.textContent = level > 1 ? `Level ${level}` : ''; }
-  function renderShelf() { shelfEl.textContent = shelf.map((id) => EMOJI[id] || '🔩').join(' '); }
+  function renderShelf() { shelfEl.innerHTML = shelf.map((id) => `<span class="met-shelf-item">${EMOJI[id] || '🔩'}</span>`).join(''); }
 
   // shared SVG defs: metallic gradients, bolt + rivet domes, drilled holes
   const DEFS = `<defs>
@@ -271,6 +301,7 @@ export function mountMetalMakers(root) {
     const emberEl = stage.querySelector('.met-ember');
     if (emberEl) emberEl.style.opacity = '0';
     play('clink');
+    workerReact('nod', 500);
     piecesCut += 1;
     later(() => {
       busy = false;
@@ -355,6 +386,7 @@ export function mountMetalMakers(root) {
     if (seamEl) seamEl.classList.add('is-welded');
     seamsWelded += 1;
     unlockSticker('met-weld');
+    workerReact('nod', 500);
     later(() => {
       busy = false;
       if (seamIdx < build.seams.length - 1) { seamIdx += 1; renderWeld(); }
@@ -397,6 +429,7 @@ export function mountMetalMakers(root) {
     rivetsPlaced.add(i);
     play('rivet');
     unlockSticker('met-rivet');
+    workerReact('nod', 500);
     renderRivet();
     if (rivetsPlaced.size >= build.rivets.length) later(reveal, 400);
   }
@@ -416,9 +449,12 @@ export function mountMetalMakers(root) {
     </div>`;
     confetti();
     play('happy');
+    workerReact('cheer', 1700);
     if (!isMuted()) speak('You made a ' + build.name + '!');
     if (!shelf.includes(build.id)) shelf.push(build.id);
     renderShelf();
+    const items = shelfEl.querySelectorAll('.met-shelf-item');
+    if (items.length && !reduceMotion) items[items.length - 1].classList.add('pop');
     const leveled = level < MAX_LEVEL;
     if (leveled) level += 1;
     persist();
