@@ -20,6 +20,17 @@ const reduceMotion = typeof matchMedia === 'function'
   && matchMedia('(prefers-reduced-motion: reduce)').matches;
 const REST_CABLE = 18;      // resting cable length (px)
 
+// The grabber claw on the end of the crane cable — two prongs that open on the
+// way down and close to grip the letter block. `closed` grips.
+function clawHTML(closed) {
+  return `<span class="wb-claw${closed ? ' is-closed' : ''}" aria-hidden="true"><svg viewBox="0 0 48 46">
+    <rect x="21.5" y="0" width="5" height="15" rx="2.5" fill="#4a5560"/>
+    <circle cx="24" cy="14" r="4.5" fill="#6b7883"/>
+    <path class="wb-prong l" d="M24 13 C 13 16, 9 30, 14 44 C 17 33, 19 24, 24 20 Z" fill="#8894a0" stroke="#5b6b78" stroke-width="1.2"/>
+    <path class="wb-prong r" d="M24 13 C 35 16, 39 30, 34 44 C 31 33, 29 24, 24 20 Z" fill="#8894a0" stroke="#5b6b78" stroke-width="1.2"/>
+  </svg></span>`;
+}
+
 export function mountWordBuilders(root) {
   const game = document.createElement('div');
   game.className = 'wb-game';
@@ -32,7 +43,7 @@ export function mountWordBuilders(root) {
         <div class="wb-trolley">
           <div class="wb-trolley-box"></div>
           <div class="wb-cable"></div>
-          <div class="wb-hook"><span class="wb-magnet">🧲</span><span class="wb-held"></span></div>
+          <div class="wb-hook">${clawHTML(false)}<span class="wb-held"></span></div>
         </div>
       </div>
       <div class="wb-top">
@@ -75,6 +86,7 @@ export function mountWordBuilders(root) {
   const trolley = game.querySelector('.wb-trolley');
   const cable = game.querySelector('.wb-cable');
   const hook = game.querySelector('.wb-hook');
+  const claw = game.querySelector('.wb-hook .wb-claw');
   const heldEl = game.querySelector('.wb-held');
 
   // --- state ---
@@ -176,6 +188,9 @@ export function mountWordBuilders(root) {
       if (!isMuted()) speak(b.letter);
       renderSlots();
       renderBlocks();
+      // a satisfying settle + a puff of concrete dust as it locks into the mold
+      const filled = slotsEl.querySelector(`.wb-slot[data-slot="${si}"]`);
+      if (filled) { filled.classList.add('wb-just'); dustPuff(filled); }
       if (slots.every((x) => x.filled)) later(winWord, 550);
       return true;
     }
@@ -221,15 +236,18 @@ export function mountWordBuilders(root) {
     const el = blocksEl.querySelector(`.wb-block[data-block="${bi}"]`);
     if (!el || !blocks[bi] || blocks[bi].used) return false;
     craneBusy = true;
+    claw.classList.remove('is-closed');   // open the claw on the way down
     const p = rel(el);
     await trolleyTo(p.cx);
     await dropTo(p.cy);
-    // clamp on
+    // grab: close the claw around the block
+    claw.classList.add('is-closed');
+    play('select');
+    await wait(reduceMotion ? 0 : 170);
     held = bi;
     showHeld(blocks[bi].letter);
     renderBlocks();          // hide the tray block now it's on the hook
     hook.classList.add('is-loaded');
-    play('select');
     await liftUp();
     craneBusy = false;
     return true;
@@ -244,9 +262,12 @@ export function mountWordBuilders(root) {
     const p = rel(el);
     await trolleyTo(p.cx);
     await dropTo(p.cy);
+    // open the claw to release it into the mold
+    claw.classList.remove('is-closed');
     const ok = placeLetter(bi, si);
     if (ok) { held = null; hideHeld(); hook.classList.remove('is-loaded'); }
-    // if it didn't fit, keep holding it and try another slot
+    else { claw.classList.add('is-closed'); }   // missed — keep gripping it
+    await wait(reduceMotion ? 0 : 120);
     await liftUp();
     craneBusy = false;
     return ok;
@@ -313,7 +334,7 @@ export function mountWordBuilders(root) {
           dragging = true;
           ghost = document.createElement('span');
           ghost.className = 'wb-drag';
-          ghost.innerHTML = `<span class="wb-drag-hook" aria-hidden="true">🧲</span><span class="wb-drag-block">${blocks[bi].letter}</span>`;
+          ghost.innerHTML = `<span class="wb-drag-hook">${clawHTML(true)}</span><span class="wb-drag-block">${blocks[bi].letter}</span>`;
           document.body.appendChild(ghost);
           el.classList.add('is-lifting');
         }
@@ -355,6 +376,23 @@ export function mountWordBuilders(root) {
     });
   }
   function clearHighlight() { slotsEl.querySelectorAll('.wb-slot').forEach((s) => s.classList.remove('is-target')); }
+
+  // a little puff of concrete dust when a block seats into its mold
+  function dustPuff(slotEl) {
+    if (reduceMotion) return;
+    const sr = site.getBoundingClientRect();
+    const r = slotEl.getBoundingClientRect();
+    for (let i = 0; i < 7; i++) {
+      const d = document.createElement('span');
+      d.className = 'wb-dust';
+      d.style.left = (r.left - sr.left + r.width * (0.15 + Math.random() * 0.7)) + 'px';
+      d.style.top = (r.top - sr.top + r.height * 0.82) + 'px';
+      d.style.setProperty('--dx', (Math.random() * 46 - 23).toFixed(0) + 'px');
+      d.style.animationDelay = (Math.random() * 0.08).toFixed(2) + 's';
+      site.appendChild(d);
+      later(() => d.remove(), 700);
+    }
+  }
 
   sayBtn.addEventListener('click', () => { if (puzzle && !isMuted()) speak(puzzle.word); play('select'); });
   startBtn.addEventListener('click', start);
