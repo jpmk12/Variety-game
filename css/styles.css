@@ -2031,8 +2031,12 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .met-game { position: absolute; inset: 0; }
 .met-workshop {
   position: absolute; inset: 0; display: flex; flex-direction: column;
-  align-items: center; gap: 12px; padding: 16px;
-  background: linear-gradient(180deg, #dfe6ee 0%, #c7d2dd 100%); overflow: hidden;
+  align-items: center; gap: 12px; padding: 16px; overflow: hidden;
+  /* a workshop: pegboard wall up top, workbench surface below */
+  background:
+    linear-gradient(180deg, rgba(0,0,0,0) 58%, rgba(120,86,54,0.10) 58%, rgba(120,86,54,0.16) 100%),
+    radial-gradient(circle at 12px 12px, rgba(80,96,110,0.14) 2px, transparent 2.6px) 0 0 / 26px 26px,
+    linear-gradient(180deg, #e3eaf1 0%, #cdd8e2 56%, #cbb79c 56%, #bfa989 100%);
 }
 .met-top { flex: 0 0 auto; width: min(520px, 96%); display: flex; align-items: center; justify-content: space-between; min-height: 30px; }
 .met-level { font-size: 1.05rem; font-weight: 800; color: var(--ink); }
@@ -2042,31 +2046,60 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .met-svgwrap { position: relative; width: min(340px, 82vw); aspect-ratio: 1/1; }
 .met-svg { width: 100%; height: 100%; display: block; }
 
-/* metal sheet + cut outline */
-.met-sheet { fill: url(#metgrad); fill: #b9c4cf; stroke: #97a4b0; stroke-width: 3; }
-.met-cutguide { fill: none; stroke: #5b6b78; stroke-width: 3; stroke-dasharray: 6 6; opacity: 0.85; stroke-linecap: round; stroke-linejoin: round; }
-.met-cutline { fill: none; stroke: #ff8c2e; stroke-width: 5; stroke-dasharray: 1; stroke-dashoffset: 1; pathLength: 1; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 3px #ffab2e); }
-.met-cutpiece { transition: opacity .2s ease; stroke: #fff; stroke-width: 1.5; }
-.met-cutpiece.met-pop { animation: met-pop .5s ease; }
-@keyframes met-pop { 0%{transform:scale(1)} 40%{transform:scale(1.08)} 100%{transform:scale(1)} transform-origin:center; }
-.met-torch { position: absolute; transform: translate(-50%,-60%); font-size: 1.8rem; pointer-events: none; filter: drop-shadow(0 0 6px #ffb03a); }
-.met-welder { position: absolute; transform: translate(-50%,-60%); font-size: 1.7rem; pointer-events: none; filter: drop-shadow(0 0 6px #7fd3ff); }
-.met-spark { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: #ffd24a; box-shadow: 0 0 6px #ffab2e; pointer-events: none; animation: met-spark .4s ease-out forwards; }
-@keyframes met-spark { 0%{opacity:1; transform:translate(-50%,-50%)} 100%{opacity:0; transform:translate(calc(-50% + var(--sx)), calc(-50% + var(--sy)))} }
+/* the sheet sits on a slightly recessed bench cutout */
+.met-svgwrap { filter: drop-shadow(0 8px 10px rgba(40,50,60,0.25)); }
+.met-cutguide { fill: none; stroke: #4b5a66; stroke-width: 3; stroke-dasharray: 6 6; opacity: 0.85; stroke-linecap: round; stroke-linejoin: round; }
+.met-cutline { fill: none; stroke: #ff7a1a; stroke-width: 5.5; stroke-dasharray: 1; stroke-dashoffset: 1; pathLength: 1; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 4px #ffb03a) drop-shadow(0 0 8px #ff7a1a); }
+.met-cutpiece { transition: opacity .2s ease; stroke: #ffffff; stroke-width: 1.5; transform-box: fill-box; transform-origin: center; }
+.met-cutpiece-hi { transition: opacity .2s ease; transform-box: fill-box; transform-origin: center; pointer-events: none; }
+.met-cutpiece.met-pop, .met-cutpiece-hi.met-pop { animation: met-pop .5s ease; }
+@keyframes met-pop { 0%{transform:scale(1)} 40%{transform:scale(1.09)} 100%{transform:scale(1)} }
+
+/* the glowing molten dot at the leading edge of the cut */
+.met-ember {
+  position: absolute; width: 12px; height: 12px; border-radius: 50%;
+  transform: translate(-50%,-50%); pointer-events: none; z-index: 5;
+  background: radial-gradient(circle, #fff7c2, #ff9a2e 55%, rgba(255,120,20,0) 75%);
+  box-shadow: 0 0 10px 3px rgba(255,150,40,0.7); transition: opacity .25s ease;
+  animation: met-ember-pulse .5s ease-in-out infinite alternate;
+}
+@keyframes met-ember-pulse { from{transform:translate(-50%,-50%) scale(0.85)} to{transform:translate(-50%,-50%) scale(1.2)} }
+
+/* ---- the tools: absolutely-positioned SVG that follow the finger ---- */
+.met-tool { position: absolute; pointer-events: none; z-index: 7; transition: left .05s linear, top .05s linear; }
+.met-tool svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.met-torch { width: 56px; height: 80px; transform: translate(-38%, -86%); filter: drop-shadow(0 3px 3px rgba(0,0,0,0.3)); }
+.met-torch .met-flame { transform-box: fill-box; transform-origin: 50% 0%; }
+.met-torch.is-cutting .met-flame { animation: met-flicker .09s infinite alternate; }
+.met-torch .met-flame.o { filter: drop-shadow(0 0 6px #ff7a1a); }
+@keyframes met-flicker { from{transform:scaleY(0.92) scaleX(1.02)} to{transform:scaleY(1.08) scaleX(0.96)} }
+.met-welder { width: 52px; height: 80px; transform: translate(-40%, -84%); filter: drop-shadow(0 3px 3px rgba(0,0,0,0.3)); }
+.met-welder .met-arc { opacity: 0; }
+.met-welder.is-arcing .met-arc { opacity: 1; filter: drop-shadow(0 0 7px #9fdcff) drop-shadow(0 0 12px #6fc4ff); animation: met-arc .06s infinite alternate; }
+@keyframes met-arc { from{transform:scale(0.7);opacity:0.7} to{transform:scale(1.25);opacity:1} }
+.met-rivetgun { width: 54px; height: 80px; transform: translate(-42%, -82%); filter: drop-shadow(0 3px 3px rgba(0,0,0,0.3)); }
+.met-rivetgun.is-firing { animation: met-recoil .18s ease; }
+@keyframes met-recoil { 0%{transform:translate(-42%,-82%)} 40%{transform:translate(-42%,-72%)} 100%{transform:translate(-42%,-82%)} }
+
+/* sparks fly off the tool tip and fall */
+.met-spark { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #ffe27a; box-shadow: 0 0 6px 1px #ffab2e; pointer-events: none; z-index: 6; animation: met-spark .45s ease-out forwards; }
+@keyframes met-spark { 0%{opacity:1; transform:translate(-50%,-50%) scale(1)} 100%{opacity:0; transform:translate(calc(-50% + var(--sx)), calc(-50% + var(--sy))) scale(0.4)} }
 
 /* assembled pieces (weld/rivet/reveal) */
-.met-asm { stroke: #ffffff; stroke-width: 1.5; }
-.met-seam { stroke: #7a8794; stroke-width: 6; stroke-linecap: round; stroke-dasharray: 4 5; }
-.met-seam.is-active { stroke: #ffcf5a; filter: drop-shadow(0 0 4px #ffb03a); }
-.met-seam.is-welded { stroke: #ffb03a; stroke-dasharray: none; filter: drop-shadow(0 0 3px #ff8c2e); }
-.met-hole-ring { fill: #6b7883; stroke: #4d5862; stroke-width: 2; }
-.met-hole.is-placed .met-hole-ring { fill: #8a96a1; }
-.met-rivet-head { fill: #d7dde3; stroke: #9aa6b0; stroke-width: 1.5; }
+.met-asm { stroke: #6f7d88; stroke-width: 1.5; }
+.met-asm-hi { pointer-events: none; }
+.met-seam { stroke: #6a7783; stroke-width: 6; stroke-linecap: round; stroke-dasharray: 4 5; }
+.met-seam.is-active { stroke: #8a97a3; }
+.met-bead { stroke: #ffb03a; stroke-width: 7; stroke-linecap: round; filter: drop-shadow(0 0 3px #ff8c2e); }
+.met-bead-active { stroke-dasharray: 1; stroke-dashoffset: 1; }
 .met-hole { cursor: pointer; }
+.met-hole.is-placed .met-rivet-head { animation: met-pop .4s ease; transform-box: fill-box; transform-origin: center; }
 
-.met-shine { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 40% 30%, rgba(255,255,255,0.7), transparent 45%); animation: met-shine 1.4s ease; }
-@keyframes met-shine { 0%{opacity:0} 40%{opacity:1} 100%{opacity:0.3} }
-.met-reveal-badge { position: absolute; left: 50%; bottom: 6%; transform: translateX(-50%); font-size: 2.6rem; animation: met-pop .6s ease; }
+.met-shine { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.75) 48%, transparent 62%); animation: met-sheen 1.1s ease; }
+@keyframes met-sheen { 0%{transform:translateX(-60%)} 100%{transform:translateX(60%)} }
+.met-sparkle { position: absolute; color: #fff; font-size: 1.2rem; pointer-events: none; text-shadow: 0 0 6px #ffe27a; animation: met-sparkle .9s ease forwards; }
+@keyframes met-sparkle { 0%{opacity:0; transform:scale(0.4)} 40%{opacity:1; transform:scale(1.2)} 100%{opacity:0; transform:scale(0.8)} }
+.met-reveal-badge { position: absolute; left: 50%; bottom: 4%; transform: translateX(-50%); font-size: 2.8rem; animation: met-pop .6s ease; filter: drop-shadow(0 3px 4px rgba(0,0,0,0.25)); }
 
 .met-banner {
   position: absolute; top: 46%; left: 50%; transform: translate(-50%,-50%) scale(0.8);
@@ -2091,5 +2124,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .met-start-btn:active { transform: scale(0.94); }
 
 @media (prefers-reduced-motion: reduce) {
-  .met-cutpiece.met-pop, .met-spark, .met-shine, .met-reveal-badge { animation: none; }
+  .met-cutpiece.met-pop, .met-cutpiece-hi.met-pop, .met-spark, .met-shine, .met-reveal-badge,
+  .met-ember, .met-torch.is-cutting .met-flame, .met-welder.is-arcing .met-arc,
+  .met-rivetgun.is-firing, .met-sparkle, .met-hole.is-placed .met-rivet-head { animation: none; }
+  .met-tool { transition: none; }
 }
