@@ -28,6 +28,10 @@ A touch-friendly game hub for kids. The home screen is a menu of games:
 - **Word Builders** — a construction-themed spelling game: a word is laid out in
   concrete slots; drag the scattered letter blocks into place to build it. Longer
   words and decoy letters arrive as you level up. No timer, no losing.
+- **Metal Makers** — a welding workshop: cut a shape out of a metal sheet with
+  the torch, weld the pieces together, and rivet them tight to build a creation
+  (star → rocket → robot → trophy). Finished builds go on your shelf. No timer,
+  no losing.
 
 Built as a **zero-build static site**: plain HTML, CSS, and JavaScript (ES
 modules) with hand-drawn inline SVG characters. No installs, no bundler, no

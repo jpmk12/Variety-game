@@ -25,6 +25,7 @@ const GAME_GROUP = {
   'memory-match': 'Pet Pairs',
   'shape-sort': 'Shape Sorters',
   'word-builders': 'Word Builders',
+  'metal-makers': 'Metal Makers',
 };
 
 export function renderHub(container, onLaunch) {

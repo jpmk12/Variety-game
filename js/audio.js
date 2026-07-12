@@ -199,6 +199,27 @@ const EFFECTS = {
     tone({ freq: 240, start: 0.09, duration: 0.06, type: 'triangle', gain: 0.08 });
   },
 
+  // --- Metal Makers ---
+  // torch: a steady cutting hiss
+  torch: () => {
+    noise({ start: 0, duration: 0.28, gain: 0.06, freq: 3200 });
+  },
+  // weld: a buzzy electric weld
+  weld: () => {
+    noise({ start: 0, duration: 0.26, gain: 0.05, freq: 900 });
+    tone({ freq: 120, start: 0, duration: 0.26, type: 'sawtooth', gain: 0.07 });
+  },
+  // rivet: a solid metal thunk
+  rivet: () => {
+    tone({ freq: 190, start: 0, duration: 0.07, type: 'square', gain: 0.16, slideTo: 90 });
+    noise({ start: 0, duration: 0.05, gain: 0.1, freq: 1400 });
+  },
+  // clink: a bright metal ping when a piece pops free
+  clink: () => {
+    tone({ freq: 1400, start: 0, duration: 0.08, type: 'triangle', gain: 0.13 });
+    tone({ freq: 2100, start: 0.05, duration: 0.14, type: 'sine', gain: 0.1 });
+  },
+
   // --- distinct animal voices ---
   // dog: two short low "woof" barks
   'voice-dog': () => {

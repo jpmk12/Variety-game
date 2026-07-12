@@ -3,7 +3,7 @@
 // a `when(state, helpers)` predicate that progress.js auto-checks after any
 // award (milestones on the star wallet, lifetime counters, or a pet's bond).
 
-export const GROUPS = ['Animal Care', 'Letter Samurai', 'Climb & Spell', 'Beat Buddies', 'Counting Market', 'Pet Pairs', 'Shape Sorters', 'Word Builders', 'Milestones'];
+export const GROUPS = ['Animal Care', 'Letter Samurai', 'Climb & Spell', 'Beat Buddies', 'Counting Market', 'Pet Pairs', 'Shape Sorters', 'Word Builders', 'Metal Makers', 'Milestones'];
 
 export const STICKERS = [
   // --- Animal Care: one per activity, earned the first time you win it ---
@@ -78,6 +78,12 @@ export const STICKERS = [
     when: (s) => (s.counters.wbWords || 0) >= 5 },
   { id: 'wb-15',     group: 'Word Builders', emoji: '👷', name: 'Head Contractor', hint: 'Build 15 words',
     when: (s) => (s.counters.wbWords || 0) >= 15 },
+
+  // --- Metal Makers: workshop creations ---
+  { id: 'met-first',  group: 'Metal Makers', emoji: '🔧', name: 'Metal Maker',   hint: 'Finish a metal creation' },
+  { id: 'met-weld',   group: 'Metal Makers', emoji: '⚡', name: 'Welder',        hint: 'Weld a seam' },
+  { id: 'met-rivet',  group: 'Metal Makers', emoji: '🔩', name: 'Riveter',       hint: 'Place a rivet' },
+  { id: 'met-master', group: 'Metal Makers', emoji: '🏆', name: 'Master Smith',  hint: 'Build the trophy' },
 
   // --- Milestones: the star wallet ---
   { id: 'stars-25',  group: 'Milestones', emoji: '⭐', name: 'Star Collector', hint: 'Earn 25 stars',
