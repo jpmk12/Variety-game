@@ -99,6 +99,82 @@ export function mountMetalMakers(root) {
   function renderLevel() { levelEl.textContent = level > 1 ? `Level ${level}` : ''; }
   function renderShelf() { shelfEl.textContent = shelf.map((id) => EMOJI[id] || '🔩').join(' '); }
 
+  // shared SVG defs: metallic gradients, bolt + rivet domes, drilled holes
+  const DEFS = `<defs>
+      <linearGradient id="mm-sheet" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#d8e0e7"/><stop offset="0.45" stop-color="#aab6c1"/>
+        <stop offset="0.55" stop-color="#9dabb7"/><stop offset="1" stop-color="#c5cdd5"/>
+      </linearGradient>
+      <linearGradient id="mm-hi" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ffffff" stop-opacity="0.6"/>
+        <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.05"/>
+        <stop offset="1" stop-color="#000000" stop-opacity="0.18"/>
+      </linearGradient>
+      <radialGradient id="mm-bolt" cx="0.4" cy="0.35"><stop offset="0" stop-color="#eef2f5"/><stop offset="1" stop-color="#889aa6"/></radialGradient>
+      <radialGradient id="mm-rivet" cx="0.38" cy="0.32"><stop offset="0" stop-color="#f5f8fa"/><stop offset="0.55" stop-color="#cfd7de"/><stop offset="1" stop-color="#8b96a0"/></radialGradient>
+      <radialGradient id="mm-hole" cx="0.42" cy="0.42"><stop offset="0" stop-color="#333c44"/><stop offset="1" stop-color="#5c6975"/></radialGradient>
+    </defs>`;
+
+  // a bolted, brushed metal sheet; `inner` draws the cut art on top
+  function sheetSVG(inner) {
+    const bolts = [[22, 22], [178, 22], [22, 178], [178, 178]]
+      .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="6" fill="url(#mm-bolt)" stroke="#788591" stroke-width="1"/><circle cx="${x - 1.6}" cy="${y - 1.6}" r="1.6" fill="#fff" opacity="0.7"/>`).join('');
+    return `<svg viewBox="0 0 200 200" class="met-svg" aria-label="Metal sheet">${DEFS}
+      <rect x="8" y="8" width="184" height="184" rx="16" fill="url(#mm-sheet)" stroke="#8a96a1" stroke-width="3"/>
+      <g opacity="0.09" stroke="#41505c" stroke-width="1">
+        <line x1="18" y1="54" x2="182" y2="54"/><line x1="18" y1="94" x2="182" y2="94"/>
+        <line x1="18" y1="134" x2="182" y2="134"/><line x1="18" y1="170" x2="182" y2="170"/>
+      </g>
+      ${bolts}${inner}
+    </svg>`;
+  }
+
+  // pointer → svg-space (0..200) + wrap-percentage helpers
+  function ptXY(wrap, e) {
+    const r = wrap.getBoundingClientRect();
+    return {
+      x: (e.clientX - r.left) / r.width * 200, y: (e.clientY - r.top) / r.height * 200,
+      px: (e.clientX - r.left) / r.width * 100, py: (e.clientY - r.top) / r.height * 100,
+    };
+  }
+  const dist = (ax, ay, bx, by) => Math.hypot(ax - bx, ay - by);
+  function distSeg(px, py, x1, y1, x2, y2) {
+    const dx = x2 - x1, dy = y2 - y1, L = dx * dx + dy * dy || 1;
+    let t = ((px - x1) * dx + (py - y1) * dy) / L; t = Math.max(0, Math.min(1, t));
+    return Math.hypot(px - (x1 + dx * t), py - (y1 + dy * t));
+  }
+  function positionTool(el, px, py) { if (el) { el.style.left = px + '%'; el.style.top = py + '%'; } }
+
+  // The tools — inline SVG so they read clearly and their tip lands on the finger.
+  function torchTool() {
+    return `<div class="met-tool met-torch" aria-hidden="true"><svg viewBox="0 0 64 92">
+      <rect x="6" y="10" width="30" height="13" rx="6" fill="#586b30" transform="rotate(24 21 16)"/>
+      <rect x="10" y="20" width="14" height="9" rx="4" fill="#455423" transform="rotate(24 17 24)"/>
+      <rect x="26" y="20" width="14" height="30" rx="6" fill="#c6cfd6" transform="rotate(10 33 35)"/>
+      <rect x="27" y="22" width="5" height="26" rx="2.5" fill="#eef3f6" transform="rotate(10 33 35)" opacity="0.8"/>
+      <circle cx="33" cy="52" r="6.5" fill="#6b7883"/>
+      <path class="met-flame o" d="M33 50 q15 9 5 26 q-2 6 -6 10 q-4 -4 -6 -10 q-10 -17 7 -26 Z" fill="#ff8c2e"/>
+      <path class="met-flame i" d="M32 56 q9 6 3 17 q-1 4 -3 7 q-2 -3 -3 -7 q-6 -11 6 -17 Z" fill="#ffd24a"/>
+      <ellipse class="met-flame c" cx="30.5" cy="72" rx="3" ry="7" fill="#bfe3ff"/>
+    </svg></div>`;
+  }
+  function welderTool() {
+    return `<div class="met-tool met-welder" aria-hidden="true"><svg viewBox="0 0 60 92">
+      <rect x="8" y="12" width="26" height="14" rx="7" fill="#2f6690" transform="rotate(26 21 19)"/>
+      <rect x="24" y="22" width="10" height="34" rx="5" fill="#c6cfd6" transform="rotate(10 29 39)"/>
+      <rect x="27" y="52" width="5" height="16" rx="2.5" fill="#8a96a1" transform="rotate(10 29 60)"/>
+      <circle class="met-arc" cx="30" cy="70" r="7" fill="#eaf6ff"/>
+    </svg></div>`;
+  }
+  function gunTool() {
+    return `<div class="met-tool met-rivetgun" aria-hidden="true"><svg viewBox="0 0 60 92">
+      <rect x="10" y="14" width="30" height="20" rx="6" fill="#546" transform="rotate(12 25 24)" style="fill:#5b6b78"/>
+      <rect x="14" y="30" width="14" height="26" rx="5" fill="#7a8791" transform="rotate(12 21 43)"/>
+      <rect x="25" y="52" width="12" height="16" rx="3" fill="#c6cfd6"/>
+      <rect x="28" y="66" width="6" height="10" rx="2" fill="#8a96a1"/>
+    </svg></div>`;
+  }
+
   // ---- CUT ----
   function renderCut() {
     const piece = build.pieces[pieceIdx];
@@ -106,65 +182,80 @@ export function mountMetalMakers(root) {
     if (!isMuted()) later(() => speak('Cut the ' + piece.name), 250);
     stage.innerHTML = `
       <div class="met-svgwrap met-cutwrap">
-        <svg viewBox="0 0 200 200" class="met-svg" aria-label="Metal sheet">
-          <rect x="8" y="8" width="184" height="184" rx="12" class="met-sheet"/>
+        ${sheetSVG(`
           <path d="${piece.path}" class="met-cutguide"/>
           <path d="${piece.path}" class="met-cutline" pathLength="1"/>
           <path d="${piece.path}" class="met-cutpiece" fill="${piece.fill}" style="opacity:0"/>
-        </svg>
-        <div class="met-torch" aria-hidden="true">🔥</div>
+          <path d="${piece.path}" class="met-cutpiece-hi" fill="url(#mm-hi)" style="opacity:0"/>
+        `)}
+        <div class="met-ember" aria-hidden="true"></div>
+        ${torchTool()}
       </div>`;
     const wrap = stage.querySelector('.met-svgwrap');
     const pathEl = stage.querySelector('.met-cutline');
     const torch = stage.querySelector('.met-torch');
+    const ember = stage.querySelector('.met-ember');
     let pathLen = 100;
     try { pathLen = pathEl.getTotalLength(); } catch (e) { /* jsdom */ }
     let cutLen = 0;
-    positionTorch(0);
 
-    function positionTorch(len) {
-      let pt = { x: 100, y: 40 };
-      try { pt = pathEl.getPointAtLength(len); } catch (e) { /* ignore */ }
-      torch.style.left = (pt.x / 200 * 100) + '%';
-      torch.style.top = (pt.y / 200 * 100) + '%';
-      return pt;
+    const frontier = () => { try { return pathEl.getPointAtLength(cutLen); } catch (e) { return { x: 100, y: 40 }; } };
+    function paint() {
+      pathEl.style.strokeDashoffset = String(1 - cutLen / pathLen);
+      const f = frontier();
+      ember.style.left = (f.x / 200 * 100) + '%';
+      ember.style.top = (f.y / 200 * 100) + '%';
     }
-    // reveal the cut outline progressively via stroke-dashoffset
-    function paint() { pathEl.style.strokeDashoffset = String(1 - cutLen / pathLen); }
     paint();
+    // torch starts parked at the beginning of the cut so kids see where to start
+    positionTool(torch, frontier().x / 200 * 100, frontier().y / 200 * 100);
 
-    let tracing = false, last = null, sparkAt = 0;
-    const down = (e) => { if (busy) return; tracing = true; last = { x: e.clientX, y: e.clientY }; e.preventDefault(); };
-    const move = (e) => {
-      if (!tracing || busy) return;
-      const dx = e.clientX - last.x, dy = e.clientY - last.y;
-      last = { x: e.clientX, y: e.clientY };
-      cutLen = Math.min(pathLen, cutLen + Math.hypot(dx, dy) * 1.4);
-      const pt = positionTorch(cutLen);
-      paint();
-      const now = e.timeStamp || 0;
-      if (now - sparkAt > 60) { sparkAt = now; spark(wrap, pt); if (Math.random() < 0.5) play('torch'); }
-      if (cutLen >= pathLen) { tracing = false; completeCut(); }
+    let tracing = false, lastP = null, sparkAt = 0;
+    const down = (e) => {
+      if (busy) return;
+      tracing = true; const p = ptXY(wrap, e); lastP = p;
+      positionTool(torch, p.px, p.py); torch.classList.add('is-on');
+      e.preventDefault();
     };
-    const up = () => { tracing = false; };
+    const move = (e) => {
+      const p = ptXY(wrap, e);
+      positionTool(torch, p.px, p.py);   // the torch ALWAYS follows the finger
+      if (!tracing || busy) { lastP = p; return; }
+      const f = frontier();
+      if (dist(p.x, p.y, f.x, f.y) < 34) {           // near the cut's leading edge → cut!
+        const moved = lastP ? dist(p.x, p.y, lastP.x, lastP.y) : 0;
+        cutLen = Math.min(pathLen, cutLen + Math.max(moved * 1.25, 0.6));
+        paint();
+        torch.classList.add('is-cutting');
+        const now = e.timeStamp || 0;
+        if (now - sparkAt > 45) { sparkAt = now; spark(wrap, p.px, p.py); if (Math.random() < 0.5) play('torch'); }
+        if (cutLen >= pathLen) { tracing = false; completeCut(); }
+      } else {
+        torch.classList.remove('is-cutting');
+      }
+      lastP = p;
+    };
+    const up = () => { tracing = false; torch.classList.remove('is-cutting'); };
     wrap.addEventListener('pointerdown', down);
     wrap.addEventListener('pointermove', move);
     wrap.addEventListener('pointerup', up);
     wrap.addEventListener('pointerleave', up);
-    // let the hook finish instantly by filling the outline first
     wrap._finish = () => { cutLen = pathLen; paint(); };
   }
 
-  function spark(wrap, pt) {
+  // a little shower of sparks flying off the tool tip
+  function spark(wrap, px, py) {
     if (reduceMotion) return;
-    const s = document.createElement('span');
-    s.className = 'met-spark';
-    s.style.left = (pt.x / 200 * 100) + '%';
-    s.style.top = (pt.y / 200 * 100) + '%';
-    s.style.setProperty('--sx', (Math.random() * 30 - 15) + 'px');
-    s.style.setProperty('--sy', (Math.random() * 24 + 6) + 'px');
-    wrap.appendChild(s);
-    later(() => s.remove(), 420);
+    for (let k = 0; k < 3; k++) {
+      const s = document.createElement('span');
+      s.className = 'met-spark';
+      s.style.left = px + '%';
+      s.style.top = py + '%';
+      s.style.setProperty('--sx', (Math.random() * 44 - 22).toFixed(1) + 'px');
+      s.style.setProperty('--sy', (16 + Math.random() * 30).toFixed(1) + 'px');
+      wrap.appendChild(s);
+      later(() => s.remove(), 460);
+    }
   }
 
   function completeCut() {
@@ -172,8 +263,9 @@ export function mountMetalMakers(root) {
     busy = true;
     const wrap = stage.querySelector('.met-svgwrap');
     if (wrap && wrap._finish) wrap._finish();
-    const cutPiece = stage.querySelector('.met-cutpiece');
-    if (cutPiece) { cutPiece.style.opacity = '1'; cutPiece.classList.add('met-pop'); }
+    stage.querySelectorAll('.met-cutpiece, .met-cutpiece-hi').forEach((el) => { el.style.opacity = '1'; el.classList.add('met-pop'); });
+    const emberEl = stage.querySelector('.met-ember');
+    if (emberEl) emberEl.style.opacity = '0';
     play('clink');
     piecesCut += 1;
     later(() => {
@@ -190,51 +282,59 @@ export function mountMetalMakers(root) {
   }
 
   // ---- assembled-pieces SVG shared by weld / rivet / reveal ----
+  // Each piece gets its solid colour plus a metallic light→shadow overlay.
   function piecesSVG(extra) {
-    const parts = build.pieces.map((p) => `<path d="${p.path}" transform="${p.asm}" fill="${p.fill}" class="met-asm"/>`).join('');
-    return `<svg viewBox="0 0 200 200" class="met-svg" aria-label="Assembly">${parts}${extra || ''}</svg>`;
+    const parts = build.pieces.map((p) =>
+      `<path d="${p.path}" transform="${p.asm}" fill="${p.fill}" class="met-asm"/>`
+      + `<path d="${p.path}" transform="${p.asm}" fill="url(#mm-hi)" class="met-asm-hi"/>`).join('');
+    return `<svg viewBox="0 0 200 200" class="met-svg" aria-label="Assembly">${DEFS}${parts}${extra || ''}</svg>`;
   }
 
   // ---- WELD ----
   function renderWeld() {
     stepEl.textContent = 'Weld the seam! ⚡';
     if (!isMuted()) later(() => speak('Weld it'), 250);
+    // draw every seam: already-welded ones get a solid gold bead; the current
+    // one gets a bead that fills as you weld along it.
     const seams = build.seams.map((s, i) => {
-      const cls = i < seamsWelded ? 'met-seam is-welded' : (i === seamIdx ? 'met-seam is-active' : 'met-seam');
-      return `<line x1="${s.x1}" y1="${s.y1}" x2="${s.x2}" y2="${s.y2}" class="${cls}" data-seam="${i}"/>`;
+      const base = `<line x1="${s.x1}" y1="${s.y1}" x2="${s.x2}" y2="${s.y2}" class="met-seam${i < seamsWelded ? ' is-welded' : (i === seamIdx ? ' is-active' : '')}" data-seam="${i}"/>`;
+      if (i < seamsWelded) return base + `<line x1="${s.x1}" y1="${s.y1}" x2="${s.x2}" y2="${s.y2}" class="met-bead"/>`;
+      return base;
     }).join('');
+    const seam = build.seams[seamIdx];
+    const activeBead = `<line x1="${seam.x1}" y1="${seam.y1}" x2="${seam.x2}" y2="${seam.y2}" class="met-bead met-bead-active"/>`;
     stage.innerHTML = `
       <div class="met-svgwrap met-weldwrap">
-        ${piecesSVG(seams)}
-        <div class="met-welder" aria-hidden="true">⚡</div>
+        ${piecesSVG(seams + activeBead)}
+        ${welderTool()}
       </div>`;
     const wrap = stage.querySelector('.met-svgwrap');
-    const seam = build.seams[seamIdx];
     const seamEl = stage.querySelector(`.met-seam[data-seam="${seamIdx}"]`);
+    const bead = stage.querySelector('.met-bead-active');
     const welder = stage.querySelector('.met-welder');
     const segLen = Math.hypot(seam.x2 - seam.x1, seam.y2 - seam.y1);
     let fill = 0;
-    positionWelder(0);
-    function positionWelder(f) {
-      const x = seam.x1 + (seam.x2 - seam.x1) * f;
-      const y = seam.y1 + (seam.y2 - seam.y1) * f;
-      welder.style.left = (x / 200 * 100) + '%';
-      welder.style.top = (y / 200 * 100) + '%';
-    }
-    function paint() { if (seamEl) { seamEl.style.strokeDasharray = String(segLen); seamEl.style.strokeDashoffset = String(segLen * (1 - fill)); } }
+    // park the welder at the seam's start
+    positionTool(welder, seam.x1 / 200 * 100, seam.y1 / 200 * 100);
+    function paint() { if (bead) { bead.style.strokeDasharray = String(segLen); bead.style.strokeDashoffset = String(segLen * (1 - fill)); } }
     paint();
-    let welding = false, last = null;
-    const down = (e) => { if (busy) return; welding = true; last = { x: e.clientX, y: e.clientY }; e.preventDefault(); };
+    let welding = false, lastP = null, sparkAt = 0;
+    const down = (e) => { if (busy) return; welding = true; const p = ptXY(wrap, e); lastP = p; positionTool(welder, p.px, p.py); welder.classList.add('is-on'); e.preventDefault(); };
     const move = (e) => {
-      if (!welding || busy) return;
-      const dx = e.clientX - last.x, dy = e.clientY - last.y;
-      last = { x: e.clientX, y: e.clientY };
-      fill = Math.min(1, fill + Math.hypot(dx, dy) / 140);
-      positionWelder(fill); paint();
-      if (Math.random() < 0.3) play('weld');
-      if (fill >= 1) { welding = false; completeSeam(); }
+      const p = ptXY(wrap, e);
+      positionTool(welder, p.px, p.py);        // the welder always follows the finger
+      if (!welding || busy) { lastP = p; return; }
+      if (distSeg(p.x, p.y, seam.x1, seam.y1, seam.x2, seam.y2) < 26) {   // near the seam → weld!
+        const moved = lastP ? dist(p.x, p.y, lastP.x, lastP.y) : 0;
+        fill = Math.min(1, fill + Math.max(moved, 0.5) / 70);
+        paint(); welder.classList.add('is-arcing');
+        const now = e.timeStamp || 0;
+        if (now - sparkAt > 55) { sparkAt = now; spark(wrap, p.px, p.py); if (Math.random() < 0.5) play('weld'); }
+        if (fill >= 1) { welding = false; completeSeam(); }
+      } else { welder.classList.remove('is-arcing'); }
+      lastP = p;
     };
-    const up = () => { welding = false; };
+    const up = () => { welding = false; welder.classList.remove('is-arcing'); };
     wrap.addEventListener('pointerdown', down);
     wrap.addEventListener('pointermove', move);
     wrap.addEventListener('pointerup', up);
@@ -245,8 +345,10 @@ export function mountMetalMakers(root) {
     if (busy) return;
     busy = true;
     play('weld');
+    const bead = stage.querySelector('.met-bead-active');
+    if (bead) bead.style.strokeDashoffset = '0';
     const seamEl = stage.querySelector(`.met-seam[data-seam="${seamIdx}"]`);
-    if (seamEl) { seamEl.style.strokeDashoffset = '0'; seamEl.classList.add('is-welded'); }
+    if (seamEl) seamEl.classList.add('is-welded');
     seamsWelded += 1;
     unlockSticker('met-weld');
     later(() => {
@@ -264,13 +366,23 @@ export function mountMetalMakers(root) {
     const holes = build.rivets.map((h, i) => {
       const placed = rivetsPlaced.has(i);
       return `<g class="met-hole${placed ? ' is-placed' : ''}" data-hole="${i}">
-        <circle cx="${h.cx}" cy="${h.cy}" r="10" class="met-hole-ring"/>
-        ${placed ? `<circle cx="${h.cx}" cy="${h.cy}" r="7" class="met-rivet-head"/>` : ''}
+        <circle cx="${h.cx}" cy="${h.cy}" r="10" fill="url(#mm-hole)" stroke="#5b6b78" stroke-width="1.5"/>
+        ${placed ? `<circle cx="${h.cx}" cy="${h.cy}" r="9.5" fill="url(#mm-rivet)" stroke="#7a8791" stroke-width="1" class="met-rivet-head"/><circle cx="${h.cx - 3}" cy="${h.cy - 3}" r="2.6" fill="#fff" opacity="0.75"/>` : ''}
       </g>`;
     }).join('');
-    stage.innerHTML = `<div class="met-svgwrap met-rivetwrap">${piecesSVG(holes)}</div>`;
+    stage.innerHTML = `<div class="met-svgwrap met-rivetwrap">${piecesSVG(holes)}${gunTool()}</div>`;
+    const wrap = stage.querySelector('.met-svgwrap');
+    const gun = stage.querySelector('.met-rivetgun');
+    wrap.addEventListener('pointermove', (e) => { const p = ptXY(wrap, e); positionTool(gun, p.px, p.py); });
     stage.querySelectorAll('.met-hole').forEach((g) => {
-      g.addEventListener('pointerdown', (e) => { e.preventDefault(); placeRivet(Number(g.dataset.hole)); });
+      g.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        const p = ptXY(wrap, e);
+        positionTool(gun, p.px, p.py);
+        gun.classList.remove('is-firing'); void gun.offsetWidth; gun.classList.add('is-firing');
+        if (!rivetsPlaced.has(Number(g.dataset.hole))) spark(wrap, p.px, p.py);
+        placeRivet(Number(g.dataset.hole));
+      });
     });
   }
 
@@ -289,9 +401,12 @@ export function mountMetalMakers(root) {
     phase = 'reveal';
     busy = true;
     stepEl.textContent = `You made a ${build.name}! ${build.emoji}`;
+    const sparkles = reduceMotion ? '' : Array.from({ length: 6 }, (_, i) =>
+      `<span class="met-sparkle" style="left:${15 + Math.random() * 70}%;top:${15 + Math.random() * 60}%;animation-delay:${(i * 0.12).toFixed(2)}s">✦</span>`).join('');
     stage.innerHTML = `<div class="met-svgwrap met-revealwrap">
       ${piecesSVG('')}
       <div class="met-shine" aria-hidden="true"></div>
+      ${sparkles}
       <div class="met-reveal-badge" aria-hidden="true">${build.emoji}</div>
     </div>`;
     confetti();
