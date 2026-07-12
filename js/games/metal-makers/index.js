@@ -129,12 +129,13 @@ export function mountMetalMakers(root) {
     </svg>`;
   }
 
-  // pointer → svg-space (0..200) + wrap-percentage helpers
+  // pointer → svg-space (0..200), wrap-percentage, and wrap-pixel helpers
   function ptXY(wrap, e) {
     const r = wrap.getBoundingClientRect();
     return {
       x: (e.clientX - r.left) / r.width * 200, y: (e.clientY - r.top) / r.height * 200,
       px: (e.clientX - r.left) / r.width * 100, py: (e.clientY - r.top) / r.height * 100,
+      lx: e.clientX - r.left, ly: e.clientY - r.top,
     };
   }
   const dist = (ax, ay, bx, by) => Math.hypot(ax - bx, ay - by);
@@ -143,7 +144,10 @@ export function mountMetalMakers(root) {
     let t = ((px - x1) * dx + (py - y1) * dy) / L; t = Math.max(0, Math.min(1, t));
     return Math.hypot(px - (x1 + dx * t), py - (y1 + dy * t));
   }
-  function positionTool(el, px, py) { if (el) { el.style.left = px + '%'; el.style.top = py + '%'; } }
+  // Move a tool to a wrap-pixel point via a composited transform (no layout).
+  function positionTool(el, xpx, ypx) { if (el) { el.style.transform = `translate(${xpx}px, ${ypx}px)`; } }
+  // Convert an svg-space point (0..200) to a wrap-pixel point for the tools.
+  function svgToPx(wrap, sx, sy) { const r = wrap.getBoundingClientRect(); return [sx / 200 * r.width, sy / 200 * r.height]; }
 
   // The tools — inline SVG so they read clearly and their tip lands on the finger.
   function torchTool() {
@@ -208,18 +212,18 @@ export function mountMetalMakers(root) {
     }
     paint();
     // torch starts parked at the beginning of the cut so kids see where to start
-    positionTool(torch, frontier().x / 200 * 100, frontier().y / 200 * 100);
+    { const f = frontier(); positionTool(torch, ...svgToPx(wrap, f.x, f.y)); }
 
     let tracing = false, lastP = null, sparkAt = 0;
     const down = (e) => {
       if (busy) return;
       tracing = true; const p = ptXY(wrap, e); lastP = p;
-      positionTool(torch, p.px, p.py); torch.classList.add('is-on');
+      positionTool(torch, p.lx, p.ly); torch.classList.add('is-on');
       e.preventDefault();
     };
     const move = (e) => {
       const p = ptXY(wrap, e);
-      positionTool(torch, p.px, p.py);   // the torch ALWAYS follows the finger
+      positionTool(torch, p.lx, p.ly);   // the torch ALWAYS follows the finger
       if (!tracing || busy) { lastP = p; return; }
       const f = frontier();
       if (dist(p.x, p.y, f.x, f.y) < 44) {           // near the cut's leading edge → cut!
@@ -315,14 +319,14 @@ export function mountMetalMakers(root) {
     const segLen = Math.hypot(seam.x2 - seam.x1, seam.y2 - seam.y1);
     let fill = 0;
     // park the welder at the seam's start
-    positionTool(welder, seam.x1 / 200 * 100, seam.y1 / 200 * 100);
+    positionTool(welder, ...svgToPx(wrap, seam.x1, seam.y1));
     function paint() { if (bead) { bead.style.strokeDasharray = String(segLen); bead.style.strokeDashoffset = String(segLen * (1 - fill)); } }
     paint();
     let welding = false, lastP = null, sparkAt = 0;
-    const down = (e) => { if (busy) return; welding = true; const p = ptXY(wrap, e); lastP = p; positionTool(welder, p.px, p.py); welder.classList.add('is-on'); e.preventDefault(); };
+    const down = (e) => { if (busy) return; welding = true; const p = ptXY(wrap, e); lastP = p; positionTool(welder, p.lx, p.ly); welder.classList.add('is-on'); e.preventDefault(); };
     const move = (e) => {
       const p = ptXY(wrap, e);
-      positionTool(welder, p.px, p.py);        // the welder always follows the finger
+      positionTool(welder, p.lx, p.ly);        // the welder always follows the finger
       if (!welding || busy) { lastP = p; return; }
       if (distSeg(p.x, p.y, seam.x1, seam.y1, seam.x2, seam.y2) < 34) {   // near the seam → weld!
         const moved = lastP ? dist(p.x, p.y, lastP.x, lastP.y) : 0;
@@ -373,12 +377,13 @@ export function mountMetalMakers(root) {
     stage.innerHTML = `<div class="met-svgwrap met-rivetwrap">${piecesSVG(holes)}${gunTool()}</div>`;
     const wrap = stage.querySelector('.met-svgwrap');
     const gun = stage.querySelector('.met-rivetgun');
-    wrap.addEventListener('pointermove', (e) => { const p = ptXY(wrap, e); positionTool(gun, p.px, p.py); });
+    positionTool(gun, ...svgToPx(wrap, 100, 100));   // park at centre until the finger arrives
+    wrap.addEventListener('pointermove', (e) => { const p = ptXY(wrap, e); positionTool(gun, p.lx, p.ly); });
     stage.querySelectorAll('.met-hole').forEach((g) => {
       g.addEventListener('pointerdown', (e) => {
         e.preventDefault();
         const p = ptXY(wrap, e);
-        positionTool(gun, p.px, p.py);
+        positionTool(gun, p.lx, p.ly);
         gun.classList.remove('is-firing'); void gun.offsetWidth; gun.classList.add('is-firing');
         if (!rivetsPlaced.has(Number(g.dataset.hole))) spark(wrap, p.px, p.py);
         placeRivet(Number(g.dataset.hole));
