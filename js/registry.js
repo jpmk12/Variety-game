@@ -46,6 +46,7 @@ export const games = [
     emoji: '🎵',
     blurb: 'Tap the animal band to the beat!',
     accent: '#ff6b9d',
+    thumb: 'assets/tiles/beat-buddies.png',
     mount: mountBeatBuddies,
   },
   {
@@ -54,6 +55,7 @@ export const games = [
     emoji: '🧺',
     blurb: 'Count out fruit for the customers!',
     accent: '#4cc38a',
+    thumb: 'assets/tiles/counting-market.png',
     mount: mountCountingMarket,
   },
   {
@@ -62,6 +64,7 @@ export const games = [
     emoji: '🃏',
     blurb: 'Flip cards to find matching pets!',
     accent: '#b298dc',
+    thumb: 'assets/tiles/memory-match.png',
     mount: mountMemoryMatch,
   },
   {
@@ -70,6 +73,7 @@ export const games = [
     emoji: '🔺',
     blurb: 'Sort shapes and colors into bins!',
     accent: '#ff9f6b',
+    thumb: 'assets/tiles/shape-sort.png',
     mount: mountShapeSort,
   },
   {
@@ -78,6 +82,7 @@ export const games = [
     emoji: '🏗️',
     blurb: 'Move letters to build the word!',
     accent: '#f4a259',
+    thumb: 'assets/tiles/word-builders.png',
     mount: mountWordBuilders,
   },
   {
@@ -86,6 +91,7 @@ export const games = [
     emoji: '🔧',
     blurb: 'Cut, weld and rivet metal creations!',
     accent: '#8ecae6',
+    thumb: 'assets/tiles/metal-makers.png',
     mount: mountMetalMakers,
   },
 ];
