@@ -33,8 +33,8 @@ A touch-friendly game hub for kids. The home screen is a menu of games:
   letters arrive as you level up. No timer, no losing.
 - **Metal Makers** — a welding workshop: cut a shape out of a metal sheet with
   the torch, weld the pieces together, and rivet them tight to build a creation
-  (star → rocket → robot → trophy). Finished builds go on your shelf. No timer,
-  no losing.
+  (star → rocket → robot → trophy). A goggled worker cheers you on, and finished
+  builds go on your trophy shelf. No timer, no losing.
 
 Built as a **zero-build static site**: plain HTML, CSS, and JavaScript (ES
 modules) with hand-drawn inline SVG characters. No installs, no bundler, no
