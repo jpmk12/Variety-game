@@ -1,10 +1,13 @@
 # Fun Game Hub 🎮
 
 <p align="center">
-  <img src="assets/animal-care-thumbnail.png" alt="Animal Care — feed, water, bathe and play with a cartoony dog, cat, and unicorn" width="100%" />
+  <img src="assets/hero.png" alt="Fun Game Hub — ten playful games for kids: Animal Care pets, a Metal Makers welding torch, the Word Builders crane, Pet Pairs memory, Shape Sorters, and the Counting Market" width="100%" />
 </p>
 
-A touch-friendly game hub for kids. The home screen is a menu of games:
+A touch-friendly game hub for kids — **ten** playful games spanning pets, music,
+early reading, counting, sorting, and building, all under one roof. Everything is
+**no-timer, no-losing**, with big touch targets, spoken prompts, and a shared
+reward economy that ties the games together. The home screen is a menu of games:
 - **Animal Care** — look after cartoony pets (a dog, a cat, a unicorn, and a
   bunny you hatch from an egg) by feeding, watering, bathing, brushing, playing,
   and tucking them in.
@@ -279,6 +282,10 @@ js/
   progress.js           shared reward store: stars, pet friendship, stickers
   stickers.js           the sticker catalog (all games) + unlock rules
   stickerbook.js        the collection screen reached from the hub
+  profiles.js           kid profiles (namespaces every save per player)
+  profilemenu.js        the "Who's playing?" profile picker
+  daily.js              daily-treat streak store + math
+  daily-modal.js        the "Welcome back!" daily-reward popup
   audio.js              Web Audio sound effects + mute
   games/animal-care/
     index.js            router across room / zoomed pet / mini-game / shop views
@@ -312,11 +319,24 @@ js/
   games/counting-market/
     index.js            stall, customer orders, basket drag/count, day loop
     orders.js           fruit catalog + per-level order generation
+  games/memory-match/   Pet Pairs — flip-and-match memory
+    index.js            flip/match loop, levels, Faces/Names modes
+    deck.js             builds the card deck from the pet art
+  games/shape-sort/     Shape Sorters — sort by shape or by color
+    index.js            item + bins, tap-to-sort, day loop
+    shapes.js           shapes/colors, inline SVG, round generation
+  games/word-builders/  Word Builders — construction spelling
+    index.js            blueprint + letter molds + gantry crane (+ drag)
+    words.js            per-level puzzles (reuses Climb & Spell word tiers)
+  games/metal-makers/   Metal Makers — cut / weld / rivet workshop
+    index.js            pipeline controller, pointer-following tools, mascot
+    builds.js           creations: cut paths, weld seams, rivet holes
 assets/
   favicon.svg, icon-*.png     app icons (tab + home screen)
-  animal-care-thumbnail.png   README hero image
+  hero.png                    README hero (montage of six games)
+  tiles/                      generated hub card art
 scripts/
-  hero.html             generates the thumbnail (reuses the real animal art)
+  hero.html             an early single-game thumbnail generator
 ```
 
 ## Adding another game later
@@ -325,8 +345,9 @@ Add an entry to `js/registry.js` with an `id`, `title`, `emoji`, and a
 `mount(el)` function that renders into the given element and returns an optional
 `unmount()` cleanup. The hub menu picks it up automatically.
 
-## Regenerating the thumbnail
+## Regenerating the hero image
 
-The hero image is a screenshot of `scripts/hero.html` (which reuses the real
-pet art). With the dev server running, render it with any headless browser, e.g.
-Playwright, capturing the `#hero` element into `assets/animal-care-thumbnail.png`.
+`assets/hero.png` is a montage of six games. With the static server running, a
+headless browser (e.g. Playwright) opens each game, screenshots its play area,
+and composes the shots into a titled collage — see the generation script used to
+produce it. Re-run it after adding a game to refresh the hero.
