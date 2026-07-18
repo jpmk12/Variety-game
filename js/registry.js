@@ -11,6 +11,8 @@ import { mountMemoryMatch } from './games/memory-match/index.js';
 import { mountShapeSort } from './games/shape-sort/index.js';
 import { mountWordBuilders } from './games/word-builders/index.js';
 import { mountMetalMakers } from './games/metal-makers/index.js';
+import { mountTicTacToe } from './games/tic-tac-toe/index.js';
+import { mountConnectFour } from './games/connect-four/index.js';
 
 export const games = [
   {
@@ -93,5 +95,23 @@ export const games = [
     accent: '#8ecae6',
     thumb: 'assets/tiles/metal-makers.png',
     mount: mountMetalMakers,
+  },
+  {
+    id: 'tic-tac-toe',
+    title: 'Tic-Tac-Toe',
+    emoji: '⭕',
+    blurb: 'Get three pets in a row!',
+    accent: '#ff8fab',
+    thumb: 'assets/tiles/tic-tac-toe.png',
+    mount: mountTicTacToe,
+  },
+  {
+    id: 'connect-four',
+    title: 'Connect Four',
+    emoji: '🔴',
+    blurb: 'Drop pets to make four in a row!',
+    accent: '#ef476f',
+    thumb: 'assets/tiles/connect-four.png',
+    mount: mountConnectFour,
   },
 ];

@@ -3,7 +3,7 @@
 // a `when(state, helpers)` predicate that progress.js auto-checks after any
 // award (milestones on the star wallet, lifetime counters, or a pet's bond).
 
-export const GROUPS = ['Animal Care', 'Letter Samurai', 'Climb & Spell', 'Beat Buddies', 'Counting Market', 'Pet Pairs', 'Shape Sorters', 'Word Builders', 'Metal Makers', 'Milestones'];
+export const GROUPS = ['Animal Care', 'Letter Samurai', 'Climb & Spell', 'Beat Buddies', 'Counting Market', 'Pet Pairs', 'Shape Sorters', 'Word Builders', 'Metal Makers', 'Tic-Tac-Toe', 'Connect Four', 'Milestones'];
 
 export const STICKERS = [
   // --- Animal Care: one per activity, earned the first time you win it ---
@@ -84,6 +84,16 @@ export const STICKERS = [
   { id: 'met-weld',   group: 'Metal Makers', emoji: '⚡', name: 'Welder',        hint: 'Weld a seam' },
   { id: 'met-rivet',  group: 'Metal Makers', emoji: '🔩', name: 'Riveter',       hint: 'Place a rivet' },
   { id: 'met-master', group: 'Metal Makers', emoji: '🏆', name: 'Master Smith',  hint: 'Build the trophy' },
+
+  // --- Tic-Tac-Toe: three in a row ---
+  { id: 'ttt-first', group: 'Tic-Tac-Toe', emoji: '⭕', name: 'Let\'s Play',      hint: 'Play a game of Tic-Tac-Toe' },
+  { id: 'ttt-win',   group: 'Tic-Tac-Toe', emoji: '✖️', name: 'Three in a Row',  hint: 'Win a game' },
+  { id: 'ttt-ai',    group: 'Tic-Tac-Toe', emoji: '🤖', name: 'Computer Beater', hint: 'Beat the computer' },
+
+  // --- Connect Four: four in a row ---
+  { id: 'c4-first', group: 'Connect Four', emoji: '🔴', name: 'First Drop',      hint: 'Play a game of Connect Four' },
+  { id: 'c4-win',   group: 'Connect Four', emoji: '🟡', name: 'Four in a Row',   hint: 'Win a game' },
+  { id: 'c4-ai',    group: 'Connect Four', emoji: '🤖', name: 'Computer Beater', hint: 'Beat the computer' },
 
   // --- Milestones: the star wallet ---
   { id: 'stars-25',  group: 'Milestones', emoji: '⭐', name: 'Star Collector', hint: 'Earn 25 stars',
