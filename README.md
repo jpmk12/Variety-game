@@ -4,11 +4,12 @@
   <img src="assets/hero.png" alt="Fun Game Hub — ten playful games for kids: Animal Care pets, a Metal Makers welding torch, the Word Builders crane, Pet Pairs memory, Shape Sorters, and the Counting Market" width="100%" />
 </p>
 
-A touch-friendly game hub for kids — **ten** playful games spanning pets, music,
-early reading, counting, sorting, and building, all under one roof. Everything is
-**no-timer, no-losing**, with big touch targets, spoken prompts, and a shared
-reward economy that ties the games together. The home screen is a menu of games,
-each shown as a **gameplay-art tile** so kids can recognize it at a glance:
+A touch-friendly game hub for kids — **eleven** playful games spanning pets,
+music, early reading, counting, sorting, building, and classic two-player board
+games, all under one roof. Everything is **no-timer, no-losing**, with big touch
+targets, spoken prompts, and a shared reward economy that ties the games
+together. The home screen is a menu of games, each shown as a **gameplay-art
+tile** so kids can recognize it at a glance:
 - **Animal Care** — look after cartoony pets (a dog, a cat, a unicorn, and a
   bunny you hatch from an egg) by feeding, watering, bathing, brushing, playing,
   and tucking them in.
@@ -39,6 +40,12 @@ each shown as a **gameplay-art tile** so kids can recognize it at a glance:
   the torch, weld the pieces together, and rivet them tight to build a creation
   (star → rocket → robot → trophy). A goggled worker cheers you on, and finished
   builds go on your trophy shelf. No timer, no losing.
+- **Tic-Tac-Toe** — the classic three-in-a-row, pet-themed (🐶 Puppy vs 🐱
+  Kitty). Play head-to-head with a friend or against a gentle, beatable computer.
+  A win is confetti, a tie is a happy "good game", and a new round is one tap.
+- **Connect Four** — drop your pet into a 7×6 rack and get four in a row (across,
+  up, or diagonally). Two-player or vs. the computer, with the same friendly,
+  never-lose framing.
 
 Built as a **zero-build static site**: plain HTML, CSS, and JavaScript (ES
 modules) with hand-drawn inline SVG characters. No installs, no bundler, no
@@ -332,6 +339,10 @@ js/
   games/metal-makers/   Metal Makers — cut / weld / rivet workshop
     index.js            pipeline controller, pointer-following tools, mascot
     builds.js           creations: cut paths, weld seams, rivet holes
+  games/tic-tac-toe/    Tic-Tac-Toe — pet three-in-a-row, 2P or vs computer
+    index.js            board, win/tie detection, gentle AI
+  games/connect-four/   Connect Four — pet four-in-a-row, 2P or vs computer
+    index.js            drop-and-stack rack, win detection, gentle AI
 assets/
   favicon.svg, icon-*.png     app icons (tab + home screen)
   hero.png                    README hero (montage of six games)

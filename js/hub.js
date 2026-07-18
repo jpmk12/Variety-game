@@ -26,6 +26,8 @@ const GAME_GROUP = {
   'shape-sort': 'Shape Sorters',
   'word-builders': 'Word Builders',
   'metal-makers': 'Metal Makers',
+  'tic-tac-toe': 'Tic-Tac-Toe',
+  'connect-four': 'Connect Four',
 };
 
 export function renderHub(container, onLaunch) {

@@ -2236,3 +2236,109 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .met-rivetgun.is-firing, .met-sparkle, .met-hole.is-placed .met-rivet-head { animation: none; }
   .met-tool { transition: none; }
 }
+
+/* ===================== Tic-Tac-Toe & Connect Four ===================== */
+/* Shared kid-friendly touches: a big turn indicator with the current pet's
+   face, a chunky board, confetti reused from the shared confetti-fall keyframe. */
+.ttt-game, .c4-game { position: absolute; inset: 0; }
+.ttt-stage, .c4-stage {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 16px; padding: 16px;
+  background: linear-gradient(180deg, #eaf4ff 0%, #f5ecff 100%); overflow: hidden;
+}
+
+/* Whose turn — the enlarged pet face + its color is the real signal. */
+.ttt-turn, .c4-turn {
+  flex: 0 0 auto; display: flex; align-items: center; gap: 12px;
+  font-weight: 900; font-size: 1.3rem; color: var(--ink);
+}
+.ttt-turn-face, .c4-turn-face {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 58px; height: 58px; border-radius: 999px; font-size: 2rem;
+  background: color-mix(in srgb, var(--pc, #ffb703) 30%, #fff);
+  box-shadow: 0 4px 0 var(--shadow), inset 0 0 0 4px var(--pc, #ffb703);
+  animation: ttt-turn-pulse 1.1s ease-in-out infinite;
+}
+@keyframes ttt-turn-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
+/* --- Tic-Tac-Toe board --- */
+.ttt-board {
+  flex: 0 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  width: min(420px, 88vw); aspect-ratio: 1 / 1;
+  background: #6a8ec9; padding: 10px; border-radius: 24px; box-shadow: 0 8px 0 var(--shadow);
+}
+.ttt-cell {
+  display: flex; align-items: center; justify-content: center;
+  background: #fff; border-radius: 18px; box-shadow: inset 0 -4px 0 rgba(0,0,0,0.06);
+  font-size: clamp(2.2rem, 12vw, 4rem); line-height: 1; transition: transform .1s ease, background .2s ease;
+}
+.ttt-cell:not(.is-filled):active { transform: scale(0.94); background: #eef4ff; }
+.ttt-cell.is-filled { background: color-mix(in srgb, var(--pc, #ffb703) 18%, #fff); }
+.ttt-mark { display: block; }
+.ttt-pop { animation: ttt-pop .32s cubic-bezier(.3,1.5,.5,1); }
+@keyframes ttt-pop { 0% { transform: scale(0.2); } 100% { transform: scale(1); } }
+.ttt-win-cell { animation: ttt-win 0.7s ease-in-out infinite; box-shadow: 0 0 0 4px #ffd166, inset 0 -4px 0 rgba(0,0,0,0.06); }
+@keyframes ttt-win { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+/* --- Connect Four board --- */
+.c4-board {
+  flex: 0 0 auto; display: flex; gap: 6px;
+  width: min(520px, 94vw); background: #3a6ea5; padding: 10px; border-radius: 22px;
+  box-shadow: 0 8px 0 var(--shadow);
+}
+.c4-col {
+  flex: 1 1 0; display: flex; flex-direction: column; gap: 6px;
+  background: transparent; border-radius: 12px; transition: background .15s ease;
+}
+.c4-col:not(:disabled):hover { background: rgba(255,255,255,0.12); }
+.c4-col:not(:disabled):active { background: rgba(255,255,255,0.22); }
+.c4-cell {
+  aspect-ratio: 1 / 1; border-radius: 999px; background: #dfeaf7;
+  box-shadow: inset 0 3px 5px rgba(0,0,0,0.18);
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.c4-cell.is-filled { background: color-mix(in srgb, var(--pc, #ffb703) 60%, #fff); box-shadow: inset 0 3px 5px rgba(0,0,0,0.12); }
+.c4-token { font-size: clamp(1.1rem, 5vw, 1.9rem); line-height: 1; }
+.c4-fall { animation: c4-fall .38s cubic-bezier(.4,.1,.6,1); }
+@keyframes c4-fall { 0% { transform: translateY(var(--drop, -60vh)); } 70% { transform: translateY(0); } 85% { transform: translateY(-6%); } 100% { transform: translateY(0); } }
+.c4-win-cell { animation: ttt-win 0.7s ease-in-out infinite; box-shadow: 0 0 0 4px #ffd166, inset 0 3px 5px rgba(0,0,0,0.12); }
+
+/* Shared banner + play-again + start overlays for both board games. */
+.ttt-banner, .c4-banner {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0.8);
+  background: #fff; color: var(--ink); font-weight: 900; font-size: 1.5rem;
+  padding: 16px 30px; border-radius: 20px; box-shadow: 0 8px 0 var(--shadow);
+  opacity: 0; pointer-events: none; z-index: 20; transition: opacity .2s ease, transform .2s ease;
+}
+.ttt-banner.show, .c4-banner.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+.ttt-banner.is-good, .c4-banner.is-good { background: #eafff0; }
+
+.ttt-again, .c4-again {
+  flex: 0 0 auto; font-size: 1.15rem; font-weight: 800; padding: 12px 30px; border-radius: 999px;
+  background: #6a8ec9; color: #fff; box-shadow: 0 5px 0 var(--shadow); transition: transform .12s ease;
+}
+.c4-again { background: #3a6ea5; }
+.ttt-again:active, .c4-again:active { transform: scale(0.94); }
+
+.ttt-confetti, .c4-confetti { position: absolute; top: -20px; width: 12px; height: 16px; border-radius: 3px; z-index: 12; animation: confetti-fall 2.2s ease-in forwards; }
+
+.ttt-start, .c4-start {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(180deg, #eaf4ff 0%, #f5ecff 100%); z-index: 30;
+}
+.ttt-start.hidden, .c4-start.hidden { display: none; }
+.ttt-start-card, .c4-start-card { background: var(--card); border-radius: 28px; padding: 30px 34px; text-align: center; box-shadow: 0 10px 0 var(--shadow); max-width: 90%; }
+.ttt-start-emoji, .c4-start-emoji { font-size: 3rem; letter-spacing: 4px; }
+.ttt-start-card h2, .c4-start-card h2 { margin: 10px 0 4px; font-size: 1.8rem; }
+.ttt-start-card p, .c4-start-card p { margin: 0 0 20px; opacity: 0.75; font-weight: 600; }
+.ttt-modes, .c4-modes { display: flex; flex-direction: column; gap: 12px; }
+.ttt-mode, .c4-mode {
+  font-size: 1.2rem; font-weight: 800; padding: 14px 30px; border-radius: 999px;
+  background: #6a8ec9; color: #fff; box-shadow: 0 5px 0 var(--shadow); transition: transform .12s ease;
+}
+.c4-mode { background: #3a6ea5; }
+.ttt-mode:active, .c4-mode:active { transform: scale(0.94); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ttt-turn-face, .c4-turn-face, .ttt-pop, .c4-fall, .ttt-win-cell, .c4-win-cell { animation: none; }
+}

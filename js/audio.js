@@ -220,6 +220,13 @@ const EFFECTS = {
     tone({ freq: 2100, start: 0.05, duration: 0.14, type: 'sine', gain: 0.1 });
   },
 
+  // --- Tic-Tac-Toe / Connect Four ---
+  // drop: a quick tumbling plop as a token lands
+  drop: () => {
+    tone({ freq: 380, start: 0, duration: 0.1, type: 'sine', gain: 0.14, slideTo: 150 });
+    tone({ freq: 620, start: 0.02, duration: 0.06, type: 'triangle', gain: 0.06 });
+  },
+
   // --- distinct animal voices ---
   // dog: two short low "woof" barks
   'voice-dog': () => {
