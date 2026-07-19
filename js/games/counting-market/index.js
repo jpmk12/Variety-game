@@ -264,24 +264,32 @@ export function mountCountingMarket(root) {
     }
   }
 
-  // --- drag a fruit from a bin into the basket ---
+  // --- add a fruit from a bin: TAP the bin, or drag it into the basket ---
+  // Single-tap is the primary, reliable interaction for little hands (matching
+  // every other game in the hub); drag-to-basket still works for kids who prefer
+  // it. A tap and a drag-drop each add exactly one — never both.
   function makeDraggable(bin, fruitId) {
     const down = (e) => {
       if (busy) return;
       e.preventDefault();
+      const startX = e.clientX, startY = e.clientY;
+      let moved = 0;
       const ghost = document.createElement('span');
       ghost.className = 'cm-drag';
       ghost.innerHTML = fruitSVG(fruitId);
       document.body.appendChild(ghost);
       const at = (ev) => { ghost.style.left = ev.clientX + 'px'; ghost.style.top = ev.clientY + 'px'; };
       at(e);
-      const move = (ev) => { ev.preventDefault(); at(ev); };
+      const move = (ev) => { ev.preventDefault(); moved = Math.hypot(ev.clientX - startX, ev.clientY - startY); at(ev); };
       const up = (ev) => {
         window.removeEventListener('pointermove', move);
         window.removeEventListener('pointerup', up);
         ghost.remove();
         const r = basketEl.getBoundingClientRect();
-        if (ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom) addItem(fruitId);
+        const overBasket = ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom;
+        // A near-stationary press is a tap → add; a drag counts only if dropped
+        // on the basket (dragging away and releasing elsewhere cancels).
+        if (moved < 12 || overBasket) addItem(fruitId);
       };
       window.addEventListener('pointermove', move, { passive: false });
       window.addEventListener('pointerup', up);
