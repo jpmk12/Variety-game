@@ -13,9 +13,9 @@ import { play, playVoice } from '../../audio.js';
 import { award, getBond, getStars, spendStars, unlockSticker, getCounter } from '../../progress.js';
 import { MINIGAMES } from './minigames/index.js';
 import { mountTricks, TRICKS } from './minigames/tricks.js';
-import { ACCESSORIES, accessoryById } from './accessories.js';
+import { ACCESSORIES, accessoryById, accessorySVG } from './accessories.js';
 import { decoratePet } from './wardrobe.js';
-import { DECOR, decorById } from './decor.js';
+import { DECOR, decorById, decorSVG } from './decor.js';
 
 const SAVE_KEY = 'animal-care';
 const TICK_MS = 15000;
@@ -190,10 +190,11 @@ export function mountAnimalCare(root) {
       if (!decor.placed[d.id]) return;
       const el = document.createElement('span');
       el.className = 'ac-decor';
-      el.textContent = d.emoji;
+      el.innerHTML = decorSVG(d.id);
       el.style.left = d.x + '%';
       el.style.top = d.y + '%';
-      el.style.fontSize = d.size + 'rem';
+      el.style.width = d.size + 'rem';
+      el.style.height = d.size + 'rem';
       layer.appendChild(el);
     });
   }
@@ -232,7 +233,7 @@ export function mountAnimalCare(root) {
     else if (placed) btn = `<button class="ac-equip is-on">Put away</button>`;
     else btn = `<button class="ac-equip">Place</button>`;
     card.className = 'ac-shop-card' + (placed ? ' is-worn' : '');
-    card.innerHTML = `<span class="ac-shop-emoji" aria-hidden="true">${d.emoji}</span><span class="ac-shop-name">${d.name}</span>${btn}`;
+    card.innerHTML = `<span class="ac-shop-emoji ac-shop-art" aria-hidden="true">${decorSVG(d.id)}</span><span class="ac-shop-name">${d.name}</span>${btn}`;
     card.querySelector('button').addEventListener('click', () => onDecorAction(d));
   }
 
@@ -337,7 +338,7 @@ export function mountAnimalCare(root) {
     if (!roomEls || !roomEls[id]) return;
     const stats = state.animals[id].stats;
     const mood = moodFor(stats);
-    roomEls[id].faceEl.textContent = mood.face;
+    roomEls[id].faceEl.innerHTML = mood.svg;
     roomEls[id].artEl.classList.toggle('is-droopy', mood.key === 'sad');
     const need = lowestNeed(stats);
     const th = roomEls[id].thoughtEl;
@@ -549,7 +550,7 @@ export function mountAnimalCare(root) {
     }
     card.className = 'ac-shop-card' + (worn ? ' is-worn' : '') + (owned ? ' is-owned' : '');
     card.innerHTML = `
-      <span class="ac-shop-emoji" aria-hidden="true">${acc.emoji}</span>
+      <span class="ac-shop-emoji ac-shop-art" aria-hidden="true">${accessorySVG(acc.id)}</span>
       <span class="ac-shop-name">${acc.name}</span>
       ${btn}
     `;

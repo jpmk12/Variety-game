@@ -2,7 +2,7 @@
 // Keeping this separate means the room, the zoomed detail, and every mini-game
 // dress the same pet the same way — just call decoratePet(petBox, equipped).
 
-import { accessoryById } from './accessories.js';
+import { accessoryById, accessorySVG } from './accessories.js';
 
 // `equipped` is a { slot: accessoryId } map. Clears any prior overlay first so
 // re-calling on the same element (e.g. after a re-render) stays clean.
@@ -17,10 +17,12 @@ export function decoratePet(container, equipped) {
     if (!acc) continue;
     const span = document.createElement('span');
     span.className = 'ac-acc';
-    span.textContent = acc.emoji;
+    span.innerHTML = accessorySVG(acc.id);
     span.style.left = acc.x + '%';
     span.style.top = acc.y + '%';
-    span.style.fontSize = (box * acc.size) + 'px';
+    const sz = box * acc.size;
+    span.style.width = sz + 'px';
+    span.style.height = sz + 'px';
     container.appendChild(span);
   }
 }
