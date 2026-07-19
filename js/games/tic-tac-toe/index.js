@@ -43,15 +43,18 @@ function findWinningCell(board, p) {
   return null;
 }
 
-// A deliberately easy opponent: it takes a win when it sees one and blocks
-// *most* of the time, so a five-year-old can still sneak a victory through.
-function aiMove(board, me, opp) {
+// A friendly opponent: it takes a win when it sees one and blocks with a
+// probability set by difficulty — Easy lets a five-year-old sneak wins through;
+// Smart blocks almost always for an older sibling, but never plays a perfect
+// unbeatable game (no "you can never win" frustration).
+const AI_BLOCK = { easy: 0.5, smart: 0.9 };
+function aiMove(board, me, opp, blockP) {
   const win = findWinningCell(board, me);
   if (win != null) return win;
   const block = findWinningCell(board, opp);
-  if (block != null && Math.random() < 0.65) return block;
+  if (block != null && Math.random() < blockP) return block;
   const empty = board.map((v, i) => (v ? null : i)).filter((i) => i != null);
-  if (board[4] == null && Math.random() < 0.6) return 4;   // center is nice
+  if (board[4] == null && Math.random() < (blockP >= 0.8 ? 0.85 : 0.6)) return 4;   // center is strong
   return empty[Math.floor(Math.random() * empty.length)];
 }
 
@@ -75,7 +78,8 @@ export function mountTicTacToe(root) {
         <p>Get three in a row!</p>
         <div class="ttt-modes" role="group" aria-label="Choose players">
           <button class="ttt-mode" data-mode="2p">👦👧 2 Players</button>
-          <button class="ttt-mode" data-mode="ai">👦🤖 vs Computer</button>
+          <button class="ttt-mode" data-mode="ai" data-ai="easy">🤖 Easy Computer</button>
+          <button class="ttt-mode" data-mode="ai" data-ai="smart">🧠 Smart Computer</button>
         </div>
       </div>
     </div>
@@ -92,6 +96,7 @@ export function mountTicTacToe(root) {
   // --- state ---
   const saved = load(SAVE_KEY, {}) || {};
   let mode = saved.mode === 'ai' ? 'ai' : '2p';     // '2p' | 'ai'
+  let aiLevel = saved.aiLevel === 'smart' ? 'smart' : 'easy';   // 'easy' | 'smart'
   let board = Array(9).fill(null);                  // each cell: null | 'dog' | 'cat'
   let turn = 0;                                     // index into PLAYERS
   let over = false;
@@ -106,15 +111,16 @@ export function mountTicTacToe(root) {
     get board() { return [...board]; },
     get turn() { return PLAYERS[turn].id; },
     get mode() { return mode; },
+    get aiLevel() { return aiLevel; },
     get over() { return over; },
     place: (i) => tap(i),
     reset: () => newRound(),
-    setMode: (m) => { mode = m === 'ai' ? 'ai' : '2p'; start(); },
+    setMode: (m, lvl) => { mode = m === 'ai' ? 'ai' : '2p'; if (lvl) aiLevel = lvl; start(); },
   };
 
   function start() {
     unlock();
-    save(SAVE_KEY, { mode });
+    save(SAVE_KEY, { mode, aiLevel });
     startOverlay.classList.add('hidden');
     newRound();
   }
@@ -171,7 +177,7 @@ export function mountTicTacToe(root) {
       busy = true;
       setBoardEnabled(false);
       later(() => {
-        const i2 = aiMove(board, 'cat', 'dog');
+        const i2 = aiMove(board, 'cat', 'dog', AI_BLOCK[aiLevel]);
         busy = false;
         if (i2 != null && !over) {
           place(i2, 'cat');
@@ -215,17 +221,28 @@ export function mountTicTacToe(root) {
 
     if (winner) {
       const p = PLAYERS.find((x) => x.id === winner);
+      const lostToComputer = mode === 'ai' && winner === 'cat';   // the human is always the dog
       const beatComputer = mode === 'ai' && winner === 'dog';
       turnFace.innerHTML = petSVG(p.id);
       turnFace.style.setProperty('--pc', p.color);
-      turnText.textContent = `${p.name} wins! 🎉`;
       confetti(p.color);
       play('happy');
-      showBanner(`${p.emoji} ${p.name} wins!`, true);
-      if (!isMuted()) speak(mode === 'ai' && winner === 'cat' ? 'The computer wins! Play again?' : `${p.name} wins!`);
-      const stickers = ['ttt-first', 'ttt-win'];
-      if (beatComputer) stickers.push('ttt-ai');
-      award({ stars: 3, counter: 'tttGames', stickers });
+      if (lostToComputer) {
+        // The computer won — never a punishment: warm framing + a small
+        // consolation star and a bit of bond, but not the "you won" sticker.
+        turnText.textContent = `${p.name} won! Play again? 🤝`;
+        showBanner(`${p.emoji} ${p.name} won! Play again?`, true);
+        if (!isMuted()) speak('Good game! Play again?');
+        award({ stars: 1, counter: 'tttGames', stickers: ['ttt-first'], bondPet: 'dog', bondXp: 2 });
+      } else {
+        // A person won (either kid in 2-player, or the child vs. the computer).
+        turnText.textContent = `${p.name} wins! 🎉`;
+        showBanner(`${p.emoji} ${p.name} wins!`, true);
+        if (!isMuted()) speak(`${p.name} wins!`);
+        const stickers = ['ttt-first', 'ttt-win'];
+        if (beatComputer) stickers.push('ttt-ai');
+        award({ stars: 3, counter: 'tttGames', stickers, bondPet: winner, bondXp: 5 });
+      }
     } else {
       turnText.textContent = "It's a tie! 🤝";
       play('point');
@@ -261,7 +278,11 @@ export function mountTicTacToe(root) {
   }
 
   game.querySelectorAll('.ttt-mode').forEach((b) => {
-    b.addEventListener('click', () => { mode = b.dataset.mode === 'ai' ? 'ai' : '2p'; start(); });
+    b.addEventListener('click', () => {
+      mode = b.dataset.mode === 'ai' ? 'ai' : '2p';
+      if (b.dataset.ai) aiLevel = b.dataset.ai;
+      start();
+    });
   });
   againBtn.addEventListener('click', () => { play('select'); newRound(); });
 

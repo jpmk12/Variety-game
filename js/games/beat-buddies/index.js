@@ -204,15 +204,19 @@ export function mountBeatBuddies(root) {
       spawnIdx += 1;
     }
 
-    // move / resolve bubbles
+    // move / resolve bubbles; note which lanes have a bubble about to land so
+    // we can nudge the pet the child should tap next.
+    const nearing = new Set();
     for (let i = bubbles.length - 1; i >= 0; i--) {
       const b = bubbles[i];
       if (b.hit || b.missed) continue;
       const prog = (songTime - (b.arrival - TRAVEL)) / TRAVEL; // 1 = at the ring
       b.el.style.top = Math.min(prog, 1.3) * HIT_Y + '%';
+      if (prog >= 0.68 && prog <= 1.08) nearing.add(b.lane);
       if (auto && Math.abs(songTime - b.arrival) <= 0.03) { resolveHit(b); continue; }
       if (songTime > b.arrival + WINDOW) { missBubble(b); }
     }
+    if (!freeJam) petEls.forEach((p, i) => p.classList.toggle('bb-ready', nearing.has(i)));
     // clear away resolved bubbles that have finished their exit
     bubbles = bubbles.filter((b) => b.el.isConnected);
 
@@ -226,6 +230,9 @@ export function mountBeatBuddies(root) {
     const el = document.createElement('span');
     el.className = 'bb-bubble';
     el.style.top = '0%';
+    // Show the lane's instrument inside the bubble so a young child can see
+    // which pet it belongs to — colour alone isn't enough of a cue.
+    el.innerHTML = `<span class="bb-bubble-inst" aria-hidden="true">${INSTRUMENTS[LANES[note.lane]].emoji}</span>`;
     trackEls[note.lane].appendChild(el);
     bubbles.push({ lane: note.lane, arrival: note.arrival, el, hit: false, missed: false });
   }

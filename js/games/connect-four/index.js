@@ -59,18 +59,21 @@ function dropWins(grid, c, p) {
   return win;
 }
 
-// Easy, kid-beatable computer: win if it can, block most of the time, otherwise
-// lean toward the middle where more lines cross.
-function aiColumn(grid, me, opp) {
+// Kid-friendly computer: win if it can, block with a probability set by
+// difficulty (Easy lets wins through; Smart blocks almost always), otherwise
+// lean toward the middle where more lines cross. Never a perfect solver.
+const AI_BLOCK = { easy: 0.55, smart: 0.9 };
+function aiColumn(grid, me, opp, blockP) {
   const valid = [];
   for (let c = 0; c < COLS; c++) if (heightOf(grid, c) < ROWS) valid.push(c);
   if (!valid.length) return null;
   for (const c of valid) if (dropWins(grid, c, me)) return c;
-  if (Math.random() < 0.7) {
+  if (Math.random() < blockP) {
     for (const c of valid) if (dropWins(grid, c, opp)) return c;
   }
   // Weight columns by closeness to center (3), plus a little randomness.
-  const weight = (c) => (4 - Math.abs(c - 3)) + Math.random() * 2;
+  const jitter = blockP >= 0.8 ? 0.8 : 2;
+  const weight = (c) => (4 - Math.abs(c - 3)) + Math.random() * jitter;
   return valid.slice().sort((a, b) => weight(b) - weight(a))[0];
 }
 
@@ -94,7 +97,8 @@ export function mountConnectFour(root) {
         <p>Drop your pet — get four in a row!</p>
         <div class="c4-modes" role="group" aria-label="Choose players">
           <button class="c4-mode" data-mode="2p">👦👧 2 Players</button>
-          <button class="c4-mode" data-mode="ai">👦🤖 vs Computer</button>
+          <button class="c4-mode" data-mode="ai" data-ai="easy">🤖 Easy Computer</button>
+          <button class="c4-mode" data-mode="ai" data-ai="smart">🧠 Smart Computer</button>
         </div>
       </div>
     </div>
@@ -111,6 +115,7 @@ export function mountConnectFour(root) {
   // --- state ---
   const saved = load(SAVE_KEY, {}) || {};
   let mode = saved.mode === 'ai' ? 'ai' : '2p';
+  let aiLevel = saved.aiLevel === 'smart' ? 'smart' : 'easy';
   let grid = emptyGrid();
   let turn = 0;
   let over = false;
@@ -123,15 +128,16 @@ export function mountConnectFour(root) {
     get grid() { return grid.map((col) => [...col]); },
     get turn() { return PLAYERS[turn].id; },
     get mode() { return mode; },
+    get aiLevel() { return aiLevel; },
     get over() { return over; },
     drop: (c) => tapColumn(c),
     reset: () => newRound(),
-    setMode: (m) => { mode = m === 'ai' ? 'ai' : '2p'; start(); },
+    setMode: (m, lvl) => { mode = m === 'ai' ? 'ai' : '2p'; if (lvl) aiLevel = lvl; start(); },
   };
 
   function start() {
     unlock();
-    save(SAVE_KEY, { mode });
+    save(SAVE_KEY, { mode, aiLevel });
     startOverlay.classList.add('hidden');
     newRound();
   }
@@ -190,7 +196,7 @@ export function mountConnectFour(root) {
       busy = true;
       setColsEnabled(false);
       later(() => {
-        const c2 = aiColumn(grid, 'cat', 'dog');
+        const c2 = aiColumn(grid, 'cat', 'dog', AI_BLOCK[aiLevel]);
         busy = false;
         if (c2 != null && !over) {
           drop(c2, 'cat');
@@ -234,17 +240,25 @@ export function mountConnectFour(root) {
 
     if (winner) {
       const p = PLAYERS.find((x) => x.id === winner);
+      const lostToComputer = mode === 'ai' && winner === 'cat';   // the human is always the dog
       const beatComputer = mode === 'ai' && winner === 'dog';
       turnFace.innerHTML = petSVG(p.id);
       turnFace.style.setProperty('--pc', p.color);
-      turnText.textContent = `${p.name} wins! 🎉`;
       confetti(p.color);
       play('happy');
-      showBanner(`${p.emoji} ${p.name} wins!`, true);
-      if (!isMuted()) speak(mode === 'ai' && winner === 'cat' ? 'The computer wins! Play again?' : `${p.name} wins!`);
-      const stickers = ['c4-first', 'c4-win'];
-      if (beatComputer) stickers.push('c4-ai');
-      award({ stars: 3, counter: 'c4Games', stickers });
+      if (lostToComputer) {
+        turnText.textContent = `${p.name} won! Play again? 🤝`;
+        showBanner(`${p.emoji} ${p.name} won! Play again?`, true);
+        if (!isMuted()) speak('Good game! Play again?');
+        award({ stars: 1, counter: 'c4Games', stickers: ['c4-first'], bondPet: 'dog', bondXp: 2 });
+      } else {
+        turnText.textContent = `${p.name} wins! 🎉`;
+        showBanner(`${p.emoji} ${p.name} wins!`, true);
+        if (!isMuted()) speak(`${p.name} wins!`);
+        const stickers = ['c4-first', 'c4-win'];
+        if (beatComputer) stickers.push('c4-ai');
+        award({ stars: 3, counter: 'c4Games', stickers, bondPet: winner, bondXp: 5 });
+      }
     } else {
       turnText.textContent = "It's a tie! 🤝";
       play('point');
@@ -280,7 +294,11 @@ export function mountConnectFour(root) {
   }
 
   game.querySelectorAll('.c4-mode').forEach((b) => {
-    b.addEventListener('click', () => { mode = b.dataset.mode === 'ai' ? 'ai' : '2p'; start(); });
+    b.addEventListener('click', () => {
+      mode = b.dataset.mode === 'ai' ? 'ai' : '2p';
+      if (b.dataset.ai) aiLevel = b.dataset.ai;
+      start();
+    });
   });
   againBtn.addEventListener('click', () => { play('select'); newRound(); });
 
