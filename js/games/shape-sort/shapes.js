@@ -33,12 +33,16 @@ export function shapeSVG(shapeId, color = '#b0a8d0') {
   return `<svg viewBox="0 0 100 100" class="ss-shape-svg" role="img" aria-label="${shapeId}">${draw(color)}</svg>`;
 }
 
-// Each level: what to sort by, and which bins are on the table.
+// Each level: what to sort by, and which bins are on the table. Shape and colour
+// days interleave and grow (2→2→3→3→4→4 bins) so the child practises both
+// attributes all the way up instead of hitting a single colour day and a cap.
 export const LEVELS = [
   { sortBy: 'shape', bins: ['circle', 'square'] },
+  { sortBy: 'color', bins: ['red', 'blue'] },
   { sortBy: 'shape', bins: ['circle', 'square', 'triangle'] },
-  { sortBy: 'color', bins: ['red', 'blue', 'yellow', 'green'] },
+  { sortBy: 'color', bins: ['red', 'blue', 'yellow'] },
   { sortBy: 'shape', bins: ['circle', 'square', 'triangle', 'star'] },
+  { sortBy: 'color', bins: ['red', 'blue', 'yellow', 'green'] },
 ];
 export const MAX_LEVEL = LEVELS.length;
 

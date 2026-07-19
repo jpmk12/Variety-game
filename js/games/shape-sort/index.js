@@ -151,8 +151,9 @@ export function mountShapeSort(root) {
     award({ stars: 3, counter: 'ssDays', stickers: ['ss-first'] });
     if (byColor) unlockSticker('ss-color');
     renderLevel();
-    showBanner(leveled ? `All sorted! Level ${level} next 🎉` : 'All sorted! 🎉', true);
-    if (!isMuted()) speak('Great sorting!');
+    // At the top level it's "endless" — every finished day is a mastery lap.
+    showBanner(leveled ? `All sorted! Level ${level} next 🎉` : '⭐ Sort Master! Endless mode! ⭐', true);
+    if (!isMuted()) speak(leveled ? 'Great sorting!' : 'Sort master!');
     later(startDay, 2400);
   }
 

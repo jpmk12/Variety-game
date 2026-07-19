@@ -10,6 +10,7 @@ const KEY = 'daily';
 const BASE = 5;         // stars just for showing up
 const PER_DAY = 2;      // extra stars per day of streak
 const MAX_BONUS = 10;   // cap on the streak bonus
+const WEEK_BONUS = 15;  // extra chest of stars for completing a 7-day week
 export const CYCLE = 7; // the streak calendar loops every 7 days
 
 // Local calendar date as YYYY-MM-DD (a "day" is the child's local day).
@@ -42,9 +43,13 @@ export function status(today = todayStr()) {
   } else {
     streak = 1;                     // first visit, or the streak lapsed
   }
-  const reward = claimedToday ? 0 : BASE + Math.min(MAX_BONUS, (streak - 1) * PER_DAY);
   const cycleDay = ((streak - 1) % CYCLE) + 1;
-  return { claimedToday, streak, reward, cycleDay };
+  // Completing a full week (day 7 of the calendar) pays a chest bonus, so the
+  // 7-day calendar the modal shows actually pays off on day 7 instead of the
+  // reward quietly flatlining.
+  const weekBonus = !claimedToday && cycleDay === CYCLE ? WEEK_BONUS : 0;
+  const reward = claimedToday ? 0 : BASE + Math.min(MAX_BONUS, (streak - 1) * PER_DAY) + weekBonus;
+  return { claimedToday, streak, reward, cycleDay, weekBonus };
 }
 
 // Claim today's treat. Pays out stars once per day; a no-op if already claimed.
@@ -52,7 +57,8 @@ export function claim(today = todayStr()) {
   const st = status(today);
   if (st.claimedToday) return { claimed: false, ...st };
   save(KEY, { lastClaim: today, streak: st.streak });
-  award({ stars: st.reward });
+  // A completed week also bumps a counter so the "Week Streak" sticker unlocks.
+  award({ stars: st.reward, counter: st.weekBonus ? 'dailyWeeks' : undefined });
   return { claimed: true, ...st, stars: getStars() };
 }
 

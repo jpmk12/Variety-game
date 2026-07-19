@@ -102,6 +102,19 @@ export const STICKERS = [
     when: (s) => s.stars >= 100 },
   { id: 'stars-250', group: 'Milestones', emoji: '💫', name: 'Superstar',      hint: 'Earn 250 stars',
     when: (s) => s.stars >= 250 },
+  { id: 'stars-500', group: 'Milestones', emoji: '✨', name: 'Star Legend',    hint: 'Earn 500 stars',
+    when: (s) => s.stars >= 500 },
+  { id: 'stars-1000', group: 'Milestones', emoji: '👑', name: 'Star Royalty',  hint: 'Earn 1000 stars',
+    when: (s) => s.stars >= 1000 },
+  // Play (at least once) every game in the hub.
+  { id: 'played-all', group: 'Milestones', emoji: '🎡', name: 'Tried It All',  hint: 'Play every game once',
+    when: (s) => {
+      const c = s.counters || {};
+      return ['acWins', 'samCorrect', 'csWords', 'bbSongs', 'cmDays', 'mmWins', 'ssDays', 'wbWords', 'metBuilds', 'tttGames', 'c4Games']
+        .every((k) => (c[k] || 0) > 0);
+    } },
+  { id: 'week-streak', group: 'Milestones', emoji: '📅', name: 'Week Streak',  hint: 'Come back 7 days in a row',
+    when: (s) => (s.counters.dailyWeeks || 0) >= 1 },
 ];
 
 export function stickerById(id) { return STICKERS.find((s) => s.id === id) || null; }
