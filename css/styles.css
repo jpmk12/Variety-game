@@ -1878,6 +1878,9 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .daily-day.is-done { background: #fff0c2; }
 .daily-day.is-today { background: #ffd166; box-shadow: 0 0 0 3px #ffe9a8; transform: scale(1.15); }
+.daily-day.is-chest { background: #ffe3b0; }
+.daily-day.is-chest.is-today { background: #ffcf5e; }
+.daily-bonus { margin: -8px 0 16px; font-weight: 800; color: #d9612f; }
 .daily-claim {
   font-size: 1.3rem; font-weight: 800; padding: 14px 30px; border-radius: 999px;
   background: #ffd166; color: var(--ink); box-shadow: 0 5px 0 var(--shadow);

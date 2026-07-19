@@ -455,13 +455,15 @@ export function mountMetalMakers(root) {
     renderShelf();
     const items = shelfEl.querySelectorAll('.met-shelf-item');
     if (items.length && !reduceMotion) items[items.length - 1].classList.add('pop');
-    const leveled = level < MAX_LEVEL;
-    if (leveled) level += 1;
+    const atCap = level >= MAX_LEVEL;
+    // At the top, loop back to the first build — the whole workshop stays open
+    // (endless variety) instead of rebuilding the trophy forever.
+    level = atCap ? 1 : level + 1;
     persist();
     renderLevel();
     award({ stars: 3, counter: 'metBuilds', stickers: ['met-first'] });
     if (build.id === 'trophy') unlockSticker('met-master');
-    showBanner(leveled ? `${build.emoji} Nice work! Next build 🎉` : `${build.emoji} Master Smith! 🎉`, true);
+    showBanner(atCap ? `🏆 You built them all! Round again! 🎉` : `${build.emoji} Nice work! Next build 🎉`, true);
     later(startBuild, 2800);
   }
 

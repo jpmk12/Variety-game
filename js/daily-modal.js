@@ -19,8 +19,12 @@ export function renderDailyModal(container, onDone) {
     const n = i + 1;
     const done = n < st.cycleDay;
     const today = n === st.cycleDay;
-    return `<span class="daily-day${done ? ' is-done' : ''}${today ? ' is-today' : ''}">${done ? '⭐' : n}</span>`;
+    // The last day of the week is a treasure chest — a visible pay-off for
+    // keeping the streak all the way to day 7.
+    const label = done ? '⭐' : (n === CYCLE ? '🎁' : n);
+    return `<span class="daily-day${done ? ' is-done' : ''}${today ? ' is-today' : ''}${n === CYCLE ? ' is-chest' : ''}">${label}</span>`;
   }).join('');
+  const weekNote = st.weekBonus ? `<p class="daily-bonus">🎁 Week complete — +${st.weekBonus} bonus stars!</p>` : '';
 
   overlay.innerHTML = `
     <div class="daily-card">
@@ -29,6 +33,7 @@ export function renderDailyModal(container, onDone) {
       <h2 class="daily-title">Welcome back!</h2>
       <p class="daily-streak">${st.streak}-day streak</p>
       <div class="daily-cycle" aria-label="Daily streak calendar">${days}</div>
+      ${weekNote}
       <button class="daily-claim">Claim ⭐ ${st.reward}</button>
     </div>
   `;

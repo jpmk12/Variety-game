@@ -12,6 +12,8 @@ const SQUARE = 'M60 60 h80 v80 h-80 Z';
 const WBASE  = 'M52 120 h96 v34 h-96 Z';
 const STEM   = 'M90 92 h20 v44 h-20 Z';
 const CUP    = 'M62 58 h76 l-12 52 h-52 Z';
+const CARBODY = 'M40 104 q0 -6 6 -6 h108 q6 0 6 6 v30 q0 6 -6 6 h-108 q-6 0 -6 -6 Z';
+const CARTOP  = 'M72 76 h40 l16 24 h-72 Z';
 
 // `details` is a cosmetic SVG overlay drawn ONLY on the finished creation (the
 // reveal), in the same 0 0 200 200 space as the assembled pieces. It's never
@@ -56,6 +58,21 @@ export const BUILDS = [
       <path d="M84 68 q16 10 32 0" stroke="#3a3357" stroke-width="3" fill="none" stroke-linecap="round"/>
       <rect x="46" y="116" width="12" height="40" rx="6" fill="#7aa155"/><rect x="142" y="116" width="12" height="40" rx="6" fill="#7aa155"/>
       <circle cx="88" cy="128" r="5" fill="#f9c74f"/><circle cx="112" cy="128" r="5" fill="#f94144"/>`,
+  },
+  {
+    id: 'racecar', name: 'Race Car', emoji: '🏎️',
+    pieces: [
+      { id: 'body',  name: 'Body',  path: CARBODY, fill: '#ef476f', asm: 'translate(0 4)' },
+      { id: 'cabin', name: 'Cabin', path: CARTOP,  fill: '#4cc9f0', asm: 'translate(0 -2)' },
+    ],
+    seams: [{ x1: 62, y1: 102, x2: 126, y2: 102 }],
+    rivets: [{ cx: 64, cy: 122 }, { cx: 136, cy: 122 }],
+    // wheels, a windshield, a headlight and a racing stripe
+    details: `<circle cx="66" cy="150" r="15" fill="#2b2740"/><circle cx="66" cy="150" r="6" fill="#c9c6d6"/>
+      <circle cx="138" cy="150" r="15" fill="#2b2740"/><circle cx="138" cy="150" r="6" fill="#c9c6d6"/>
+      <path d="M80 82 h24 l10 16 h-44 Z" fill="#dff3ff"/>
+      <rect x="97" y="102" width="8" height="42" fill="#fff" opacity="0.75"/>
+      <circle cx="156" cy="122" r="5" fill="#ffe08a"/>`,
   },
   {
     id: 'trophy', name: 'Trophy', emoji: '🏆',
