@@ -53,7 +53,9 @@ export function makeOrder(level) {
     const a = rnd(1, 3);
     const b = rnd(1, 3);
     items = [{ fruitId: fruit, count: a + b }];
-    distractors = level >= 5 ? sample(ids, 1, [fruit]) : [];
+    // Day 4 (the cap) also puts out one wrong-fruit pile to pick past, so the
+    // adding day still exercises "grab only the right fruit".
+    distractors = level >= 4 ? sample(ids, 1, [fruit]) : [];
     addition = { a, b, fruitId: fruit, emoji: fruitById(fruit).emoji };
   }
 

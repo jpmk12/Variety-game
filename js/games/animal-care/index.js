@@ -61,7 +61,10 @@ export function mountAnimalCare(root) {
   // Living world: which egg-pets have hatched (migrates the old `hatched`
   // boolean, which only ever meant the bunny).
   const hatchedIds = new Set(saved?.hatchedIds || (saved?.hatched ? ['bunny'] : []));
-  let eggWarmth = 0; // transient warmth while the egg is on screen this session
+  // Warmth toward hatching the next egg — persisted so it isn't lost when the
+  // child leaves the room mid-warming (the next egg is deterministic, so the
+  // saved value always belongs to whichever egg is currently due).
+  let eggWarmth = saved?.eggWarmth || 0;
   let eggPet = null; // which pet the current egg will hatch into
   // Room decorations: which are owned (bought once) and which are placed.
   const decor = {
@@ -86,7 +89,7 @@ export function mountAnimalCare(root) {
   let roomEls = null;
   let eggEl = null;
 
-  function persist() { save(SAVE_KEY, { animals: state.animals, wardrobe, tricks, levels, hatchedIds: [...hatchedIds], decor, lastSaved: Date.now() }); }
+  function persist() { save(SAVE_KEY, { animals: state.animals, wardrobe, tricks, levels, hatchedIds: [...hatchedIds], eggWarmth, decor, lastSaved: Date.now() }); }
   const petDef = (id) => ANIMALS.find((a) => a.id === id);
   // Time of day drives the room's backdrop (real clock, override for tests).
   function timeOfDay() {
@@ -257,8 +260,12 @@ export function mountAnimalCare(root) {
   function addEgg(stage) {
     const h = eggReady();
     if (!h) return;
+    // Keep any warmth already banked toward this egg (it's persisted, and the
+    // next egg is deterministic so saved warmth always belongs to it). Only
+    // start from zero when we were already warming a *different* egg this
+    // session — never when eggPet is still null on a fresh mount.
+    if (eggPet && eggPet !== h.id) eggWarmth = 0;
     eggPet = h.id;
-    eggWarmth = 0;
     const btn = document.createElement('button');
     btn.className = 'ac-egg egg-' + eggPet;
     btn.setAttribute('aria-label', 'Mystery egg — tap to keep it warm');
@@ -296,6 +303,7 @@ export function mountAnimalCare(root) {
     eggEl.appendChild(h);
     setTimeout(() => h.remove(), 900);
     updateEgg();
+    persist();   // don't lose warmth if the child leaves the room
     if (eggWarmth >= EGG_WARMTH) hatchEgg();
   }
 

@@ -43,9 +43,13 @@ export function levelInfo(level) {
   return LEVELS[Math.min(MAX_LEVEL, Math.max(1, level)) - 1];
 }
 
-// Grid shape for a level + mode. Name mode pairs a face with its NAME word, and
-// only the five plain pets have unique names — so it caps at 4 pairs and lays
-// out in two tidy rows.
+// The readable species word for a pet — what a pre-reader matches to the face
+// in Names mode (e.g. "Dog", not the proper name "Biscuit").
+const SPECIES = { dog: 'Dog', cat: 'Cat', unicorn: 'Unicorn', bunny: 'Bunny', dragon: 'Dragon' };
+export function speciesWord(id) { return SPECIES[id] || (id[0].toUpperCase() + id.slice(1)); }
+
+// Grid shape for a level + mode. Name mode pairs a face with its SPECIES word,
+// so it caps at the number of pets and lays out in two tidy rows.
 export function deckInfo(level, mode = 'faces') {
   const info = levelInfo(level);
   if (mode === 'names') {
@@ -65,7 +69,7 @@ export function buildDeck(level, mode = 'faces', rng = Math.random) {
 
   if (mode === 'names') {
     ANIMALS.slice(0, pairs).forEach((a, i) => {
-      const base = { key: a.id, animalId: a.id, name: a.name, svg: a.svg, accessory: '' };
+      const base = { key: a.id, animalId: a.id, name: a.name, species: speciesWord(a.id), svg: a.svg, accessory: '' };
       cards.push({ id: i * 2, ...base, kind: 'face' });
       cards.push({ id: i * 2 + 1, ...base, kind: 'name' });
     });

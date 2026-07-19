@@ -37,7 +37,7 @@ export function shapeSVG(shapeId, color = '#b0a8d0') {
 export const LEVELS = [
   { sortBy: 'shape', bins: ['circle', 'square'] },
   { sortBy: 'shape', bins: ['circle', 'square', 'triangle'] },
-  { sortBy: 'color', bins: ['red', 'blue', 'yellow'] },
+  { sortBy: 'color', bins: ['red', 'blue', 'yellow', 'green'] },
   { sortBy: 'shape', bins: ['circle', 'square', 'triangle', 'star'] },
 ];
 export const MAX_LEVEL = LEVELS.length;
