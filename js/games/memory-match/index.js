@@ -115,9 +115,9 @@ export function mountMemoryMatch(root) {
       btn.className = 'mm-card';
       btn.dataset.i = i;
       btn.setAttribute('aria-label', 'Card');
-      // A name card shows the pet's name as a word; a face card shows its art.
+      // A name card shows the pet's species word (Dog/Cat); a face card its art.
       const face = card.kind === 'name'
-        ? `<span class="mm-word">${card.name}</span>`
+        ? `<span class="mm-word">${card.species || card.name}</span>`
         : `${card.svg}${card.accessory ? `<span class="mm-acc" aria-hidden="true">${card.accessory}</span>` : ''}`;
       btn.innerHTML = `
         <span class="mm-card-inner">
