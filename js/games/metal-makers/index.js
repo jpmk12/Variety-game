@@ -442,7 +442,7 @@ export function mountMetalMakers(root) {
     const sparkles = reduceMotion ? '' : Array.from({ length: 6 }, (_, i) =>
       `<span class="met-sparkle" style="left:${15 + Math.random() * 70}%;top:${15 + Math.random() * 60}%;animation-delay:${(i * 0.12).toFixed(2)}s">✦</span>`).join('');
     stage.innerHTML = `<div class="met-svgwrap met-revealwrap">
-      ${piecesSVG('')}
+      ${piecesSVG(build.details || '')}
       <div class="met-shine" aria-hidden="true"></div>
       ${sparkles}
       <div class="met-reveal-badge" aria-hidden="true">${build.emoji}</div>

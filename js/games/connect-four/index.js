@@ -8,6 +8,11 @@ import { play, isMuted, unlock } from '../../audio.js';
 import { speak, cancelSpeech } from '../samurai/speech.js';
 import { load, save } from '../../storage.js';
 import { award } from '../../progress.js';
+import { ANIMALS } from '../animal-care/animals.js';
+
+// Tokens are the real hand-drawn pets (same art Pet Pairs reuses) so the board
+// matches the rest of the hub instead of using flat emoji.
+const petSVG = (id) => (ANIMALS.find((a) => a.id === id) || {}).svg || '';
 
 const SAVE_KEY = 'connect-four';
 const COLS = 7;
@@ -144,7 +149,7 @@ export function mountConnectFour(root) {
 
   function renderTurn() {
     const p = PLAYERS[turn];
-    turnFace.textContent = p.emoji;
+    turnFace.innerHTML = petSVG(p.id);
     turnFace.style.setProperty('--pc', p.color);
     if (over) return;
     turnText.textContent = (mode === 'ai' && turn === 1) ? 'Computer is thinking…' : `${p.name}'s turn`;
@@ -203,7 +208,7 @@ export function mountConnectFour(root) {
     if (cell) {
       cell.classList.add('is-filled');
       cell.style.setProperty('--pc', p.color);
-      cell.innerHTML = `<span class="c4-token" aria-hidden="true">${p.emoji}</span>`;
+      cell.innerHTML = `<span class="c4-token" aria-hidden="true">${petSVG(p.id)}</span>`;
       if (!reduceMotion) {
         // fall from the top of the rack for a satisfying plop
         const drops = (ROWS - r);
@@ -230,7 +235,7 @@ export function mountConnectFour(root) {
     if (winner) {
       const p = PLAYERS.find((x) => x.id === winner);
       const beatComputer = mode === 'ai' && winner === 'dog';
-      turnFace.textContent = p.emoji;
+      turnFace.innerHTML = petSVG(p.id);
       turnFace.style.setProperty('--pc', p.color);
       turnText.textContent = `${p.name} wins! 🎉`;
       confetti(p.color);

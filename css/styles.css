@@ -1,3 +1,20 @@
+/* ---- Fonts ---- */
+/* Baloo 2 (SIL Open Font License) bundled locally — no CDN, works offline.
+   Without this the playful rounded look silently fell back to Trebuchet on
+   devices that don't ship Baloo 2 (i.e. essentially every iPad). */
+@font-face {
+  font-family: 'Baloo 2'; font-style: normal; font-weight: 400; font-display: swap;
+  src: url('../assets/fonts/baloo2-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Baloo 2'; font-style: normal; font-weight: 700; font-display: swap;
+  src: url('../assets/fonts/baloo2-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Baloo 2'; font-style: normal; font-weight: 800; font-display: swap;
+  src: url('../assets/fonts/baloo2-800.woff2') format('woff2');
+}
+
 /* ---- Theme & reset ---- */
 :root {
   --sky: #7cc6ff;
@@ -1585,7 +1602,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .cm-order-item { display: flex; flex-direction: column; align-items: center; }
 .cm-order-num { font-size: clamp(2rem, 8vw, 3rem); font-weight: 900; color: var(--ink); line-height: 1; }
-.cm-order-emoji { font-size: clamp(1.6rem, 6vw, 2.4rem); }
+.cm-order-emoji { width: clamp(30px, 8vw, 46px); height: clamp(30px, 8vw, 46px); }
+.cm-fruit-svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15)); }
 .cm-dots { display: flex; gap: 4px; margin-top: 4px; }
 .cm-dot { width: 9px; height: 9px; border-radius: 50%; background: #ff8c42; }
 .cm-and { font-weight: 800; opacity: 0.7; }
@@ -1597,7 +1615,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   display: flex; align-items: center; justify-content: center; overflow-y: auto;
 }
 .cm-basket-items { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; align-content: center; padding: 10px; }
-.cm-chip { font-size: clamp(1.8rem, 7vw, 2.6rem); line-height: 1; transition: transform .1s ease; }
+.cm-chip { width: clamp(38px, 9vw, 54px); height: clamp(38px, 9vw, 54px); line-height: 1; transition: transform .1s ease; }
+.cm-chip-fruit { display: block; width: 100%; height: 100%; }
 .cm-chip.pop { animation: cm-pop .3s ease; }
 @keyframes cm-pop { 0% { transform: scale(.4); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
 .cm-basket:empty::after { content: 'Drop fruit here'; opacity: 0.5; font-weight: 700; }
@@ -1620,8 +1639,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   touch-action: none;
 }
 .cm-bin:active { transform: scale(0.94); }
-.cm-bin-fruit { font-size: clamp(2rem, 8vw, 3rem); pointer-events: none; }
-.cm-drag { position: fixed; transform: translate(-50%,-50%); font-size: 3rem; z-index: 50; pointer-events: none; }
+.cm-bin-fruit { width: clamp(40px, 11vw, 62px); height: clamp(40px, 11vw, 62px); pointer-events: none; }
+.cm-drag { position: fixed; transform: translate(-50%,-50%); width: 58px; height: 58px; z-index: 50; pointer-events: none; }
 
 /* banner + rewards */
 .cm-banner {
@@ -2254,11 +2273,12 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .ttt-turn-face, .c4-turn-face {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 58px; height: 58px; border-radius: 999px; font-size: 2rem;
+  width: 58px; height: 58px; border-radius: 999px; font-size: 2rem; overflow: hidden;
   background: color-mix(in srgb, var(--pc, #ffb703) 30%, #fff);
   box-shadow: 0 4px 0 var(--shadow), inset 0 0 0 4px var(--pc, #ffb703);
   animation: ttt-turn-pulse 1.1s ease-in-out infinite;
 }
+.ttt-turn-face svg, .c4-turn-face svg { width: 88%; height: 88%; display: block; }
 @keyframes ttt-turn-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
 
 /* --- Tic-Tac-Toe board --- */
@@ -2274,7 +2294,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .ttt-cell:not(.is-filled):active { transform: scale(0.94); background: #eef4ff; }
 .ttt-cell.is-filled { background: color-mix(in srgb, var(--pc, #ffb703) 18%, #fff); }
-.ttt-mark { display: block; }
+.ttt-mark { display: flex; align-items: center; justify-content: center; width: 82%; height: 82%; }
+.ttt-mark svg { width: 100%; height: 100%; display: block; }
 .ttt-pop { animation: ttt-pop .32s cubic-bezier(.3,1.5,.5,1); }
 @keyframes ttt-pop { 0% { transform: scale(0.2); } 100% { transform: scale(1); } }
 .ttt-win-cell { animation: ttt-win 0.7s ease-in-out infinite; box-shadow: 0 0 0 4px #ffd166, inset 0 -4px 0 rgba(0,0,0,0.06); }
@@ -2298,7 +2319,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   display: flex; align-items: center; justify-content: center; overflow: hidden;
 }
 .c4-cell.is-filled { background: color-mix(in srgb, var(--pc, #ffb703) 60%, #fff); box-shadow: inset 0 3px 5px rgba(0,0,0,0.12); }
-.c4-token { font-size: clamp(1.1rem, 5vw, 1.9rem); line-height: 1; }
+.c4-token { display: flex; align-items: center; justify-content: center; width: 88%; height: 88%; }
+.c4-token svg { width: 100%; height: 100%; display: block; }
 .c4-fall { animation: c4-fall .38s cubic-bezier(.4,.1,.6,1); }
 @keyframes c4-fall { 0% { transform: translateY(var(--drop, -60vh)); } 70% { transform: translateY(0); } 85% { transform: translateY(-6%); } 100% { transform: translateY(0); } }
 .c4-win-cell { animation: ttt-win 0.7s ease-in-out infinite; box-shadow: 0 0 0 4px #ffd166, inset 0 3px 5px rgba(0,0,0,0.12); }
