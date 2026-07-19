@@ -104,6 +104,7 @@ export function mountSamurai(root) {
   let running = false;   // true once started, false before start / after unmount
   let raf = 0;
   let lastT = 0;
+  let swing = 0;         // 0..1 — the ninja mascot's katana swing, decays each frame
 
   // round scheduling (all times in seconds, off a running clock)
   let clock = 0;
@@ -298,6 +299,7 @@ export function mountSamurai(root) {
   function onDown(e) {
     if (!running) return;
     slicing = true;
+    swing = 1;   // the little ninja swings its katana whenever you slash
     last = localPoint(e);
     blade.length = 0;
     blade.push({ ...last, t: clock });
@@ -372,6 +374,10 @@ export function mountSamurai(root) {
       updateStreak();
       play('oops');
       floatText(o.x, o.y, 'oops', '#9aa0b5');
+      // Teach instead of just buzzing: gently re-say the letter to find, so a
+      // wrong slash becomes a hint rather than a dead end. (The target is the
+      // next letter of the word in Word Mode, or the called letter otherwise.)
+      if (!isMuted() && target) speak(`Find ${target}`);
     }
   }
 
@@ -406,6 +412,7 @@ export function mountSamurai(root) {
   // --- update ---
   function update(dt) {
     clock += dt;
+    if (swing > 0) swing = Math.max(0, swing - dt * 4);   // katana settles back in ~0.25s
 
     if (mode === 'spawning') {
       waveClock += dt;
@@ -461,6 +468,9 @@ export function mountSamurai(root) {
     ctx.arc(W * 0.78, H * 0.24, Math.min(W, H) * 0.18, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
+
+    // the little samurai mascot, down in the corner, swinging on each slash
+    drawNinja(swing);
 
     // letters
     for (const o of objects) drawLetter(o.x, o.y, o.r, o.char, o.color, o.angle, 1);
@@ -527,6 +537,67 @@ export function mountSamurai(root) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(char, 0, r * 0.06);
+    ctx.restore();
+  }
+
+  // The Letter Samurai himself: a tiny hooded ninja in the bottom-left corner
+  // who bobs gently and swings his katana up across his body on each slash, so
+  // the game finally shows the hero its name (and hub tile) promise.
+  function drawNinja(sw) {
+    const s = Math.min(W, H) * 0.15;      // mascot size
+    const cx = W * 0.12 + s * 0.1;
+    const cy = H - s * 0.55 - 4;
+    const bob = Math.sin(clock * 2) * s * 0.03;
+    ctx.save();
+    ctx.translate(cx, cy + bob);
+
+    // ground shadow
+    ctx.fillStyle = 'rgba(40,40,70,0.12)';
+    ctx.beginPath(); ctx.ellipse(0, s * 0.64, s * 0.5, s * 0.12, 0, 0, Math.PI * 2); ctx.fill();
+
+    // katana arm, behind the body when resting, rotating up on a slash
+    const rest = -0.5, slash = -2.5;
+    const ang = rest + sw * (slash - rest);
+    ctx.save();
+    ctx.translate(s * 0.16, -s * 0.04);
+    ctx.rotate(ang);
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#7a5230'; ctx.lineWidth = s * 0.1;         // hilt
+    ctx.beginPath(); ctx.moveTo(-s * 0.14, 0); ctx.lineTo(0, 0); ctx.stroke();
+    ctx.strokeStyle = '#e7edf6'; ctx.lineWidth = s * 0.075;       // blade
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(s * 0.72, 0); ctx.stroke();
+    ctx.strokeStyle = '#c3ccdb'; ctx.lineWidth = s * 0.02;        // blade edge glint
+    ctx.beginPath(); ctx.moveTo(s * 0.05, -s * 0.02); ctx.lineTo(s * 0.7, -s * 0.02); ctx.stroke();
+    ctx.restore();
+
+    // body (indigo gown)
+    ctx.fillStyle = '#3a4160';
+    ctx.beginPath();
+    ctx.moveTo(-s * 0.33, s * 0.6);
+    ctx.quadraticCurveTo(-s * 0.42, -s * 0.02, -s * 0.19, -s * 0.13);
+    ctx.lineTo(s * 0.19, -s * 0.13);
+    ctx.quadraticCurveTo(s * 0.42, -s * 0.02, s * 0.33, s * 0.6);
+    ctx.closePath(); ctx.fill();
+    // red sash
+    ctx.fillStyle = '#e63950';
+    ctx.fillRect(-s * 0.3, s * 0.14, s * 0.6, s * 0.1);
+
+    // head (hood) + face band + eyes
+    ctx.fillStyle = '#2a2f45';
+    ctx.beginPath(); ctx.arc(0, -s * 0.32, s * 0.26, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffd9b3';
+    ctx.fillRect(-s * 0.26, -s * 0.4, s * 0.52, s * 0.14);
+    ctx.fillStyle = '#2a2f45';
+    ctx.beginPath();
+    ctx.arc(-s * 0.09, -s * 0.33, s * 0.032, 0, Math.PI * 2);
+    ctx.arc(s * 0.09, -s * 0.33, s * 0.032, 0, Math.PI * 2);
+    ctx.fill();
+    // headband tail flicking behind
+    ctx.strokeStyle = '#e63950'; ctx.lineWidth = s * 0.06; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(-s * 0.24, -s * 0.46);
+    ctx.quadraticCurveTo(-s * 0.52, -s * 0.42 + bob, -s * 0.5, -s * 0.24);
+    ctx.stroke();
     ctx.restore();
   }
 
