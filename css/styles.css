@@ -257,12 +257,14 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .ac-mood {
   order: 0;
-  font-size: 1.8rem;
+  width: 1.9rem;
+  height: 1.9rem;
   line-height: 1;
   margin-bottom: 2px;
   filter: drop-shadow(0 2px 2px var(--shadow));
   transition: transform 0.2s ease;
 }
+.ac-face-svg { width: 100%; height: 100%; display: block; }
 .ac-animal[data-mood="sad"] .ac-mood { animation: mood-wobble 1.2s ease-in-out infinite; }
 
 /* ---- Action bar ---- */
@@ -1150,6 +1152,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   line-height: 1; pointer-events: none; z-index: 5;
   filter: drop-shadow(0 2px 2px var(--shadow));
 }
+.ac-acc svg { width: 100%; height: 100%; display: block; }
 
 /* Shop button in the detail header */
 .ac-shop-btn {
@@ -1182,6 +1185,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .ac-shop-card.is-worn { border-color: #2ec4b6; background: #eafbf7; }
 .ac-shop-emoji { font-size: 2.6rem; line-height: 1; }
+.ac-shop-art { width: 2.8rem; height: 2.8rem; display: inline-flex; }
+.ac-shop-art svg { width: 100%; height: 100%; display: block; }
 .ac-shop-name { font-weight: 800; font-size: 0.9rem; }
 .ac-shop-card button {
   margin-top: 2px; font-weight: 800; font-size: 0.9rem; color: var(--ink);
@@ -1690,6 +1695,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 /* Placed decorations */
 .ac-decor-layer { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
 .ac-decor { position: absolute; transform: translate(-50%, -50%); line-height: 1; filter: drop-shadow(0 3px 3px var(--shadow)); }
+.ac-decor svg { width: 100%; height: 100%; display: block; }
 
 /* Sun / moon / stars inside the window */
 .ac-sun, .ac-moon {

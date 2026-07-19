@@ -55,12 +55,32 @@ export function overall(stats) {
 }
 
 // Map overall wellbeing to a mood used for the floating face + animation.
+// Little round mood faces drawn in the same flat-vector style as the pets, so
+// the floating mood indicator matches the art instead of using an OS emoji.
+const MOOD_SVG = {
+  great: `<svg viewBox="0 0 100 100" class="ac-face-svg" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="#ffcf3e"/>
+    <path d="M28 40 q7 -9 14 0" stroke="#6a5216" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M58 40 q7 -9 14 0" stroke="#6a5216" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M30 58 q20 24 40 0 Z" fill="#6a5216"/><path d="M38 66 q12 8 24 0" fill="#ff7d9c"/></svg>`,
+  good: `<svg viewBox="0 0 100 100" class="ac-face-svg" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="#ffd54a"/>
+    <circle cx="37" cy="45" r="4.5" fill="#6a5216"/><circle cx="63" cy="45" r="4.5" fill="#6a5216"/>
+    <path d="M36 62 q14 13 28 0" stroke="#6a5216" stroke-width="5" fill="none" stroke-linecap="round"/></svg>`,
+  meh: `<svg viewBox="0 0 100 100" class="ac-face-svg" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="#ffe39a"/>
+    <circle cx="37" cy="46" r="4.5" fill="#6a5216"/><circle cx="63" cy="46" r="4.5" fill="#6a5216"/>
+    <path d="M37 65 h26" stroke="#6a5216" stroke-width="5" fill="none" stroke-linecap="round"/></svg>`,
+  sad: `<svg viewBox="0 0 100 100" class="ac-face-svg" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="#a9c8e8"/>
+    <circle cx="37" cy="47" r="4.5" fill="#3a4a5e"/><circle cx="63" cy="47" r="4.5" fill="#3a4a5e"/>
+    <path d="M37 68 q13 -12 26 0" stroke="#3a4a5e" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M64 54 q5 9 0 15 q-5 -6 0 -15 Z" fill="#5aa9ff"/></svg>`,
+};
+
 export function moodFor(stats) {
   const score = overall(stats);
-  if (score >= 80) return { key: 'great', face: '😄' };
-  if (score >= 55) return { key: 'good', face: '🙂' };
-  if (score >= 30) return { key: 'meh', face: '😕' };
-  return { key: 'sad', face: '😢' };
+  const pick = (key, face) => ({ key, face, svg: MOOD_SVG[key] });
+  if (score >= 80) return pick('great', '😄');
+  if (score >= 55) return pick('good', '🙂');
+  if (score >= 30) return pick('meh', '😕');
+  return pick('sad', '😢');
 }
 
 // The most-depleted need, but only if it has dropped below LOW_THRESHOLD.
