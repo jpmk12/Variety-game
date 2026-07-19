@@ -9,7 +9,7 @@ import { play, isMuted, unlock } from '../../audio.js';
 import { speak, cancelSpeech } from '../samurai/speech.js';
 import { load, save } from '../../storage.js';
 import { award, unlockSticker } from '../../progress.js';
-import { FRUITS, fruitById, makeOrder } from './orders.js';
+import { FRUITS, fruitById, fruitSVG, makeOrder } from './orders.js';
 
 const SAVE_KEY = 'counting-market';
 const DAY_TARGET = 5;   // customers to serve for a full market day
@@ -115,16 +115,16 @@ export function mountCountingMarket(root) {
   function setMeter() { meterFill.style.width = (served / DAY_TARGET) * 100 + '%'; }
 
   const dots = (n) => `<span class="cm-dots" aria-hidden="true">${'<span class="cm-dot"></span>'.repeat(n)}</span>`;
-  const orderItem = (count, emoji) => `<span class="cm-order-item"><span class="cm-order-num">${count}</span><span class="cm-order-emoji">${emoji}</span>${dots(count)}</span>`;
+  const orderItem = (count, art) => `<span class="cm-order-item"><span class="cm-order-num">${count}</span><span class="cm-order-emoji">${art}</span>${dots(count)}</span>`;
 
   function renderOrder() {
     if (order.addition) {
-      const { a, b, emoji } = order.addition;
-      orderEl.innerHTML = `${orderItem(a, emoji)}<span class="cm-op">+</span>${orderItem(b, emoji)}<span class="cm-op cm-eq">= ?</span>`;
+      const { a, b, svg } = order.addition;
+      orderEl.innerHTML = `${orderItem(a, svg)}<span class="cm-op">+</span>${orderItem(b, svg)}<span class="cm-op cm-eq">= ?</span>`;
       return;
     }
     orderEl.innerHTML = order.sentence
-      .map((s, i) => `${i > 0 ? '<span class="cm-and">and</span>' : ''}${orderItem(s.count, s.emoji)}`)
+      .map((s, i) => `${i > 0 ? '<span class="cm-and">and</span>' : ''}${orderItem(s.count, s.svg)}`)
       .join('');
   }
 
@@ -136,7 +136,7 @@ export function mountCountingMarket(root) {
       bin.className = 'cm-bin';
       bin.dataset.id = id;
       bin.setAttribute('aria-label', 'Add ' + f.name);
-      bin.innerHTML = `<span class="cm-bin-fruit" aria-hidden="true">${f.emoji}</span>`;
+      bin.innerHTML = `<span class="cm-bin-fruit" aria-hidden="true">${fruitSVG(id)}</span>`;
       makeDraggable(bin, id);
       binsEl.appendChild(bin);
     });
@@ -147,7 +147,7 @@ export function mountCountingMarket(root) {
     basket.forEach((id, idx) => {
       const chip = document.createElement('button');
       chip.className = 'cm-chip';
-      chip.textContent = fruitById(id).emoji;
+      chip.innerHTML = `<span class="cm-chip-fruit" aria-hidden="true">${fruitSVG(id)}</span>`;
       chip.setAttribute('aria-label', 'Remove ' + fruitById(id).name);
       chip.addEventListener('click', () => removeItem(idx));
       basketItemsEl.appendChild(chip);
@@ -271,7 +271,7 @@ export function mountCountingMarket(root) {
       e.preventDefault();
       const ghost = document.createElement('span');
       ghost.className = 'cm-drag';
-      ghost.textContent = fruitById(fruitId).emoji;
+      ghost.innerHTML = fruitSVG(fruitId);
       document.body.appendChild(ghost);
       const at = (ev) => { ghost.style.left = ev.clientX + 'px'; ghost.style.top = ev.clientY + 'px'; };
       at(e);

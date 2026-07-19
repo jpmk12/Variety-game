@@ -8,6 +8,11 @@ import { play, isMuted, unlock } from '../../audio.js';
 import { speak, cancelSpeech } from '../samurai/speech.js';
 import { load, save } from '../../storage.js';
 import { award } from '../../progress.js';
+import { ANIMALS } from '../animal-care/animals.js';
+
+// The players' tokens are the real hand-drawn pets (same art Pet Pairs reuses),
+// so the board games look like the rest of the hub instead of using flat emoji.
+const petSVG = (id) => (ANIMALS.find((a) => a.id === id) || {}).svg || '';
 
 const SAVE_KEY = 'tic-tac-toe';
 const reduceMotion = typeof matchMedia === 'function'
@@ -127,7 +132,7 @@ export function mountTicTacToe(root) {
 
   function renderTurn() {
     const p = PLAYERS[turn];
-    turnFace.textContent = p.emoji;
+    turnFace.innerHTML = petSVG(p.id);
     turnFace.style.setProperty('--pc', p.color);
     if (over) return;
     const you = mode === 'ai' && turn === 1;
@@ -144,7 +149,7 @@ export function mountTicTacToe(root) {
         const p = PLAYERS.find((x) => x.id === cell);
         btn.classList.add('is-filled');
         btn.style.setProperty('--pc', p.color);
-        btn.innerHTML = `<span class="ttt-mark" aria-hidden="true">${p.emoji}</span>`;
+        btn.innerHTML = `<span class="ttt-mark" aria-hidden="true">${petSVG(p.id)}</span>`;
         btn.setAttribute('aria-label', `${p.name} here`);
         btn.disabled = true;
       } else {
@@ -183,7 +188,7 @@ export function mountTicTacToe(root) {
     if (btn) {
       btn.classList.add('is-filled', 'ttt-pop');
       btn.style.setProperty('--pc', p.color);
-      btn.innerHTML = `<span class="ttt-mark" aria-hidden="true">${p.emoji}</span>`;
+      btn.innerHTML = `<span class="ttt-mark" aria-hidden="true">${petSVG(p.id)}</span>`;
       btn.disabled = true;
       btn.replaceWith(btn.cloneNode(true));   // drop the click listener
     }
@@ -211,7 +216,7 @@ export function mountTicTacToe(root) {
     if (winner) {
       const p = PLAYERS.find((x) => x.id === winner);
       const beatComputer = mode === 'ai' && winner === 'dog';
-      turnFace.textContent = p.emoji;
+      turnFace.innerHTML = petSVG(p.id);
       turnFace.style.setProperty('--pc', p.color);
       turnText.textContent = `${p.name} wins! 🎉`;
       confetti(p.color);
